@@ -5,9 +5,6 @@ env:
 
 on:
   workflow_dispatch:
-  schedule:
-    # Every 10 minutes, offset from the busiest :00/:10 boundaries.
-    - cron: '3,13,23,33,43,53 * * * *'
 
 permissions:
   contents: write

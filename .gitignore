@@ -10,4 +10,5 @@ state.json
 fortress_bot.log
 test.py
 fortress_bot.service
+run-fortress-bot.sh
 playwright/.cache/
