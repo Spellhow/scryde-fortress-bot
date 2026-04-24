@@ -152,14 +152,27 @@ def empty_state():
 
 
 def load_state():
+    state = None
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r", encoding="utf-8") as fh:
             try:
                 state = json.load(fh)
             except Exception:
-                state = empty_state()
+                state = None
     else:
+        state = None
+
+    if not isinstance(state, dict):
         state = empty_state()
+
+    default_state = empty_state()
+    for key, value in default_state.items():
+        if key not in state:
+            state[key] = value
+        elif isinstance(value, dict) and isinstance(state.get(key), dict):
+            for nested_key, nested_value in value.items():
+                if nested_key not in state[key]:
+                    state[key][nested_key] = nested_value
 
     if "meta" not in state:
         state["meta"] = {"backoff_until": {}}
