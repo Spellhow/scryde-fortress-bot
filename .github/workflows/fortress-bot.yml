@@ -1,5 +1,8 @@
 name: Fortress Bot
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
   push:
@@ -54,6 +57,20 @@ jobs:
           STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 60
         run: python github_runner.py
+
+      - name: Show saved state summary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          with open('site_state.json', 'r', encoding='utf-8') as fh:
+              state = json.load(fh)
+          fortress = state.get('fortress', {})
+          castle = state.get('castle', {})
+          print('fortress:', fortress.get('name'), 'had=', fortress.get('had'))
+          print('castle:', castle.get('name'), 'had=', castle.get('had'))
+          print('backoff:', state.get('meta', {}).get('backoff_until', {}))
+          PY
 
       - name: Commit updated state
         shell: bash

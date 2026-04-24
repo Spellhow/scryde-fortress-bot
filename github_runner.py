@@ -45,8 +45,8 @@ FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1
 CASTLE_URL = os.environ.get("CASTLE_URL", "https://ua.scryde.game/rankings/1000/castles")
 STATE_FILE = os.environ.get("STATE_FILE", "site_state.json")
 
-BETWEEN_REQUESTS_DELAY = (8, 18)
-PRE_FETCH_DELAY = (15, 75)
+BETWEEN_REQUESTS_DELAY = (4, 9)
+PRE_FETCH_DELAY = (8, 20)
 BACKOFF_MINUTES_ON_CHALLENGE = int(os.environ.get("BACKOFF_MINUTES_ON_CHALLENGE", "60"))
 SITE_ERROR_NOTIFY_AFTER = 2
 
@@ -259,6 +259,7 @@ def fetch_page_data(url, page_key, state):
     _challenge_counts[page_key] = 0
 
     data = json.loads(script_tag.string)
+    log("{} loaded {} objects".format(page_key, len(data["props"]["pageProps"]["rankingRows"]["items"])))
     return data["props"]["pageProps"]["rankingRows"]["items"]
 
 
