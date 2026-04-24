@@ -5,6 +5,7 @@ import os
 import random
 import time
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
@@ -49,6 +50,7 @@ BETWEEN_REQUESTS_DELAY = (4, 9)
 PRE_FETCH_DELAY = (8, 20)
 BACKOFF_MINUTES_ON_CHALLENGE = int(os.environ.get("BACKOFF_MINUTES_ON_CHALLENGE", "60"))
 SITE_ERROR_NOTIFY_AFTER = 2
+GAME_TZ = ZoneInfo("Europe/Kyiv")
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -274,7 +276,7 @@ def format_time(ts):
     if not ts:
         return "невідомо"
     try:
-        return datetime.fromtimestamp(ts).strftime("%d.%m %H:%M")
+        return datetime.fromtimestamp(ts, tz=GAME_TZ).strftime("%d.%m %H:%M")
     except Exception:
         return str(ts)
 
