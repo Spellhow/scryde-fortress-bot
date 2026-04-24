@@ -5,11 +5,8 @@ env:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/10 * * * *'
 
 permissions:
   contents: write
@@ -33,6 +30,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-actions.txt
+
+      - name: Restore Playwright browser cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements-actions.txt') }}
 
       - name: Install Python dependencies
         run: pip install -r requirements-actions.txt
