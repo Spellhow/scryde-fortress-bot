@@ -1,0 +1,66 @@
+name: Fortress Bot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fortress-bot
+  cancel-in-progress: false
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements-actions.txt
+
+      - name: Install Playwright Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Ensure state file exists
+        run: |
+          if [ ! -f site_state.json ]; then
+            echo '{}' > site_state.json
+          fi
+
+      - name: Run bot check
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
+          OUR_CLAN: BSOE
+          FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
+          CASTLE_URL: https://ua.scryde.game/rankings/1000/castles
+          STATE_FILE: site_state.json
+          BACKOFF_MINUTES_ON_CHALLENGE: 60
+        run: python github_runner.py
+
+      - name: Commit updated state
+        shell: bash
+        run: |
+          if git diff --quiet -- site_state.json; then
+            echo "No state changes"
+            exit 0
+          fi
+          git add site_state.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: update fortress bot state"
+          git push

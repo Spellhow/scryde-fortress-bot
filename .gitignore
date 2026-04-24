@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.venv/
+venv/
+.env
+config.py
+state.json
+fortress_bot.log
+test.py
+fortress_bot.service
+playwright/.cache/
