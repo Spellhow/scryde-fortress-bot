@@ -214,7 +214,7 @@ def fetch_page_data(url, page_key, state):
         page.route(
             "**/*",
             lambda route: route.abort()
-            if route.request().resource_type in {"image", "font", "media", "stylesheet"}
+            if route.request.resource_type in {"image", "font", "media", "stylesheet"}
             else route.continue_(),
         )
         try:
