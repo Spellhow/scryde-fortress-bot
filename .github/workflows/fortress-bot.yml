@@ -2,6 +2,9 @@ name: Fortress Bot
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
   schedule:
     - cron: '*/15 * * * *'
 
