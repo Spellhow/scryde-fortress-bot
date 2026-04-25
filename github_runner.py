@@ -456,7 +456,17 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
 
         if not prev.get("notified") or siege_at != prev.get("siege_at", 0):
             msg = WE_ATTACK.format(acc=o["acc"], nom=o["nom"], name=obj_name, owner=owner_name, time=siege_time_str, url=page_url)
-            image = build_event_card(obj_type, obj_name, "Атакуємо {}!".format(o["acc"]), (26, 107, 138), owner_name, (item.get("owner") or {}).get("image"), [], siege_time_str, page_url)
+            image = build_event_card(
+                obj_type,
+                obj_name,
+                "Атакуємо {}!".format(o["acc"]),
+                (26, 107, 138),
+                owner_name,
+                (item.get("owner") or {}).get("image"),
+                [{"name": OUR_CLAN, "image": None}],
+                siege_time_str,
+                page_url,
+            )
             if send_notification(msg, image):
                 attack_state[obj_id] = {
                     "name": obj_name,

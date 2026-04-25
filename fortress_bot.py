@@ -826,7 +826,7 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
                         event_color   = (26, 107, 138),  # синій — ми атакуємо
                         owner_name    = owner_name,
                         owner_icon_url = (item.get("owner") or {}).get("image"),
-                        attackers     = [],  # ми самі атакуючі, власник вже показаний
+                        attackers     = [{"name": OUR_CLAN, "image": None}],
                         siege_time    = siege_time_str,
                         page_url      = page_url,
                     )
