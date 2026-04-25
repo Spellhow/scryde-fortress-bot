@@ -23,7 +23,14 @@
     "siege_first_notify": 0,
     "notified_reminder": false
   },
-  "our_fortress_attacks": {},
+  "our_fortress_attacks": {
+    "116": {
+      "name": "Antharas Fortress",
+      "siege_at": 1777120330,
+      "notified": true,
+      "owner_icon": null
+    }
+  },
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {}
