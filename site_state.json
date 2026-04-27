@@ -3,12 +3,17 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "YourBannyWrot",
+        "image": "https://static-eu.scrydecdn.com/clan-images/63f9237ea8e3629acaaf00b47663d46d-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1777310704,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1777307518,
     "notified_reminder": false
   },
   "castle": {
