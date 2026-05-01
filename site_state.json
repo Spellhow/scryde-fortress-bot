@@ -3,17 +3,12 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [
-      {
-        "name": "HDMI",
-        "image": "https://static-eu.scrydecdn.com/clan-images/6489cb9b8648c9ec8629435314ac2190-full.jpg"
-      }
-    ],
+    "last_attackers": [],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 1777614132,
-    "notified_siege": true,
+    "last_siege_at": 0,
+    "notified_siege": false,
     "notified_lost": false,
-    "siege_first_notify": 1777611131,
+    "siege_first_notify": 0,
     "notified_reminder": false
   },
   "castle": {
