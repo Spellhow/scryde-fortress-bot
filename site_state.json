@@ -23,14 +23,7 @@
     "siege_first_notify": 0,
     "notified_reminder": false
   },
-  "our_fortress_attacks": {
-    "109": {
-      "name": "Borderland Fortress",
-      "siege_at": 1777644137,
-      "notified": true,
-      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/ba999b691687d0ea1a7f3f74aea0a9b7-full.jpg"
-    }
-  },
+  "our_fortress_attacks": {},
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {}
