@@ -3,6 +3,7 @@
 import json
 import os
 import random
+import re
 import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -42,9 +43,11 @@ except Exception as exc:
 TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT = os.environ["TG_CHAT"]
 TG_CHAT_DEBUG = os.environ.get("TG_CHAT_DEBUG", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
 CASTLE_URL = os.environ.get("CASTLE_URL", "https://ua.scryde.game/rankings/1000/castles")
+SCRYDE_CHANNEL_URL = os.environ.get("SCRYDE_CHANNEL_URL", "https://t.me/s/scryde")
 STATE_FILE = os.environ.get("STATE_FILE", "site_state.json")
 
 BETWEEN_REQUESTS_DELAY = (4, 9)
@@ -148,6 +151,10 @@ def empty_state():
         },
         "our_fortress_attacks": {},
         "our_castle_attacks": {},
+        "news": {
+            "last_seen_id": 0,
+            "sent_ids": [],
+        },
         "meta": {
             "backoff_until": {},
             "last_alerts": {},
@@ -213,6 +220,120 @@ def set_backoff(state, page_key, minutes):
 
 def clear_backoff(state, page_key):
     state["meta"]["backoff_until"].pop(page_key, None)
+
+
+def fetch_channel_posts(channel_url):
+    try:
+        response = requests.get(channel_url, timeout=20)
+        response.raise_for_status()
+    except Exception as exc:
+        log("channel fetch failed: {}".format(exc))
+        return []
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    posts = []
+    for wrap in soup.select("div.tgme_widget_message_wrap"):
+        link = wrap.select_one("a.tgme_widget_message_date")
+        text_node = wrap.select_one("div.tgme_widget_message_text")
+        if not link or not text_node:
+            continue
+        href = link.get("href") or ""
+        match = re.search(r"/([^/]+)/([0-9]+)(?:\?|$)", href)
+        if not match:
+            continue
+        post_id = int(match.group(2))
+        text = text_node.get_text("\n", strip=True)
+        if not text:
+            continue
+        posts.append({
+            "id": post_id,
+            "url": href,
+            "text": text,
+        })
+    posts.sort(key=lambda item: item["id"])
+    return posts
+
+
+def gemini_rewrite_x1000_news(text):
+    if not GEMINI_API_KEY:
+        return None
+
+    prompt = (
+        "Ти редактор новин для українського Telegram-каналу клану в MMORPG Scryde.\n"
+        "Завдання: проаналізуй новину російською мовою та визнач, чи стосується вона сервера x1000.\n"
+        "Потрібно враховувати тільки сервер x1000. Якщо новина стосується лише інших серверів, турнірів, стримів, загальних активностей без прив'язки до x1000, відповідай що вона не релевантна.\n"
+        "Якщо новина частково стосується кількох серверів, залиш тільки частину, яка стосується x1000.\n"
+        "Прибери зайве: інформацію про інші сервери, рекламні вставки, посилання на стріми, зайві CTA, фрази про підписку, другорядний шум.\n"
+        "Переклади результат українською мовою, коротко і чисто, у форматі для Telegram.\n"
+        "\n"
+        "Поверни JSON об'єкт такого вигляду:\n"
+        "{\"relevant\": true|false, \"title\": \"короткий заголовок\", \"text\": \"готовий український текст\"}\n"
+        "Без markdown-обгорток, без пояснень, лише JSON.\n"
+        "\n"
+        "Оригінальна новина:\n{}"
+    ).format(text)
+
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}".format(GEMINI_API_KEY)
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.2,
+            "responseMimeType": "application/json",
+        },
+    }
+
+    try:
+        response = requests.post(url, json=payload, timeout=40)
+        response.raise_for_status()
+        data = response.json()
+        text_out = data["candidates"][0]["content"]["parts"][0]["text"]
+        parsed = json.loads(text_out)
+        if not isinstance(parsed, dict):
+            return None
+        return parsed
+    except Exception as exc:
+        log("gemini rewrite failed: {}".format(exc))
+        send_debug(DEBUG_CYCLE_ERROR.format(error="gemini news error: {}".format(str(exc)[:240])))
+        return None
+
+
+def process_channel_news(state):
+    posts = fetch_channel_posts(SCRYDE_CHANNEL_URL)
+    if not posts:
+        return
+
+    news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": []})
+    last_seen_id = int(news_state.get("last_seen_id", 0) or 0)
+    sent_ids = set(news_state.get("sent_ids", []))
+    new_posts = [post for post in posts if post["id"] > last_seen_id]
+
+    if not new_posts:
+        return
+
+    for post in new_posts:
+        rewritten = gemini_rewrite_x1000_news(post["text"])
+        news_state["last_seen_id"] = max(news_state.get("last_seen_id", 0), post["id"])
+        if not rewritten or not rewritten.get("relevant"):
+            continue
+        if post["id"] in sent_ids:
+            continue
+
+        title = (rewritten.get("title") or "Новина Scryde x1000").strip()
+        body = (rewritten.get("text") or "").strip()
+        if not body:
+            continue
+
+        message = "<b>{}</b>\n\n{}\n\n{}".format(title, body, post["url"])
+        if send_telegram(message):
+            sent_ids.add(post["id"])
+
+    news_state["sent_ids"] = sorted(sent_ids)[-50:]
 
 
 def build_siege_alert_key(obj_key, obj_id, siege_at, attackers):
@@ -542,6 +663,7 @@ def main():
     state = load_state()
     state["fortress"]["_root_state"] = state
     state["castle"]["_root_state"] = state
+    process_channel_news(state)
     fortress_items = fetch_page_data(FORTRESS_URL, "fortresses", state)
     delay = random.randint(*BETWEEN_REQUESTS_DELAY)
     log("between requests delay {}s".format(delay))

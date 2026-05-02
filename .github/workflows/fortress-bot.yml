@@ -60,9 +60,11 @@ jobs:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
           TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OUR_CLAN: BSOE
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
           CASTLE_URL: https://ua.scryde.game/rankings/1000/castles
+          SCRYDE_CHANNEL_URL: https://t.me/s/scryde
           STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 60
         run: python github_runner.py

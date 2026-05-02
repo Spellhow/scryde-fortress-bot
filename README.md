@@ -21,6 +21,7 @@ Configure these repository secrets before enabling the workflow:
 - `TG_TOKEN`
 - `TG_CHAT`
 - `TG_CHAT_DEBUG`
+- `GEMINI_API_KEY`
 
 ## Workflow behavior
 
@@ -28,6 +29,7 @@ Configure these repository secrets before enabling the workflow:
 - Uses Playwright Chromium to load:
   - `https://ua.scryde.game/rankings/1000/fortresses`
   - `https://ua.scryde.game/rankings/1000/castles`
+- Fetches `https://t.me/s/scryde` and rewrites only `x1000`-relevant news through Gemini
 - Blocks heavy asset types like images, fonts, media, and stylesheets
 - Stores bot state in `site_state.json`
 - Commits updated `site_state.json` back to the repository automatically

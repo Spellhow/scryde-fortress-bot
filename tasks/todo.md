@@ -1,5 +1,9 @@
 # TODO
 
+- [completed] Add Scryde channel news parsing for x1000
+- [completed] Integrate Gemini filtering and Ukrainian rewrite for server-specific news
+- [completed] Persist processed news state and send translated posts to Telegram
+- [in_progress] Verify workflow and syntax for new news pipeline
 - [completed] Fix duplicate siege notifications across GitHub Actions runs
 - [completed] Sync latest state in workflow before run and before push
 - [completed] Fix missing clan emblem on generated attack cards
