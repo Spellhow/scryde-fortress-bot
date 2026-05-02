@@ -18,6 +18,7 @@ from messages import (
     OBJECT_LOST,
     WE_ATTACK,
     WE_CANCELLED,
+    DEBUG_CYCLE_ERROR,
     DEBUG_SITE_DOWN,
     DEBUG_SITE_UP,
 )
@@ -562,4 +563,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        send_debug(DEBUG_CYCLE_ERROR.format(error=str(exc)[:300]))
+        raise
