@@ -29,10 +29,12 @@
     "backoff_until": {},
     "last_alerts": {
       "fortress:116:1777724402:LibrarianS": 1777720924
-    }
+    },
+    "tg_update_offset": 848301095
   },
   "news": {
     "last_seen_id": 4460,
-    "sent_ids": []
+    "sent_ids": [],
+    "pending": []
   }
 }
