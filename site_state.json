@@ -24,11 +24,11 @@
     "notified_reminder": false
   },
   "our_fortress_attacks": {
-    "102": {
-      "name": "Southern Fortress",
-      "siege_at": 1777725781,
+    "116": {
+      "name": "Antharas Fortress",
+      "siege_at": 1777724402,
       "notified": true,
-      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/d4279c4e25343fa790118fa3e38b2945-full.jpg"
+      "owner_icon": null
     }
   },
   "our_castle_attacks": {},
