@@ -61,6 +61,7 @@ jobs:
           TG_CHAT: ${{ secrets.TG_CHAT }}
           TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NEWS_TARGET_CHAT: debug
           OUR_CLAN: BSOE
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
           CASTLE_URL: https://ua.scryde.game/rankings/1000/castles

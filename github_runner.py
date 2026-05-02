@@ -48,6 +48,7 @@ TG_CHAT_DEBUG = os.environ.get("TG_CHAT_DEBUG", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 GEMINI_THINKING_LEVEL = "HIGH"
+NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
 CASTLE_URL = os.environ.get("CASTLE_URL", "https://ua.scryde.game/rankings/1000/castles")
@@ -318,6 +319,12 @@ def process_channel_news(state):
     news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": []})
     last_seen_id = int(news_state.get("last_seen_id", 0) or 0)
     sent_ids = set(news_state.get("sent_ids", []))
+
+    if last_seen_id <= 0:
+        news_state["last_seen_id"] = max(post["id"] for post in posts)
+        log("news warm start, stored last_seen_id={}".format(news_state["last_seen_id"]))
+        return
+
     new_posts = [post for post in posts if post["id"] > last_seen_id]
 
     if not new_posts:
@@ -336,8 +343,9 @@ def process_channel_news(state):
         if not body:
             continue
 
-        message = "<b>{}</b>\n\n{}\n\n{}".format(title, body, post["url"])
-        if send_telegram(message):
+        message = "<b>[NEWS TEST]</b> <b>{}</b>\n\n{}\n\n{}".format(title, body, post["url"])
+        target_chat_id = TG_CHAT_DEBUG if NEWS_TARGET_CHAT == "debug" and TG_CHAT_DEBUG else None
+        if send_telegram(message, chat_id=target_chat_id):
             sent_ids.add(post["id"])
 
     news_state["sent_ids"] = sorted(sent_ids)[-50:]
