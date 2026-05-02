@@ -50,7 +50,6 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 GEMINI_THINKING_LEVEL = "HIGH"
 NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
-NEWS_MEDIA_DEBUG_POST_IDS = [int(x) for x in os.environ.get("NEWS_MEDIA_DEBUG_POST_IDS", "").split(",") if x.strip().isdigit()]
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
@@ -172,77 +171,6 @@ def send_telegram_photo(image_bytes, caption, chat_id=None):
     except Exception as exc:
         log("TG photo failed: {}".format(exc))
         return False
-
-
-def send_telegram_media_group(photo_urls, caption=None, chat_id=None):
-    if not photo_urls:
-        return False
-    media = []
-    for idx, photo_url in enumerate(photo_urls[:10]):
-        item = {"type": "photo", "media": photo_url}
-        if idx == 0 and caption:
-            item["caption"] = caption
-            item["parse_mode"] = "HTML"
-        media.append(item)
-    url = "https://api.telegram.org/bot{}/sendMediaGroup".format(TG_TOKEN)
-    try:
-        r = requests.post(url, json={"chat_id": chat_id or TG_CHAT, "media": media}, timeout=40)
-        r.raise_for_status()
-        return True
-    except Exception as exc:
-        log("TG media group failed: {}".format(exc))
-        return False
-
-
-def send_telegram_mixed_media(photo_urls, video_urls, caption=None, chat_id=None):
-    media = []
-    for photo_url in (photo_urls or [])[:10]:
-        media.append({"type": "photo", "media": photo_url})
-    remaining = 10 - len(media)
-    for video_url in (video_urls or [])[:remaining]:
-        media.append({"type": "video", "media": video_url})
-    if not media:
-        return False
-    if caption:
-        media[0]["caption"] = caption
-        media[0]["parse_mode"] = "HTML"
-    url = "https://api.telegram.org/bot{}/sendMediaGroup".format(TG_TOKEN)
-    try:
-        r = requests.post(url, json={"chat_id": chat_id or TG_CHAT, "media": media}, timeout=40)
-        r.raise_for_status()
-        return True
-    except Exception as exc:
-        log("TG mixed media failed: {}".format(exc))
-        return False
-
-
-def debug_media_posts(posts):
-    if not NEWS_MEDIA_DEBUG_POST_IDS:
-        return False
-    post_map = {post["id"]: post for post in posts}
-    for post_id in NEWS_MEDIA_DEBUG_POST_IDS:
-        post = post_map.get(post_id)
-        if not post:
-            send_debug(DEBUG_CYCLE_ERROR.format(error="media debug post not found: {}".format(post_id)))
-            continue
-        photo_urls = post.get("photo_urls", [])
-        video_urls = post.get("video_urls", [])
-        lines = [
-            "<b>[MEDIA DEBUG]</b>",
-            "post_id: <code>{}</code>".format(post_id),
-            "photos: <code>{}</code>".format(len(photo_urls)),
-            "videos: <code>{}</code>".format(len(video_urls)),
-            post.get("url", ""),
-        ]
-        preview_urls = photo_urls[:3] + video_urls[:3]
-        if preview_urls:
-            lines.append("")
-            lines.append("<b>sample urls:</b>")
-            lines.extend(preview_urls)
-        send_telegram("\n".join(lines), chat_id=TG_CHAT_DEBUG or None)
-        sent_ok = send_telegram_mixed_media(photo_urls, video_urls, caption="<b>[MEDIA DEBUG PREVIEW]</b>\n\n{}".format(post.get("url", "")), chat_id=TG_CHAT_DEBUG or None)
-        send_telegram("<b>[MEDIA DEBUG RESULT]</b> post_id <code>{}</code> sent_ok=<code>{}</code>".format(post_id, str(sent_ok).lower()), chat_id=TG_CHAT_DEBUG or None)
-    return True
 
 
 def send_notification(text, image_bytes=None, chat_id=None):
@@ -374,23 +302,10 @@ def fetch_channel_posts(channel_url):
         text = text_node.get_text("\n", strip=True)
         if not text:
             continue
-        photo_urls = []
-        for photo_node in wrap.select("a.tgme_widget_message_photo_wrap"):
-            style = photo_node.get("style") or ""
-            style_match = re.search(r"background-image:url\('([^']+)'\)", style)
-            if style_match:
-                photo_urls.append(style_match.group(1))
-        video_urls = []
-        for video_node in wrap.select("video.tgme_widget_message_video"):
-            video_src = video_node.get("src") or ""
-            if video_src:
-                video_urls.append(video_src)
         posts.append({
             "id": post_id,
             "url": href,
             "text": text,
-            "photo_urls": photo_urls,
-            "video_urls": video_urls,
         })
     posts.sort(key=lambda item: item["id"])
     return posts
@@ -459,9 +374,6 @@ def process_channel_news(state):
     if not posts:
         return
 
-    if debug_media_posts(posts):
-        return
-
     if NEWS_TEST_POST_IDS:
         post_map = {post["id"]: post for post in posts}
         for post_id in NEWS_TEST_POST_IDS:
@@ -470,10 +382,7 @@ def process_channel_news(state):
                 send_debug(DEBUG_CYCLE_ERROR.format(error="news test post not found: {}".format(post_id)))
                 continue
             original_preview = "<b>[NEWS TEST ORIGINAL]</b>\n\n{}\n\n{}".format(post["text"], post["url"])
-            if post.get("photo_urls") or post.get("video_urls"):
-                send_telegram_mixed_media(post.get("photo_urls", []), post.get("video_urls", []), caption=original_preview, chat_id=TG_CHAT_DEBUG or None)
-            else:
-                send_telegram(original_preview, chat_id=TG_CHAT_DEBUG or None)
+            send_telegram(original_preview, chat_id=TG_CHAT_DEBUG or None)
             rewritten = gemini_rewrite_x1000_news(post["text"])
             if not rewritten:
                 continue
@@ -516,8 +425,6 @@ def process_channel_news(state):
             "title": title,
             "text": body,
             "url": post["url"],
-            "photo_urls": post.get("photo_urls", []),
-            "video_urls": post.get("video_urls", []),
             "created_at": int(time.time()),
             "publish_after": int(time.time()) + NEWS_APPROVE_DELAY_MIN * 60,
             "status": "pending",
@@ -536,10 +443,8 @@ def process_channel_news(state):
             else:
                 footer = "Автопублікація через <b>{} хв</b>".format(NEWS_APPROVE_DELAY_MIN)
             preview = "<b>[NEWS PENDING]</b> <b>{}</b>\n\n{}\n\n{}\n\n{}".format(title, body, footer, post["url"])
-            if pending_item["photo_urls"] or pending_item.get("video_urls"):
-                send_telegram_mixed_media(pending_item["photo_urls"], pending_item.get("video_urls", []), caption=preview, chat_id=TG_CHAT_DEBUG)
             pending_item["debug_message_id"] = send_telegram_with_markup(
-                "<b>[NEWS ACTIONS]</b> <b>{}</b>\n\n{}".format(title, post["url"]),
+                preview,
                 buttons,
                 chat_id=TG_CHAT_DEBUG,
             )
@@ -565,9 +470,7 @@ def process_pending_news_queue(state):
             continue
 
         message = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
-        photo_urls = item.get("photo_urls", [])
-        video_urls = item.get("video_urls", [])
-        sent_ok = send_telegram_mixed_media(photo_urls, video_urls, caption=message, chat_id=TG_CHAT) if (photo_urls or video_urls) else send_telegram(message, chat_id=TG_CHAT)
+        sent_ok = send_telegram(message, chat_id=TG_CHAT)
         if sent_ok:
             item["status"] = "published"
             if item.get("debug_message_id") and TG_CHAT_DEBUG:
@@ -603,9 +506,7 @@ def handle_news_callback(state, callback):
 
     if action == "publish":
         outgoing = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
-        photo_urls = item.get("photo_urls", [])
-        video_urls = item.get("video_urls", [])
-        sent_ok = send_telegram_mixed_media(photo_urls, video_urls, caption=outgoing, chat_id=TG_CHAT) if (photo_urls or video_urls) else send_telegram(outgoing, chat_id=TG_CHAT)
+        sent_ok = send_telegram(outgoing, chat_id=TG_CHAT)
         if sent_ok:
             item["status"] = "published"
             edit_telegram_reply_markup(message.get("chat", {}).get("id"), message.get("message_id"))
