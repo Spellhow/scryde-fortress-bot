@@ -50,6 +50,7 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 GEMINI_THINKING_LEVEL = "HIGH"
 NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
+NEWS_MEDIA_DEBUG_POST_IDS = [int(x) for x in os.environ.get("NEWS_MEDIA_DEBUG_POST_IDS", "").split(",") if x.strip().isdigit()]
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
@@ -213,6 +214,35 @@ def send_telegram_mixed_media(photo_urls, video_urls, caption=None, chat_id=None
     except Exception as exc:
         log("TG mixed media failed: {}".format(exc))
         return False
+
+
+def debug_media_posts(posts):
+    if not NEWS_MEDIA_DEBUG_POST_IDS:
+        return False
+    post_map = {post["id"]: post for post in posts}
+    for post_id in NEWS_MEDIA_DEBUG_POST_IDS:
+        post = post_map.get(post_id)
+        if not post:
+            send_debug(DEBUG_CYCLE_ERROR.format(error="media debug post not found: {}".format(post_id)))
+            continue
+        photo_urls = post.get("photo_urls", [])
+        video_urls = post.get("video_urls", [])
+        lines = [
+            "<b>[MEDIA DEBUG]</b>",
+            "post_id: <code>{}</code>".format(post_id),
+            "photos: <code>{}</code>".format(len(photo_urls)),
+            "videos: <code>{}</code>".format(len(video_urls)),
+            post.get("url", ""),
+        ]
+        preview_urls = photo_urls[:3] + video_urls[:3]
+        if preview_urls:
+            lines.append("")
+            lines.append("<b>sample urls:</b>")
+            lines.extend(preview_urls)
+        send_telegram("\n".join(lines), chat_id=TG_CHAT_DEBUG or None)
+        sent_ok = send_telegram_mixed_media(photo_urls, video_urls, caption="<b>[MEDIA DEBUG PREVIEW]</b>\n\n{}".format(post.get("url", "")), chat_id=TG_CHAT_DEBUG or None)
+        send_telegram("<b>[MEDIA DEBUG RESULT]</b> post_id <code>{}</code> sent_ok=<code>{}</code>".format(post_id, str(sent_ok).lower()), chat_id=TG_CHAT_DEBUG or None)
+    return True
 
 
 def send_notification(text, image_bytes=None, chat_id=None):
@@ -427,6 +457,9 @@ def gemini_rewrite_x1000_news(text):
 def process_channel_news(state):
     posts = fetch_channel_posts(SCRYDE_CHANNEL_URL)
     if not posts:
+        return
+
+    if debug_media_posts(posts):
         return
 
     if NEWS_TEST_POST_IDS:

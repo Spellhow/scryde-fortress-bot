@@ -10,6 +10,10 @@ on:
         description: 'Optional comma-separated Telegram post ids for Gemini news test, e.g. 4457,4456'
         required: false
         default: ''
+      news_media_debug_post_ids:
+        description: 'Optional comma-separated Telegram post ids for raw media debug, e.g. 4445,4455'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -68,6 +72,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NEWS_TARGET_CHAT: debug
           NEWS_TEST_POST_IDS: ${{ github.event.inputs.news_test_post_ids }}
+          NEWS_MEDIA_DEBUG_POST_IDS: ${{ github.event.inputs.news_media_debug_post_ids }}
           NEWS_APPROVE_DELAY_MIN: 25
           OUR_CLAN: BSOE
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
