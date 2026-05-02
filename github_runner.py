@@ -149,6 +149,7 @@ def empty_state():
         "our_castle_attacks": {},
         "meta": {
             "backoff_until": {},
+            "last_alerts": {},
         },
     }
 
@@ -177,9 +178,11 @@ def load_state():
                     state[key][nested_key] = nested_value
 
     if "meta" not in state:
-        state["meta"] = {"backoff_until": {}}
+        state["meta"] = {"backoff_until": {}, "last_alerts": {}}
     if "backoff_until" not in state["meta"]:
         state["meta"]["backoff_until"] = {}
+    if "last_alerts" not in state["meta"]:
+        state["meta"]["last_alerts"] = {}
     return state
 
 
@@ -209,6 +212,32 @@ def set_backoff(state, page_key, minutes):
 
 def clear_backoff(state, page_key):
     state["meta"]["backoff_until"].pop(page_key, None)
+
+
+def build_siege_alert_key(obj_key, obj_id, siege_at, attackers):
+    attacker_names = sorted(
+        a if isinstance(a, str) else a.get("name", "")
+        for a in attackers
+    )
+    return "{}:{}:{}:{}".format(obj_key, obj_id, siege_at or 0, "|".join(attacker_names))
+
+
+def should_send_siege_alert(state, alert_key, now, ttl_seconds=3 * 60 * 60):
+    last_alerts = state.get("meta", {}).get("last_alerts", {})
+    last_ts = last_alerts.get(alert_key, 0)
+    return not last_ts or (now - last_ts) > ttl_seconds
+
+
+def remember_siege_alert(state, alert_key, now, max_entries=50):
+    last_alerts = state.setdefault("meta", {}).setdefault("last_alerts", {})
+    last_alerts[alert_key] = now
+    stale_before = now - 24 * 60 * 60
+    for key in list(last_alerts.keys()):
+        if last_alerts[key] < stale_before:
+            del last_alerts[key]
+    if len(last_alerts) > max_entries:
+        for key, _ in sorted(last_alerts.items(), key=lambda item: item[1])[:-max_entries]:
+            del last_alerts[key]
 
 
 def fetch_page_data(url, page_key, state):
@@ -336,13 +365,23 @@ def process_defence(state_section, items, obj_key, page_url):
             now = int(time.time())
             attackers_str = ", ".join(attackers)
             siege_time_str = format_time(siege_at)
+            alert_key = build_siege_alert_key(obj_key, fort_id, siege_at, attackers)
             cur_names = sorted(a if isinstance(a, str) else a.get("name", "") for a in attackers)
             prev_names = sorted(a if isinstance(a, str) else a.get("name", "") for a in s.get("last_attackers", []))
             new_attackers = cur_names != prev_names
             new_siege_time = siege_at != s.get("last_siege_at", 0)
             mins_left = (siege_at - now) // 60
 
-            if (not s["notified_siege"]) or new_attackers or new_siege_time:
+            should_notify = (not s["notified_siege"]) or new_attackers or new_siege_time
+            if should_notify and not should_send_siege_alert(state_section.get("_root_state", {}), alert_key, now):
+                log("skip duplicate siege alert {}".format(alert_key))
+                s["notified_siege"] = True
+                atk_list = (our.get("siege_sides") or {}).get("attackers", [])
+                s["last_attackers"] = [{"name": a.get("name", "?"), "image": a.get("image")} for a in atk_list]
+                s["last_siege_at"] = siege_at
+                should_notify = False
+
+            if should_notify:
                 msg = SIEGE_ATTACK.format(
                     our_acc=o["our_acc"],
                     nom=o["nom"],
@@ -370,6 +409,7 @@ def process_defence(state_section, items, obj_key, page_url):
                     atk_list = (our.get("siege_sides") or {}).get("attackers", [])
                     s["last_attackers"] = [{"name": a.get("name", "?"), "image": a.get("image")} for a in atk_list]
                     s["last_siege_at"] = siege_at
+                    remember_siege_alert(state_section.get("_root_state", {}), alert_key, now)
 
             first_notify = s.get("siege_first_notify", 0)
             time_since_first = now - first_notify if first_notify else 0
@@ -500,6 +540,8 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
 
 def main():
     state = load_state()
+    state["fortress"]["_root_state"] = state
+    state["castle"]["_root_state"] = state
     fortress_items = fetch_page_data(FORTRESS_URL, "fortresses", state)
     delay = random.randint(*BETWEEN_REQUESTS_DELAY)
     log("between requests delay {}s".format(delay))
@@ -514,6 +556,8 @@ def main():
         state["castle"] = process_defence(state["castle"], castle_items, "castle", CASTLE_URL)
         state["our_castle_attacks"] = process_our_attacks(state.get("our_castle_attacks", {}), castle_items, "castle", CASTLE_URL)
 
+    state["fortress"].pop("_root_state", None)
+    state["castle"].pop("_root_state", None)
     save_state(state)
     log("run complete")
 

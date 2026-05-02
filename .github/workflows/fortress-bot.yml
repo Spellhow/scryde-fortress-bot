@@ -24,6 +24,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Sync latest repository state
+        shell: bash
+        run: |
+          git fetch origin master
+          git rebase origin/master
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -78,6 +84,8 @@ jobs:
       - name: Commit updated state
         shell: bash
         run: |
+          git fetch origin master
+          git rebase origin/master
           if git diff --quiet -- site_state.json; then
             echo "No state changes"
             exit 0
