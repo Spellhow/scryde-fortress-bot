@@ -66,7 +66,7 @@ jobs:
           TG_CHAT: ${{ secrets.TG_CHAT }}
           TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          NEWS_TARGET_CHAT: debug
+          NEWS_TARGET_CHAT: prod
           NEWS_TEST_POST_IDS: ${{ github.event.inputs.news_test_post_ids }}
           NEWS_APPROVE_DELAY_MIN: 25
           OUR_CLAN: BSOE
