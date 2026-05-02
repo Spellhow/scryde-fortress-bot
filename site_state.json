@@ -1,13 +1,13 @@
 {
   "fortress": {
-    "had": false,
+    "had": true,
     "name": "Antharas Fortress",
     "id": 116,
     "last_attackers": [],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
     "last_siege_at": 0,
     "notified_siege": false,
-    "notified_lost": true,
+    "notified_lost": false,
     "siege_first_notify": 0,
     "notified_reminder": false
   },
@@ -24,11 +24,11 @@
     "notified_reminder": false
   },
   "our_fortress_attacks": {
-    "116": {
-      "name": "Antharas Fortress",
-      "siege_at": 1777724402,
+    "102": {
+      "name": "Southern Fortress",
+      "siege_at": 1777726913,
       "notified": true,
-      "owner_icon": null
+      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/d4279c4e25343fa790118fa3e38b2945-full.jpg"
     }
   },
   "our_castle_attacks": {},
