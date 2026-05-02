@@ -381,18 +381,12 @@ def process_channel_news(state):
             if not post:
                 send_debug(DEBUG_CYCLE_ERROR.format(error="news test post not found: {}".format(post_id)))
                 continue
-            original_preview = "<b>[NEWS TEST ORIGINAL]</b>\n\n{}\n\n{}".format(post["text"], post["url"])
-            send_telegram(original_preview, chat_id=TG_CHAT_DEBUG or None)
             rewritten = gemini_rewrite_x1000_news(post["text"])
             if not rewritten:
                 continue
-            title = (rewritten.get("title") or "Новина Scryde x1000").strip()
             body = (rewritten.get("text") or "НЕ РЕЛЕВАНТНО").strip()
             relevance = "true" if rewritten.get("relevant") else "false"
-            title_header = ""
-            if title and not body.lower().startswith(title.lower()):
-                title_header = " <b>{}</b>".format(title)
-            message = "<b>[NEWS TEST MANUAL]</b>{}\n\nrelevant: <code>{}</code>\n\n{}\n\n{}".format(title_header, relevance, body, post["url"])
+            message = "<b>[NEWS TEST MANUAL]</b>\n\nrelevant: <code>{}</code>\n\n{}\n\n{}".format(relevance, body, post["url"])
             send_telegram(message, chat_id=TG_CHAT_DEBUG or None)
         return
 
