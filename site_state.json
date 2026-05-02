@@ -1,19 +1,14 @@
 {
   "fortress": {
-    "had": true,
+    "had": false,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [
-      {
-        "name": "LibrarianS",
-        "image": "https://static-eu.scrydecdn.com/clan-images/53c1b14effd4873fe87475957e43e5d6-full.jpg"
-      }
-    ],
+    "last_attackers": [],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 1777724402,
-    "notified_siege": true,
-    "notified_lost": false,
-    "siege_first_notify": 1777720924,
+    "last_siege_at": 0,
+    "notified_siege": false,
+    "notified_lost": true,
+    "siege_first_notify": 0,
     "notified_reminder": false
   },
   "castle": {
@@ -31,7 +26,7 @@
   "our_fortress_attacks": {
     "102": {
       "name": "Southern Fortress",
-      "siege_at": 1777724379,
+      "siege_at": 1777725781,
       "notified": true,
       "owner_icon": "https://static-eu.scrydecdn.com/clan-images/d4279c4e25343fa790118fa3e38b2945-full.jpg"
     }
