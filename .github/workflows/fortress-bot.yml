@@ -68,6 +68,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NEWS_TARGET_CHAT: debug
           NEWS_TEST_POST_IDS: ${{ github.event.inputs.news_test_post_ids }}
+          NEWS_APPROVE_DELAY_MIN: 25
           OUR_CLAN: BSOE
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
           CASTLE_URL: https://ua.scryde.game/rankings/1000/castles

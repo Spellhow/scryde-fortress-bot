@@ -50,6 +50,7 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 GEMINI_THINKING_LEVEL = "HIGH"
 NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
+NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
 CASTLE_URL = os.environ.get("CASTLE_URL", "https://ua.scryde.game/rankings/1000/castles")
@@ -94,6 +95,55 @@ def send_telegram(text, retries=3, chat_id=None):
             if attempt < retries:
                 time.sleep(2 * attempt)
     return False
+
+
+def send_telegram_with_markup(text, reply_markup, retries=3, chat_id=None):
+    url = "https://api.telegram.org/bot{}/sendMessage".format(TG_TOKEN)
+    payload = {
+        "chat_id": chat_id or TG_CHAT,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+        "reply_markup": reply_markup,
+    }
+    for attempt in range(1, retries + 1):
+        try:
+            r = requests.post(url, json=payload, timeout=20)
+            r.raise_for_status()
+            result = r.json().get("result", {})
+            return result.get("message_id")
+        except Exception as exc:
+            log("TG send with markup failed {}/{}: {}".format(attempt, retries, exc))
+            if attempt < retries:
+                time.sleep(2 * attempt)
+    return None
+
+
+def edit_telegram_reply_markup(chat_id, message_id, reply_markup=None):
+    url = "https://api.telegram.org/bot{}/editMessageReplyMarkup".format(TG_TOKEN)
+    payload = {
+        "chat_id": chat_id,
+        "message_id": message_id,
+        "reply_markup": reply_markup or {"inline_keyboard": []},
+    }
+    try:
+        r = requests.post(url, json=payload, timeout=20)
+        r.raise_for_status()
+        return True
+    except Exception as exc:
+        log("edit reply markup failed: {}".format(exc))
+        return False
+
+
+def answer_callback_query(callback_query_id, text):
+    url = "https://api.telegram.org/bot{}/answerCallbackQuery".format(TG_TOKEN)
+    try:
+        r = requests.post(url, json={"callback_query_id": callback_query_id, "text": text}, timeout=20)
+        r.raise_for_status()
+        return True
+    except Exception as exc:
+        log("answer callback failed: {}".format(exc))
+        return False
 
 
 def send_debug(text):
@@ -160,6 +210,7 @@ def empty_state():
         "news": {
             "last_seen_id": 0,
             "sent_ids": [],
+            "pending": [],
         },
         "meta": {
             "backoff_until": {},
@@ -305,6 +356,9 @@ def gemini_rewrite_x1000_news(text):
         parsed = json.loads(text_out)
         if not isinstance(parsed, dict):
             return None
+        parsed["relevant"] = bool(parsed.get("relevant", False))
+        parsed["title"] = str(parsed.get("title", "") or "").strip()
+        parsed["text"] = str(parsed.get("text", "") or "").strip()
         return parsed
     except Exception as exc:
         log("gemini rewrite failed: {}".format(exc))
@@ -334,7 +388,7 @@ def process_channel_news(state):
             send_telegram(message, chat_id=TG_CHAT_DEBUG or None)
         return
 
-    news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": []})
+    news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": [], "pending": []})
     last_seen_id = int(news_state.get("last_seen_id", 0) or 0)
     sent_ids = set(news_state.get("sent_ids", []))
 
@@ -361,12 +415,128 @@ def process_channel_news(state):
         if not body:
             continue
 
-        message = "<b>[NEWS TEST]</b> <b>{}</b>\n\n{}\n\n{}".format(title, body, post["url"])
-        target_chat_id = TG_CHAT_DEBUG if NEWS_TARGET_CHAT == "debug" and TG_CHAT_DEBUG else None
-        if send_telegram(message, chat_id=target_chat_id):
-            sent_ids.add(post["id"])
+        pending_item = {
+            "post_id": post["id"],
+            "title": title,
+            "text": body,
+            "url": post["url"],
+            "created_at": int(time.time()),
+            "publish_after": int(time.time()) + NEWS_APPROVE_DELAY_MIN * 60,
+            "status": "pending",
+            "debug_message_id": None,
+        }
+
+        if TG_CHAT_DEBUG:
+            buttons = {
+                "inline_keyboard": [[
+                    {"text": "Запостити зараз", "callback_data": "news:publish:{}".format(post["id"])},
+                    {"text": "Скасувати", "callback_data": "news:cancel:{}".format(post["id"])},
+                ]]
+            }
+            if NEWS_TARGET_CHAT == "debug":
+                footer = "Автопублікація: <b>вимкнена (debug mode)</b>"
+            else:
+                footer = "Автопублікація через <b>{} хв</b>".format(NEWS_APPROVE_DELAY_MIN)
+            preview = "<b>[NEWS PENDING]</b> <b>{}</b>\n\n{}\n\n{}\n\n{}".format(title, body, footer, post["url"])
+            pending_item["debug_message_id"] = send_telegram_with_markup(preview, buttons, chat_id=TG_CHAT_DEBUG)
+
+        news_state.setdefault("pending", []).append(pending_item)
+        sent_ids.add(post["id"])
 
     news_state["sent_ids"] = sorted(sent_ids)[-50:]
+    news_state["pending"] = news_state.get("pending", [])[-50:]
+
+
+def process_pending_news_queue(state):
+    news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": [], "pending": []})
+    pending_items = news_state.get("pending", [])
+    now = int(time.time())
+
+    for item in pending_items:
+        if item.get("status") != "pending":
+            continue
+        if NEWS_TARGET_CHAT == "debug":
+            continue
+        if now < int(item.get("publish_after", 0) or 0):
+            continue
+
+        message = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
+        if send_telegram(message, chat_id=TG_CHAT):
+            item["status"] = "published"
+            if item.get("debug_message_id") and TG_CHAT_DEBUG:
+                edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
+                send_telegram("<b>[NEWS PUBLISHED AUTO]</b> <b>{}</b>\n\n{}".format(item.get("title", "Новина"), item.get("url", "")), chat_id=TG_CHAT_DEBUG)
+
+
+def handle_news_callback(state, callback):
+    data = callback.get("data") or ""
+    if not data.startswith("news:"):
+        return False
+
+    callback_id = callback.get("id")
+    message = callback.get("message") or {}
+    parts = data.split(":", 2)
+    if len(parts) != 3 or not parts[2].isdigit():
+        answer_callback_query(callback_id, "Некоректна дія")
+        return True
+
+    action = parts[1]
+    post_id = int(parts[2])
+    news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": [], "pending": []})
+    item = next((x for x in news_state.get("pending", []) if int(x.get("post_id", 0)) == post_id and x.get("status") == "pending"), None)
+    if not item:
+        answer_callback_query(callback_id, "Пост уже оброблений")
+        return True
+
+    if action == "cancel":
+        item["status"] = "cancelled"
+        edit_telegram_reply_markup(message.get("chat", {}).get("id"), message.get("message_id"))
+        answer_callback_query(callback_id, "Скасовано")
+        return True
+
+    if action == "publish":
+        outgoing = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
+        if send_telegram(outgoing, chat_id=TG_CHAT):
+            item["status"] = "published"
+            edit_telegram_reply_markup(message.get("chat", {}).get("id"), message.get("message_id"))
+            answer_callback_query(callback_id, "Опубліковано")
+        else:
+            answer_callback_query(callback_id, "Не вдалося опублікувати")
+        return True
+
+    answer_callback_query(callback_id, "Невідома дія")
+    return True
+
+
+def process_callback_updates(state):
+    url = "https://api.telegram.org/bot{}/getUpdates".format(TG_TOKEN)
+    meta = state.setdefault("meta", {})
+    offset = int(meta.get("tg_update_offset", 0) or 0)
+    try:
+        response = requests.get(
+            url,
+            params={
+                "offset": offset,
+                "timeout": 0,
+                "allowed_updates": json.dumps(["callback_query"]),
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        updates = response.json().get("result", [])
+    except Exception as exc:
+        log("getUpdates callback fetch failed: {}".format(exc))
+        return
+
+    max_update_id = None
+    for update in updates:
+        max_update_id = update.get("update_id")
+        callback = update.get("callback_query")
+        if callback:
+            handle_news_callback(state, callback)
+
+    if max_update_id is not None:
+        meta["tg_update_offset"] = max_update_id + 1
 
 
 def build_siege_alert_key(obj_key, obj_id, siege_at, attackers):
@@ -694,9 +864,11 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
 
 def main():
     state = load_state()
+    process_callback_updates(state)
     state["fortress"]["_root_state"] = state
     state["castle"]["_root_state"] = state
     process_channel_news(state)
+    process_pending_news_queue(state)
     fortress_items = fetch_page_data(FORTRESS_URL, "fortresses", state)
     delay = random.randint(*BETWEEN_REQUESTS_DELAY)
     log("between requests delay {}s".format(delay))
