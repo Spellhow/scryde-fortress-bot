@@ -1,5 +1,8 @@
 # TODO
 
+- [in_progress] Add forum updates source with x1000 Gemini filtering
+- [pending] Persist forum post state and route through pending approval flow
+- [pending] Verify forum parsing and syntax in production runner
 - [completed] Add Scryde channel news parsing for x1000
 - [completed] Integrate Gemini filtering and Ukrainian rewrite for server-specific news
 - [completed] Persist processed news state and send translated posts to Telegram

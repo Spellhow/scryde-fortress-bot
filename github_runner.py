@@ -55,6 +55,7 @@ OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
 CASTLE_URL = os.environ.get("CASTLE_URL", "https://ua.scryde.game/rankings/1000/castles")
 SCRYDE_CHANNEL_URL = os.environ.get("SCRYDE_CHANNEL_URL", "https://t.me/s/scryde")
+SCRYDE_FORUM_UPDATES_URL = os.environ.get("SCRYDE_FORUM_UPDATES_URL", "https://board.scryde.net/threads/obnovlenija.30694/page-19")
 STATE_FILE = os.environ.get("STATE_FILE", "site_state.json")
 
 BETWEEN_REQUESTS_DELAY = (4, 9)
@@ -212,6 +213,11 @@ def empty_state():
             "sent_ids": [],
             "pending": [],
         },
+        "forum_news": {
+            "last_seen_id": 0,
+            "sent_ids": [],
+            "pending": [],
+        },
         "meta": {
             "backoff_until": {},
             "last_alerts": {},
@@ -311,6 +317,38 @@ def fetch_channel_posts(channel_url):
     return posts
 
 
+def fetch_forum_posts(forum_url):
+    try:
+        response = requests.get(forum_url, timeout=25, headers={"User-Agent": USER_AGENTS[0]})
+        response.raise_for_status()
+    except Exception as exc:
+        log("forum fetch failed: {}".format(exc))
+        return []
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    posts = []
+    for article in soup.select("article.message"):
+        article_id = article.get("data-content") or article.get("id") or ""
+        match = re.search(r"post-?(\d+)", article_id)
+        if not match:
+            continue
+        post_id = int(match.group(1))
+        body_node = article.select_one("div.bbWrapper")
+        if not body_node:
+            continue
+        text = body_node.get_text("\n", strip=True)
+        if not text:
+            continue
+        posts.append({
+            "id": post_id,
+            "url": "{}#post-{}".format(forum_url.split("?")[0], post_id),
+            "text": text,
+            "source": "forum",
+        })
+    posts.sort(key=lambda item: item["id"])
+    return posts
+
+
 def gemini_rewrite_x1000_news(text):
     if not GEMINI_API_KEY:
         return None
@@ -390,17 +428,31 @@ def process_channel_news(state):
             send_telegram(message, chat_id=TG_CHAT_DEBUG or None)
         return
 
-    news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": [], "pending": []})
+    process_feed_posts(state, posts, "news", "telegram")
+
+
+def process_forum_news(state):
+    posts = fetch_forum_posts(SCRYDE_FORUM_UPDATES_URL)
+    if not posts:
+        return
+
+    process_feed_posts(state, posts, "forum_news", "forum")
+
+
+def process_feed_posts(state, posts, state_key, source_label):
+    if not posts:
+        return
+
+    news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
     last_seen_id = int(news_state.get("last_seen_id", 0) or 0)
     sent_ids = set(news_state.get("sent_ids", []))
 
     if last_seen_id <= 0:
         news_state["last_seen_id"] = max(post["id"] for post in posts)
-        log("news warm start, stored last_seen_id={}".format(news_state["last_seen_id"]))
+        log("{} warm start, stored last_seen_id={}".format(source_label, news_state["last_seen_id"]))
         return
 
     new_posts = [post for post in posts if post["id"] > last_seen_id]
-
     if not new_posts:
         return
 
@@ -426,25 +478,22 @@ def process_channel_news(state):
             "publish_after": int(time.time()) + NEWS_APPROVE_DELAY_MIN * 60,
             "status": "pending",
             "debug_message_id": None,
+            "source": source_label,
         }
 
         if TG_CHAT_DEBUG:
             buttons = {
                 "inline_keyboard": [[
-                    {"text": "Запостити зараз", "callback_data": "news:publish:{}".format(post["id"])},
-                    {"text": "Скасувати", "callback_data": "news:cancel:{}".format(post["id"])},
+                    {"text": "Запостити зараз", "callback_data": "news:publish:{}:{}".format(state_key, post["id"])},
+                    {"text": "Скасувати", "callback_data": "news:cancel:{}:{}".format(state_key, post["id"])},
                 ]]
             }
             if NEWS_TARGET_CHAT == "debug":
                 footer = "Автопублікація: <b>вимкнена (debug mode)</b>"
             else:
                 footer = "Автопублікація через <b>{} хв</b>".format(NEWS_APPROVE_DELAY_MIN)
-            preview = "<b>[NEWS PENDING]</b> <b>{}</b>\n\n{}\n\n{}\n\n{}".format(title, body, footer, post["url"])
-            pending_item["debug_message_id"] = send_telegram_with_markup(
-                preview,
-                buttons,
-                chat_id=TG_CHAT_DEBUG,
-            )
+            preview = "<b>[{} PENDING]</b> <b>{}</b>\n\n{}\n\n{}\n\n{}".format(source_label.upper(), title, body, footer, post["url"])
+            pending_item["debug_message_id"] = send_telegram_with_markup(preview, buttons, chat_id=TG_CHAT_DEBUG)
 
         news_state.setdefault("pending", []).append(pending_item)
         sent_ids.add(post["id"])
@@ -454,25 +503,26 @@ def process_channel_news(state):
 
 
 def process_pending_news_queue(state):
-    news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": [], "pending": []})
-    pending_items = news_state.get("pending", [])
     now = int(time.time())
+    for state_key in ("news", "forum_news"):
+        news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
+        pending_items = news_state.get("pending", [])
 
-    for item in pending_items:
-        if item.get("status") != "pending":
-            continue
-        if NEWS_TARGET_CHAT == "debug":
-            continue
-        if now < int(item.get("publish_after", 0) or 0):
-            continue
+        for item in pending_items:
+            if item.get("status") != "pending":
+                continue
+            if NEWS_TARGET_CHAT == "debug":
+                continue
+            if now < int(item.get("publish_after", 0) or 0):
+                continue
 
-        message = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
-        sent_ok = send_telegram(message, chat_id=TG_CHAT)
-        if sent_ok:
-            item["status"] = "published"
-            if item.get("debug_message_id") and TG_CHAT_DEBUG:
-                edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
-                send_telegram("<b>[NEWS PUBLISHED AUTO]</b> <b>{}</b>\n\n{}".format(item.get("title", "Новина"), item.get("url", "")), chat_id=TG_CHAT_DEBUG)
+            message = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
+            sent_ok = send_telegram(message, chat_id=TG_CHAT)
+            if sent_ok:
+                item["status"] = "published"
+                if item.get("debug_message_id") and TG_CHAT_DEBUG:
+                    edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
+                    send_telegram("<b>[NEWS PUBLISHED AUTO]</b> <b>{}</b>\n\n{}".format(item.get("title", "Новина"), item.get("url", "")), chat_id=TG_CHAT_DEBUG)
 
 
 def handle_news_callback(state, callback):
@@ -482,14 +532,15 @@ def handle_news_callback(state, callback):
 
     callback_id = callback.get("id")
     message = callback.get("message") or {}
-    parts = data.split(":", 2)
-    if len(parts) != 3 or not parts[2].isdigit():
+    parts = data.split(":", 3)
+    if len(parts) != 4 or not parts[3].isdigit():
         answer_callback_query(callback_id, "Некоректна дія")
         return True
 
     action = parts[1]
-    post_id = int(parts[2])
-    news_state = state.setdefault("news", {"last_seen_id": 0, "sent_ids": [], "pending": []})
+    state_key = parts[2]
+    post_id = int(parts[3])
+    news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
     item = next((x for x in news_state.get("pending", []) if int(x.get("post_id", 0)) == post_id and x.get("status") == "pending"), None)
     if not item:
         answer_callback_query(callback_id, "Пост уже оброблений")
@@ -876,6 +927,7 @@ def main():
     state["fortress"]["_root_state"] = state
     state["castle"]["_root_state"] = state
     process_channel_news(state)
+    process_forum_news(state)
     process_pending_news_queue(state)
     fortress_items = fetch_page_data(FORTRESS_URL, "fortresses", state)
     delay = random.randint(*BETWEEN_REQUESTS_DELAY)
