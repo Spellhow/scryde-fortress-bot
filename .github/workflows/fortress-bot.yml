@@ -84,8 +84,6 @@ jobs:
       - name: Commit updated state
         shell: bash
         run: |
-          git fetch origin master
-          git rebase origin/master
           if git diff --quiet -- site_state.json; then
             echo "No state changes"
             exit 0
@@ -94,4 +92,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore: update fortress bot state"
+          git pull --rebase origin master
           git push
