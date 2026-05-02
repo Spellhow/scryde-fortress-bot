@@ -10,6 +10,10 @@ on:
         description: 'Optional comma-separated Telegram post ids for Gemini news test, e.g. 4457,4456'
         required: false
         default: ''
+      forum_test_post_ids:
+        description: 'Optional comma-separated forum post ids for Gemini forum test, e.g. 2617420'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -68,6 +72,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NEWS_TARGET_CHAT: prod
           NEWS_TEST_POST_IDS: ${{ github.event.inputs.news_test_post_ids }}
+          FORUM_TEST_POST_IDS: ${{ github.event.inputs.forum_test_post_ids }}
           NEWS_APPROVE_DELAY_MIN: 25
           OUR_CLAN: BSOE
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses

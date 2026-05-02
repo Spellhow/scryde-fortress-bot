@@ -50,6 +50,7 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 GEMINI_THINKING_LEVEL = "HIGH"
 NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
+FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
@@ -435,6 +436,22 @@ def process_channel_news(state):
 def process_forum_news(state):
     posts = fetch_forum_posts(SCRYDE_FORUM_UPDATES_URL)
     if not posts:
+        return
+
+    if FORUM_TEST_POST_IDS:
+        post_map = {post["id"]: post for post in posts}
+        for post_id in FORUM_TEST_POST_IDS:
+            post = post_map.get(post_id)
+            if not post:
+                send_debug(DEBUG_CYCLE_ERROR.format(error="forum test post not found: {}".format(post_id)))
+                continue
+            rewritten = gemini_rewrite_x1000_news(post["text"])
+            if not rewritten:
+                continue
+            body = (rewritten.get("text") or "НЕ РЕЛЕВАНТНО").strip()
+            relevance = "true" if rewritten.get("relevant") else "false"
+            message = "<b>[FORUM TEST MANUAL]</b>\n\nrelevant: <code>{}</code>\n\n{}\n\n{}".format(relevance, body, post["url"])
+            send_telegram(message, chat_id=TG_CHAT_DEBUG or None)
         return
 
     process_feed_posts(state, posts, "forum_news", "forum")
