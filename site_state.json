@@ -23,14 +23,7 @@
     "siege_first_notify": 0,
     "notified_reminder": false
   },
-  "our_fortress_attacks": {
-    "102": {
-      "name": "Southern Fortress",
-      "siege_at": 1777726913,
-      "notified": true,
-      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/d4279c4e25343fa790118fa3e38b2945-full.jpg"
-    }
-  },
+  "our_fortress_attacks": {},
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {},
