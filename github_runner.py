@@ -389,7 +389,10 @@ def process_channel_news(state):
             title = (rewritten.get("title") or "Новина Scryde x1000").strip()
             body = (rewritten.get("text") or "НЕ РЕЛЕВАНТНО").strip()
             relevance = "true" if rewritten.get("relevant") else "false"
-            message = "<b>[NEWS TEST MANUAL]</b> <b>{}</b>\n\nrelevant: <code>{}</code>\n\n{}\n\n{}".format(title, relevance, body, post["url"])
+            title_header = ""
+            if title and not body.lower().startswith(title.lower()):
+                title_header = " <b>{}</b>".format(title)
+            message = "<b>[NEWS TEST MANUAL]</b>{}\n\nrelevant: <code>{}</code>\n\n{}\n\n{}".format(title_header, relevance, body, post["url"])
             send_telegram(message, chat_id=TG_CHAT_DEBUG or None)
         return
 
