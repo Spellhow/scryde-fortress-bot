@@ -31,6 +31,7 @@
   "our_fortress_attacks": {},
   "our_castle_attacks": {},
   "meta": {
-    "backoff_until": {}
+    "backoff_until": {},
+    "last_alerts": {}
   }
 }
