@@ -325,7 +325,8 @@ def fetch_forum_posts(forum_url):
         log("forum fetch failed: {}".format(exc))
         return []
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    html = response.content.decode(response.apparent_encoding or "utf-8", errors="replace")
+    soup = BeautifulSoup(html, "html.parser")
     posts = []
     for article in soup.select("article.message"):
         article_id = article.get("data-content") or article.get("id") or ""
