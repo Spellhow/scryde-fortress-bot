@@ -408,6 +408,11 @@ def process_channel_news(state):
             if not post:
                 send_debug(DEBUG_CYCLE_ERROR.format(error="news test post not found: {}".format(post_id)))
                 continue
+            original_preview = "<b>[NEWS TEST ORIGINAL]</b>\n\n{}\n\n{}".format(post["text"], post["url"])
+            if post.get("photo_urls"):
+                send_telegram_media_group(post["photo_urls"], caption=original_preview, chat_id=TG_CHAT_DEBUG or None)
+            else:
+                send_telegram(original_preview, chat_id=TG_CHAT_DEBUG or None)
             rewritten = gemini_rewrite_x1000_news(post["text"])
             if not rewritten:
                 continue
