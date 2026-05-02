@@ -14,7 +14,7 @@
     "notified_siege": true,
     "notified_lost": false,
     "siege_first_notify": 1777691521,
-    "notified_reminder": false
+    "notified_reminder": true
   },
   "castle": {
     "had": false,
