@@ -173,6 +173,26 @@ def send_telegram_photo(image_bytes, caption, chat_id=None):
         return False
 
 
+def send_telegram_media_group(photo_urls, caption=None, chat_id=None):
+    if not photo_urls:
+        return False
+    media = []
+    for idx, photo_url in enumerate(photo_urls[:10]):
+        item = {"type": "photo", "media": photo_url}
+        if idx == 0 and caption:
+            item["caption"] = caption
+            item["parse_mode"] = "HTML"
+        media.append(item)
+    url = "https://api.telegram.org/bot{}/sendMediaGroup".format(TG_TOKEN)
+    try:
+        r = requests.post(url, json={"chat_id": chat_id or TG_CHAT, "media": media}, timeout=40)
+        r.raise_for_status()
+        return True
+    except Exception as exc:
+        log("TG media group failed: {}".format(exc))
+        return False
+
+
 def send_notification(text, image_bytes=None, chat_id=None):
     if image_bytes and send_telegram_photo(image_bytes, text, chat_id=chat_id):
         return True
@@ -302,10 +322,17 @@ def fetch_channel_posts(channel_url):
         text = text_node.get_text("\n", strip=True)
         if not text:
             continue
+        photo_urls = []
+        for photo_node in wrap.select("a.tgme_widget_message_photo_wrap"):
+            style = photo_node.get("style") or ""
+            style_match = re.search(r"background-image:url\('([^']+)'\)", style)
+            if style_match:
+                photo_urls.append(style_match.group(1))
         posts.append({
             "id": post_id,
             "url": href,
             "text": text,
+            "photo_urls": photo_urls,
         })
     posts.sort(key=lambda item: item["id"])
     return posts
@@ -321,10 +348,13 @@ def gemini_rewrite_x1000_news(text):
         "Потрібно враховувати тільки сервер x1000. Якщо новина стосується лише інших серверів, турнірів, стримів, загальних активностей без прив'язки до x1000, відповідай що вона не релевантна.\n"
         "Якщо новина частково стосується кількох серверів, залиш тільки частину, яка стосується x1000.\n"
         "Прибери зайве: інформацію про інші сервери, рекламні вставки, посилання на стріми, зайві CTA, фрази про підписку, другорядний шум.\n"
-        "Переклади результат українською мовою, коротко і чисто, у форматі для Telegram.\n"
+        "Переклади результат українською мовою і поверни вже ГОТОВИЙ HTML для Telegram.\n"
+        "Використовуй тільки сумісні з Telegram HTML теги: <b>, <i>, <code>, <a>.\n"
+        "Якщо є промокод, обов'язково загорни його в <code>.\n"
+        "Збережи красиве форматування по контексту: абзаци, списки, акценти. Не вигадуй інформацію, якої нема в оригіналі.\n"
         "\n"
         "Поверни JSON об'єкт такого вигляду:\n"
-        "{{\"relevant\": true|false, \"title\": \"короткий заголовок\", \"text\": \"готовий український текст\"}}\n"
+        "{{\"relevant\": true|false, \"title\": \"короткий заголовок\", \"text\": \"готовий HTML для Telegram\"}}\n"
         "Без markdown-обгорток, без пояснень, лише JSON.\n"
         "\n"
         "Оригінальна новина:\n{}"
@@ -420,6 +450,7 @@ def process_channel_news(state):
             "title": title,
             "text": body,
             "url": post["url"],
+            "photo_urls": post.get("photo_urls", []),
             "created_at": int(time.time()),
             "publish_after": int(time.time()) + NEWS_APPROVE_DELAY_MIN * 60,
             "status": "pending",
@@ -438,7 +469,13 @@ def process_channel_news(state):
             else:
                 footer = "Автопублікація через <b>{} хв</b>".format(NEWS_APPROVE_DELAY_MIN)
             preview = "<b>[NEWS PENDING]</b> <b>{}</b>\n\n{}\n\n{}\n\n{}".format(title, body, footer, post["url"])
-            pending_item["debug_message_id"] = send_telegram_with_markup(preview, buttons, chat_id=TG_CHAT_DEBUG)
+            if pending_item["photo_urls"]:
+                send_telegram_media_group(pending_item["photo_urls"], caption=preview, chat_id=TG_CHAT_DEBUG)
+            pending_item["debug_message_id"] = send_telegram_with_markup(
+                "<b>[NEWS ACTIONS]</b> <b>{}</b>\n\n{}".format(title, post["url"]),
+                buttons,
+                chat_id=TG_CHAT_DEBUG,
+            )
 
         news_state.setdefault("pending", []).append(pending_item)
         sent_ids.add(post["id"])
@@ -461,7 +498,9 @@ def process_pending_news_queue(state):
             continue
 
         message = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
-        if send_telegram(message, chat_id=TG_CHAT):
+        photo_urls = item.get("photo_urls", [])
+        sent_ok = send_telegram_media_group(photo_urls, caption=message, chat_id=TG_CHAT) if photo_urls else send_telegram(message, chat_id=TG_CHAT)
+        if sent_ok:
             item["status"] = "published"
             if item.get("debug_message_id") and TG_CHAT_DEBUG:
                 edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
@@ -496,7 +535,9 @@ def handle_news_callback(state, callback):
 
     if action == "publish":
         outgoing = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
-        if send_telegram(outgoing, chat_id=TG_CHAT):
+        photo_urls = item.get("photo_urls", [])
+        sent_ok = send_telegram_media_group(photo_urls, caption=outgoing, chat_id=TG_CHAT) if photo_urls else send_telegram(outgoing, chat_id=TG_CHAT)
+        if sent_ok:
             item["status"] = "published"
             edit_telegram_reply_markup(message.get("chat", {}).get("id"), message.get("message_id"))
             answer_callback_query(callback_id, "Опубліковано")
