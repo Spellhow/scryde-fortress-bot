@@ -805,7 +805,6 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
         owner     = item.get("owner")
         siege_sides = item.get("siege_sides") or {}
         attacker_rows = siege_sides.get("attackers", []) if isinstance(siege_sides, dict) else []
-        our_attacker = next((a for a in attacker_rows if a.get("name") == OUR_CLAN), {"name": OUR_CLAN, "image": None})
         owner_name = owner["name"] if owner else "NPC"
         siege_time_str = format_time(siege_at)
         current_ids.add(obj_id)
@@ -829,7 +828,7 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
                         event_color   = (26, 107, 138),  # синій — ми атакуємо
                         owner_name    = owner_name,
                         owner_icon_url = (item.get("owner") or {}).get("image"),
-                        attackers     = [our_attacker],
+                        attackers     = attacker_rows,
                         siege_time    = siege_time_str,
                         page_url      = page_url,
                     )
