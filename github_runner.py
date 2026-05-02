@@ -10,6 +10,8 @@ from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
+from google import genai
+from google.genai import types
 
 from messages import (
     OBJ,
@@ -44,6 +46,8 @@ TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT = os.environ["TG_CHAT"]
 TG_CHAT_DEBUG = os.environ.get("TG_CHAT_DEBUG", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
+GEMINI_THINKING_LEVEL = "HIGH"
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
 CASTLE_URL = os.environ.get("CASTLE_URL", "https://ua.scryde.game/rankings/1000/castles")
@@ -273,26 +277,29 @@ def gemini_rewrite_x1000_news(text):
         "Оригінальна новина:\n{}"
     ).format(text)
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}".format(GEMINI_API_KEY)
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.2,
-            "responseMimeType": "application/json",
-        },
-    }
-
     try:
-        response = requests.post(url, json=payload, timeout=40)
-        response.raise_for_status()
-        data = response.json()
-        text_out = data["candidates"][0]["content"]["parts"][0]["text"]
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=prompt)],
+                )
+            ],
+            config=types.GenerateContentConfig(
+                temperature=0.2,
+                response_mime_type="application/json",
+                thinking_config=types.ThinkingConfig(thinking_level=GEMINI_THINKING_LEVEL),
+                safety_settings=[
+                    types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
+                ],
+            ),
+        )
+        text_out = response.text
         parsed = json.loads(text_out)
         if not isinstance(parsed, dict):
             return None

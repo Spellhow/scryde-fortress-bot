@@ -22,6 +22,7 @@ Configure these repository secrets before enabling the workflow:
 - `TG_CHAT`
 - `TG_CHAT_DEBUG`
 - `GEMINI_API_KEY`
+- optional: `GEMINI_MODEL` (default `gemini-flash-latest`)
 
 ## Workflow behavior
 
