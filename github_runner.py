@@ -486,10 +486,11 @@ def process_feed_posts(state, posts, state_key, source_label):
         body = (rewritten.get("text") or "").strip()
         if not body:
             continue
+        title_prefix = "⚙️ " if source_label == "forum" else ""
 
         pending_item = {
             "post_id": post["id"],
-            "title": title,
+            "title": "{}{}".format(title_prefix, title),
             "text": body,
             "url": post["url"],
             "created_at": int(time.time()),
