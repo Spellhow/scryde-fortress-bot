@@ -42,33 +42,7 @@
   },
   "forum_news": {
     "last_seen_id": 2641464,
-    "sent_ids": [
-      2640660,
-      2641464
-    ],
-    "pending": [
-      {
-        "post_id": 2640660,
-        "title": "Оновлення від 03.05.26",
-        "text": "<b>HOT-RELEASE від 03.05.26</b>\n\n• До NPC <b>Valeria</b> додано нову позицію обміну: 1 Золота монета за 2 <code>Green Bet Coin</code>\n• Виправлено помилку, через яку заточка талантів скидалася (візуально) після підвищення рівня персонажа",
-        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-19#post-2640660",
-        "created_at": 1777803051,
-        "publish_after": 1777804551,
-        "status": "published",
-        "debug_message_id": 102,
-        "source": "forum"
-      },
-      {
-        "post_id": 2641464,
-        "title": "⚙️ Оновлення Scryde X1000 (04.05.26)",
-        "text": "<b>HOT-RELEASE від 04.05.26 (Scryde X)</b>\n\n— Прибрано кап на вставку атрибута (стосується і хіро зброї)\n— У Белефа знижено маг. захист у 4 рази та фіз. захист у 2 рази",
-        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-19#post-2641464",
-        "created_at": 1777890828,
-        "publish_after": 1777892328,
-        "status": "cancelled",
-        "debug_message_id": 104,
-        "source": "forum"
-      }
-    ]
+    "sent_ids": [],
+    "pending": []
   }
 }
