@@ -41,9 +41,10 @@
     "pending": []
   },
   "forum_news": {
-    "last_seen_id": 2640660,
+    "last_seen_id": 2641464,
     "sent_ids": [
-      2640660
+      2640660,
+      2641464
     ],
     "pending": [
       {
@@ -55,6 +56,17 @@
         "publish_after": 1777804551,
         "status": "published",
         "debug_message_id": 102,
+        "source": "forum"
+      },
+      {
+        "post_id": 2641464,
+        "title": "⚙️ Оновлення Scryde X1000 (04.05.26)",
+        "text": "<b>HOT-RELEASE від 04.05.26 (Scryde X)</b>\n\n— Прибрано кап на вставку атрибута (стосується і хіро зброї)\n— У Белефа знижено маг. захист у 4 рази та фіз. захист у 2 рази",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-19#post-2641464",
+        "created_at": 1777890828,
+        "publish_after": 1777892328,
+        "status": "pending",
+        "debug_message_id": 104,
         "source": "forum"
       }
     ]
