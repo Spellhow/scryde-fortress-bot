@@ -33,7 +33,7 @@
       "fortress:116:1777805826:SpellhowFunClub": 1777802520,
       "fortress:116:1777805826:SpellhowFunClub|Полем": 1777803738
     },
-    "tg_update_offset": 848301095
+    "tg_update_offset": 848301097
   },
   "news": {
     "last_seen_id": 4463,
@@ -65,7 +65,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-19#post-2641464",
         "created_at": 1777890828,
         "publish_after": 1777892328,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 104,
         "source": "forum"
       }
