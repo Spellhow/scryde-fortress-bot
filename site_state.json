@@ -23,14 +23,7 @@
     "siege_first_notify": 0,
     "notified_reminder": false
   },
-  "our_fortress_attacks": {
-    "107": {
-      "name": "Bayou Fortress",
-      "siege_at": 1777992422,
-      "notified": true,
-      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/53c1b14effd4873fe87475957e43e5d6-full.jpg"
-    }
-  },
+  "our_fortress_attacks": {},
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {},
