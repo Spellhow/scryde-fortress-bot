@@ -351,30 +351,37 @@ def fetch_forum_posts(forum_url):
     return posts
 
 
-def gemini_rewrite_x1000_news(text):
+def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None):
     if not GEMINI_API_KEY:
         return None
 
+    pending_context_json = json.dumps(pending_context or [], ensure_ascii=False)
     prompt = (
         "Ти редактор новин для українського Telegram-каналу клану в MMORPG Scryde.\n"
+        "Джерело поточної новини: {source_label}.\n"
         "Завдання: проаналізуй новину російською мовою та визнач, чи стосується вона сервера x1000.\n"
         "Потрібно враховувати тільки сервер x1000. Якщо новина стосується лише інших серверів, турнірів, стримів, загальних активностей без прив'язки до x1000, відповідай що вона не релевантна.\n"
         "Якщо новина частково стосується кількох серверів, залиш тільки частину, яка стосується x1000.\n"
         "Дуже важливо: не плутай сервер Scryde X (x100) із сервером x1000. Згадка 'Scryde X', 'x100' або 'Скрайд X' сама по собі НЕ означає x1000.\n"
         "Водночас загальні новини, які явно стосуються всіх серверів або не обмежені іншим конкретним сервером, потрібно вважати релевантними для x1000.\n"
         "Якщо новина явно тільки про Scryde X/x100 або інший сервер без x1000, relevant=false. Якщо новина загальна для всіх серверів, relevant=true.\n"
+        "У тебе є список уже наявних pending-новин. Якщо поточна новина по суті є тією самою новиною іншими словами, вибери action=replace і вкажи target_state_key + target_post_id для pending-новини, яку треба замінити.\n"
+        "Якщо це справді нова окрема новина, action=new. Якщо її взагалі не треба постити, action=ignore.\n"
+        "Прибери дубль заголовка в тілі тексту: якщо body починається тим самим заголовком, не повторюй його вдруге.\n"
         "Прибери зайве: інформацію про інші сервери, рекламні вставки, посилання на стріми, зайві CTA, фрази про підписку, другорядний шум.\n"
         "Переклади результат українською мовою і поверни вже ГОТОВИЙ HTML для Telegram.\n"
         "Використовуй тільки сумісні з Telegram HTML теги: <b>, <i>, <code>, <a>.\n"
         "Якщо є промокод, обов'язково загорни його в <code>.\n"
         "Збережи красиве форматування по контексту: абзаци, списки, акценти. Не вигадуй інформацію, якої нема в оригіналі.\n"
         "\n"
+        "Ось уже наявні pending-новини:\n{pending_context_json}\n"
+        "\n"
         "Поверни JSON об'єкт такого вигляду:\n"
-        "{{\"relevant\": true|false, \"title\": \"короткий заголовок\", \"text\": \"готовий HTML для Telegram\"}}\n"
+        "{{\"relevant\": true|false, \"action\": \"new|replace|ignore\", \"target_state_key\": \"news|forum_news|\", \"target_post_id\": 0, \"title\": \"короткий заголовок\", \"text\": \"готовий HTML для Telegram\"}}\n"
         "Без markdown-обгорток, без пояснень, лише JSON.\n"
         "\n"
         "Оригінальна новина:\n{}"
-    ).format(text)
+    ).format(text, source_label=source_label or "unknown", pending_context_json=pending_context_json)
 
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
@@ -403,6 +410,9 @@ def gemini_rewrite_x1000_news(text):
         if not isinstance(parsed, dict):
             return None
         parsed["relevant"] = bool(parsed.get("relevant", False))
+        parsed["action"] = str(parsed.get("action", "new") or "new").strip().lower()
+        parsed["target_state_key"] = str(parsed.get("target_state_key", "") or "").strip()
+        parsed["target_post_id"] = int(parsed.get("target_post_id", 0) or 0)
         parsed["title"] = str(parsed.get("title", "") or "").strip()
         parsed["text"] = str(parsed.get("text", "") or "").strip()
         return parsed
@@ -410,6 +420,24 @@ def gemini_rewrite_x1000_news(text):
         log("gemini rewrite failed: {}".format(exc))
         send_debug(DEBUG_CYCLE_ERROR.format(error="gemini news error: {}".format(str(exc)[:240])))
         return None
+
+
+def build_pending_context(state):
+    pending_items = []
+    for state_key in ("news", "forum_news"):
+        news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
+        for item in news_state.get("pending", []):
+            if item.get("status") != "pending":
+                continue
+            pending_items.append({
+                "state_key": state_key,
+                "post_id": item.get("post_id"),
+                "source": item.get("source"),
+                "title": item.get("title"),
+                "text": item.get("text"),
+                "url": item.get("url"),
+            })
+    return pending_items[-10:]
 
 
 def process_channel_news(state):
@@ -478,7 +506,7 @@ def process_feed_posts(state, posts, state_key, source_label):
         return
 
     for post in new_posts:
-        rewritten = gemini_rewrite_x1000_news(post["text"])
+        rewritten = gemini_rewrite_x1000_news(post["text"], source_label=source_label, pending_context=build_pending_context(state))
         news_state["last_seen_id"] = max(news_state.get("last_seen_id", 0), post["id"])
         if not rewritten or not rewritten.get("relevant"):
             continue
@@ -490,10 +518,41 @@ def process_feed_posts(state, posts, state_key, source_label):
         if not body:
             continue
         title_prefix = "⚙️ " if source_label == "forum" else ""
+        display_title = "{}{}".format(title_prefix, title)
+
+        if rewritten.get("action") == "replace" and rewritten.get("target_state_key") in {"news", "forum_news"} and rewritten.get("target_post_id"):
+            target_state = state.setdefault(rewritten["target_state_key"], {"last_seen_id": 0, "sent_ids": [], "pending": []})
+            target_item = next((x for x in target_state.get("pending", []) if int(x.get("post_id", 0)) == int(rewritten.get("target_post_id")) and x.get("status") == "pending"), None)
+            if target_item:
+                target_item["title"] = display_title
+                target_item["text"] = body
+                target_item["url"] = post["url"]
+                target_item["source"] = source_label
+                if target_item.get("debug_message_id") and TG_CHAT_DEBUG:
+                    edit_telegram_reply_markup(TG_CHAT_DEBUG, target_item["debug_message_id"])
+                    buttons = {
+                        "inline_keyboard": [[
+                            {"text": "Запостити зараз", "callback_data": "news:publish:{}:{}".format(rewritten["target_state_key"], target_item["post_id"])},
+                            {"text": "Скасувати", "callback_data": "news:cancel:{}:{}".format(rewritten["target_state_key"], target_item["post_id"])},
+                        ]]
+                    }
+                    command_help = "\n\n<code>/news_publish {} {}</code>\n<code>/news_cancel {} {}</code>".format(rewritten["target_state_key"], target_item["post_id"], rewritten["target_state_key"], target_item["post_id"])
+                    if NEWS_TARGET_CHAT == "debug":
+                        footer = "Автопублікація: <b>вимкнена (debug mode)</b>"
+                    else:
+                        footer = "Автопублікація через <b>{} хв</b>".format(NEWS_APPROVE_DELAY_MIN)
+                    preview = "<b>[{} PENDING UPDATED]</b> <b>{}</b>\n\n{}\n\n{}{}\n\n{}".format(source_label.upper(), display_title, body, footer, command_help, post["url"])
+                    target_item["debug_message_id"] = send_telegram_with_markup(preview, buttons, chat_id=TG_CHAT_DEBUG)
+                sent_ids.add(post["id"])
+                continue
+
+        if rewritten.get("action") == "ignore":
+            sent_ids.add(post["id"])
+            continue
 
         pending_item = {
             "post_id": post["id"],
-            "title": "{}{}".format(title_prefix, title),
+            "title": display_title,
             "text": body,
             "url": post["url"],
             "created_at": int(time.time()),
@@ -514,7 +573,8 @@ def process_feed_posts(state, posts, state_key, source_label):
                 footer = "Автопублікація: <b>вимкнена (debug mode)</b>"
             else:
                 footer = "Автопублікація через <b>{} хв</b>".format(NEWS_APPROVE_DELAY_MIN)
-            preview = "<b>[{} PENDING]</b> <b>{}</b>\n\n{}\n\n{}\n\n{}".format(source_label.upper(), title, body, footer, post["url"])
+            command_help = "\n\n<code>/news_publish {} {}</code>\n<code>/news_cancel {} {}</code>".format(state_key, post["id"], state_key, post["id"])
+            preview = "<b>[{} PENDING]</b> <b>{}</b>\n\n{}\n\n{}{}\n\n{}".format(source_label.upper(), display_title, body, footer, command_help, post["url"])
             pending_item["debug_message_id"] = send_telegram_with_markup(preview, buttons, chat_id=TG_CHAT_DEBUG)
 
         news_state.setdefault("pending", []).append(pending_item)
@@ -547,6 +607,50 @@ def process_pending_news_queue(state):
                     send_telegram("<b>[NEWS PUBLISHED AUTO]</b> <b>{}</b>\n\n{}".format(item.get("title", "Новина"), item.get("url", "")), chat_id=TG_CHAT_DEBUG)
 
 
+def execute_news_action(state, state_key, post_id, action, feedback_chat_id=None, feedback_message_id=None, callback_query_id=None):
+    news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
+    item = next((x for x in news_state.get("pending", []) if int(x.get("post_id", 0)) == post_id and x.get("status") == "pending"), None)
+    if not item:
+        if callback_query_id:
+            answer_callback_query(callback_query_id, "Пост уже оброблений")
+        elif feedback_chat_id:
+            send_telegram("Пост уже оброблений", chat_id=str(feedback_chat_id))
+        return True
+
+    if action == "cancel":
+        item["status"] = "cancelled"
+        if feedback_chat_id and feedback_message_id:
+            edit_telegram_reply_markup(feedback_chat_id, feedback_message_id)
+        if callback_query_id:
+            answer_callback_query(callback_query_id, "Скасовано")
+        elif feedback_chat_id:
+            send_telegram("Скасовано", chat_id=str(feedback_chat_id))
+        return True
+
+    if action == "publish":
+        outgoing = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
+        if send_telegram(outgoing, chat_id=TG_CHAT):
+            item["status"] = "published"
+            if feedback_chat_id and feedback_message_id:
+                edit_telegram_reply_markup(feedback_chat_id, feedback_message_id)
+            if callback_query_id:
+                answer_callback_query(callback_query_id, "Опубліковано")
+            elif feedback_chat_id:
+                send_telegram("Опубліковано", chat_id=str(feedback_chat_id))
+        else:
+            if callback_query_id:
+                answer_callback_query(callback_query_id, "Не вдалося опублікувати")
+            elif feedback_chat_id:
+                send_telegram("Не вдалося опублікувати", chat_id=str(feedback_chat_id))
+        return True
+
+    if callback_query_id:
+        answer_callback_query(callback_query_id, "Невідома дія")
+    elif feedback_chat_id:
+        send_telegram("Невідома дія", chat_id=str(feedback_chat_id))
+    return True
+
+
 def handle_news_callback(state, callback):
     data = callback.get("data") or ""
     if not data.startswith("news:"):
@@ -562,31 +666,43 @@ def handle_news_callback(state, callback):
     action = parts[1]
     state_key = parts[2]
     post_id = int(parts[3])
-    news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
-    item = next((x for x in news_state.get("pending", []) if int(x.get("post_id", 0)) == post_id and x.get("status") == "pending"), None)
-    if not item:
-        answer_callback_query(callback_id, "Пост уже оброблений")
+    return execute_news_action(
+        state,
+        state_key,
+        post_id,
+        action,
+        feedback_chat_id=message.get("chat", {}).get("id"),
+        feedback_message_id=message.get("message_id"),
+        callback_query_id=callback_id,
+    )
+
+
+def handle_news_command(state, message):
+    text = (message.get("text") or "").strip()
+    if not text.startswith("/news_"):
+        return False
+
+    parts = text.split()
+    if len(parts) != 3:
+        send_telegram("Формат: <code>/news_publish state_key post_id</code> або <code>/news_cancel state_key post_id</code>", chat_id=str(message.get("chat", {}).get("id")))
         return True
 
-    if action == "cancel":
-        item["status"] = "cancelled"
-        edit_telegram_reply_markup(message.get("chat", {}).get("id"), message.get("message_id"))
-        answer_callback_query(callback_id, "Скасовано")
+    command, state_key, post_id_raw = parts
+    if state_key not in {"news", "forum_news"} or not post_id_raw.isdigit():
+        send_telegram("Некоректна команда", chat_id=str(message.get("chat", {}).get("id")))
         return True
 
-    if action == "publish":
-        outgoing = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
-        sent_ok = send_telegram(outgoing, chat_id=TG_CHAT)
-        if sent_ok:
-            item["status"] = "published"
-            edit_telegram_reply_markup(message.get("chat", {}).get("id"), message.get("message_id"))
-            answer_callback_query(callback_id, "Опубліковано")
-        else:
-            answer_callback_query(callback_id, "Не вдалося опублікувати")
-        return True
+    action = "publish" if command.startswith("/news_publish") else "cancel" if command.startswith("/news_cancel") else None
+    if not action:
+        return False
 
-    answer_callback_query(callback_id, "Невідома дія")
-    return True
+    return execute_news_action(
+        state,
+        state_key,
+        int(post_id_raw),
+        action,
+        feedback_chat_id=message.get("chat", {}).get("id"),
+    )
 
 
 def process_callback_updates(state):
@@ -599,7 +715,7 @@ def process_callback_updates(state):
             params={
                 "offset": offset,
                 "timeout": 0,
-                "allowed_updates": json.dumps(["callback_query"]),
+                "allowed_updates": json.dumps(["callback_query", "message"]),
             },
             timeout=20,
         )
@@ -615,6 +731,9 @@ def process_callback_updates(state):
         callback = update.get("callback_query")
         if callback:
             handle_news_callback(state, callback)
+        message = update.get("message")
+        if message:
+            handle_news_command(state, message)
 
     if max_update_id is not None:
         meta["tg_update_offset"] = max_update_id + 1
