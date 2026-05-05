@@ -3,12 +3,17 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "LibrarianS",
+        "image": "https://static-eu.scrydecdn.com/clan-images/53c1b14effd4873fe87475957e43e5d6-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1778010759,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1778008474,
     "notified_reminder": false
   },
   "castle": {
@@ -28,7 +33,8 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1777937631:Полем": 1777934517
+      "fortress:116:1777937631:Полем": 1777934517,
+      "fortress:116:1778010759:LibrarianS": 1778008474
     },
     "tg_update_offset": 848301097
   },
