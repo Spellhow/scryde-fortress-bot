@@ -309,10 +309,12 @@ def fetch_channel_posts(channel_url):
         text = text_node.get_text("\n", strip=True)
         if not text:
             continue
+        formatted_html = text_node.decode_contents().strip()
         posts.append({
             "id": post_id,
             "url": href,
             "text": text,
+            "formatted_html": formatted_html,
         })
     posts.sort(key=lambda item: item["id"])
     return posts
@@ -341,24 +343,28 @@ def fetch_forum_posts(forum_url):
         text = body_node.get_text("\n", strip=True)
         if not text:
             continue
+        formatted_html = body_node.decode_contents().strip()
         posts.append({
             "id": post_id,
             "url": "{}#post-{}".format(forum_url.split("?")[0], post_id),
             "text": text,
+            "formatted_html": formatted_html,
             "source": "forum",
         })
     posts.sort(key=lambda item: item["id"])
     return posts
 
 
-def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None):
+def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, source_html=None):
     if not GEMINI_API_KEY:
         return None
 
     pending_context_json = json.dumps(pending_context or [], ensure_ascii=False)
+    source_html = (source_html or "").strip()
     prompt = (
         "Ти редактор новин для українського Telegram-каналу клану в MMORPG Scryde.\n"
         "Джерело поточної новини: {source_label}.\n"
+        "Тобі передано і plain text, і оригінальний HTML/форматований фрагмент джерела. Перевагу треба віддавати саме оригінальній структурі та форматуванню з HTML-фрагмента.\n"
         "Завдання: проаналізуй новину російською мовою та визнач, чи стосується вона сервера x1000.\n"
         "Потрібно враховувати тільки сервер x1000. Якщо новина стосується лише інших серверів, турнірів, стримів, загальних активностей без прив'язки до x1000, відповідай що вона не релевантна.\n"
         "Якщо новина частково стосується кількох серверів, залиш тільки частину, яка стосується x1000.\n"
@@ -380,12 +386,14 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None):
         "\n"
         "Ось уже наявні pending-новини:\n{pending_context_json}\n"
         "\n"
+        "Оригінальний форматований HTML-фрагмент джерела:\n{source_html}\n"
+        "\n"
         "Поверни JSON об'єкт такого вигляду:\n"
         "{{\"relevant\": true|false, \"action\": \"new|replace|ignore\", \"target_state_key\": \"news|forum_news|\", \"target_post_id\": 0, \"title\": \"короткий заголовок\", \"text\": \"готовий HTML для Telegram\"}}\n"
         "Без markdown-обгорток, без пояснень, лише JSON.\n"
         "\n"
         "Оригінальна новина:\n{}"
-    ).format(text, source_label=source_label or "unknown", pending_context_json=pending_context_json)
+    ).format(text, source_label=source_label or "unknown", pending_context_json=pending_context_json, source_html=source_html)
 
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
@@ -456,7 +464,7 @@ def process_channel_news(state):
             if not post:
                 send_debug(DEBUG_CYCLE_ERROR.format(error="news test post not found: {}".format(post_id)))
                 continue
-            rewritten = gemini_rewrite_x1000_news(post["text"])
+            rewritten = gemini_rewrite_x1000_news(post["text"], source_label="telegram", source_html=post.get("formatted_html", ""))
             if not rewritten:
                 continue
             body = (rewritten.get("text") or "НЕ РЕЛЕВАНТНО").strip()
@@ -480,7 +488,7 @@ def process_forum_news(state):
             if not post:
                 send_debug(DEBUG_CYCLE_ERROR.format(error="forum test post not found: {}".format(post_id)))
                 continue
-            rewritten = gemini_rewrite_x1000_news(post["text"])
+            rewritten = gemini_rewrite_x1000_news(post["text"], source_label="forum", source_html=post.get("formatted_html", ""))
             if not rewritten:
                 continue
             body = (rewritten.get("text") or "НЕ РЕЛЕВАНТНО").strip()
@@ -510,7 +518,12 @@ def process_feed_posts(state, posts, state_key, source_label):
         return
 
     for post in new_posts:
-        rewritten = gemini_rewrite_x1000_news(post["text"], source_label=source_label, pending_context=build_pending_context(state))
+        rewritten = gemini_rewrite_x1000_news(
+            post["text"],
+            source_label=source_label,
+            pending_context=build_pending_context(state),
+            source_html=post.get("formatted_html", ""),
+        )
         news_state["last_seen_id"] = max(news_state.get("last_seen_id", 0), post["id"])
         if not rewritten or not rewritten.get("relevant"):
             continue
