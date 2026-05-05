@@ -52,9 +52,10 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2641914,
+    "last_seen_id": 2642269,
     "sent_ids": [
-      2641914
+      2641914,
+      2642269
     ],
     "pending": [
       {
@@ -66,6 +67,17 @@
         "publish_after": 1777931149,
         "status": "published",
         "debug_message_id": 106,
+        "source": "forum"
+      },
+      {
+        "post_id": 2642269,
+        "title": "⚙️ Оновлення кланхолів на x1000",
+        "text": "<b>HOT-RELEASE від 05.05.26</b>\n\nНа <b>Scryde x1000</b> скинуто всі кланхоли на NPC. Призначено повторний аукціон на <b>10 травня</b>, а також знижено стартову ставку у <b>2 рази</b>.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-19#post-2642269",
+        "created_at": 1777975257,
+        "publish_after": 1777976757,
+        "status": "pending",
+        "debug_message_id": 110,
         "source": "forum"
       }
     ]
