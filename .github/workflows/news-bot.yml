@@ -1,0 +1,100 @@
+name: News Bot
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      news_test_post_ids:
+        description: 'Optional comma-separated Telegram post ids for Gemini news test, e.g. 4457,4456'
+        required: false
+        default: ''
+      forum_test_post_ids:
+        description: 'Optional comma-separated forum post ids for Gemini forum test, e.g. 2617420'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news-bot
+  cancel-in-progress: true
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest repository state
+        shell: bash
+        run: |
+          git fetch origin master
+          git rebase origin/master
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-actions.txt
+
+      - name: Restore Playwright browser cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements-actions.txt') }}
+
+      - name: Install Python dependencies
+        run: pip install -r requirements-actions.txt
+
+      - name: Install Playwright Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Ensure state file exists
+        run: |
+          if [ ! -f site_state.json ]; then
+            echo '{}' > site_state.json
+          fi
+
+      - name: Run news check
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NEWS_TARGET_CHAT: prod
+          NEWS_TEST_POST_IDS: ${{ github.event.inputs.news_test_post_ids }}
+          FORUM_TEST_POST_IDS: ${{ github.event.inputs.forum_test_post_ids }}
+          NEWS_APPROVE_DELAY_MIN: 25
+          RUN_NEWS: true
+          RUN_SIEGES: false
+          OUR_CLAN: BSOE
+          FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
+          CASTLE_URL: https://ua.scryde.game/rankings/1000/castles
+          SCRYDE_CHANNEL_URL: https://t.me/s/scryde
+          SCRYDE_FORUM_UPDATES_URL: https://board.scryde.net/threads/obnovlenija.30694/page-19?from=game-news
+          STATE_FILE: site_state.json
+          BACKOFF_MINUTES_ON_CHALLENGE: 60
+        run: python github_runner.py
+
+      - name: Commit updated state
+        shell: bash
+        run: |
+          if git diff --quiet -- site_state.json; then
+            echo "No state changes"
+            exit 0
+          fi
+          git add site_state.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: update fortress bot state"
+          git pull --rebase origin master
+          git push

@@ -1,5 +1,6 @@
 # TODO
 
+- [in_progress] Split siege and news processing into separate workflows
 - [in_progress] Add cross-source dedupe and Telegram-preferred upgrade between forum and Telegram news
 - [in_progress] Add text-command moderation fallback for cron-style GitHub Actions runs
 - [completed] Remove duplicated generated titles from Gemini-formatted news bodies

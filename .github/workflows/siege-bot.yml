@@ -1,25 +1,16 @@
-name: Fortress Bot
+name: Siege Bot
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
   workflow_dispatch:
-    inputs:
-      news_test_post_ids:
-        description: 'Optional comma-separated Telegram post ids for Gemini news test, e.g. 4457,4456'
-        required: false
-        default: ''
-      forum_test_post_ids:
-        description: 'Optional comma-separated forum post ids for Gemini forum test, e.g. 2617420'
-        required: false
-        default: ''
 
 permissions:
   contents: write
 
 concurrency:
-  group: fortress-bot
+  group: siege-bot
   cancel-in-progress: true
 
 jobs:
@@ -64,16 +55,14 @@ jobs:
             echo '{}' > site_state.json
           fi
 
-      - name: Run bot check
+      - name: Run siege check
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
           TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          NEWS_TARGET_CHAT: prod
-          NEWS_TEST_POST_IDS: ${{ github.event.inputs.news_test_post_ids }}
-          FORUM_TEST_POST_IDS: ${{ github.event.inputs.forum_test_post_ids }}
-          NEWS_APPROVE_DELAY_MIN: 25
+          RUN_NEWS: false
+          RUN_SIEGES: true
           OUR_CLAN: BSOE
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
           CASTLE_URL: https://ua.scryde.game/rankings/1000/castles
@@ -82,20 +71,6 @@ jobs:
           STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 60
         run: python github_runner.py
-
-      - name: Show saved state summary
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          with open('site_state.json', 'r', encoding='utf-8') as fh:
-              state = json.load(fh)
-          fortress = state.get('fortress', {})
-          castle = state.get('castle', {})
-          print('fortress:', fortress.get('name'), 'had=', fortress.get('had'))
-          print('castle:', castle.get('name'), 'had=', castle.get('had'))
-          print('backoff:', state.get('meta', {}).get('backoff_until', {}))
-          PY
 
       - name: Commit updated state
         shell: bash

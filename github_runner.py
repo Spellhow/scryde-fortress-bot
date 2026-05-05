@@ -52,6 +52,8 @@ NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
+RUN_NEWS = os.environ.get("RUN_NEWS", "true").lower() == "true"
+RUN_SIEGES = os.environ.get("RUN_SIEGES", "true").lower() == "true"
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
 CASTLE_URL = os.environ.get("CASTLE_URL", "https://ua.scryde.game/rankings/1000/castles")
@@ -1084,22 +1086,25 @@ def main():
     process_callback_updates(state)
     state["fortress"]["_root_state"] = state
     state["castle"]["_root_state"] = state
-    process_channel_news(state)
-    process_forum_news(state)
-    process_pending_news_queue(state)
-    fortress_items = fetch_page_data(FORTRESS_URL, "fortresses", state)
-    delay = random.randint(*BETWEEN_REQUESTS_DELAY)
-    log("between requests delay {}s".format(delay))
-    time.sleep(delay)
-    castle_items = fetch_page_data(CASTLE_URL, "castles", state)
+    if RUN_NEWS:
+        process_channel_news(state)
+        process_forum_news(state)
+        process_pending_news_queue(state)
 
-    if fortress_items is not None:
-        state["fortress"] = process_defence(state["fortress"], fortress_items, "fortress", FORTRESS_URL)
-        state["our_fortress_attacks"] = process_our_attacks(state.get("our_fortress_attacks", {}), fortress_items, "fortress", FORTRESS_URL)
+    if RUN_SIEGES:
+        fortress_items = fetch_page_data(FORTRESS_URL, "fortresses", state)
+        delay = random.randint(*BETWEEN_REQUESTS_DELAY)
+        log("between requests delay {}s".format(delay))
+        time.sleep(delay)
+        castle_items = fetch_page_data(CASTLE_URL, "castles", state)
 
-    if castle_items is not None:
-        state["castle"] = process_defence(state["castle"], castle_items, "castle", CASTLE_URL)
-        state["our_castle_attacks"] = process_our_attacks(state.get("our_castle_attacks", {}), castle_items, "castle", CASTLE_URL)
+        if fortress_items is not None:
+            state["fortress"] = process_defence(state["fortress"], fortress_items, "fortress", FORTRESS_URL)
+            state["our_fortress_attacks"] = process_our_attacks(state.get("our_fortress_attacks", {}), fortress_items, "fortress", FORTRESS_URL)
+
+        if castle_items is not None:
+            state["castle"] = process_defence(state["castle"], castle_items, "castle", CASTLE_URL)
+            state["our_castle_attacks"] = process_our_attacks(state.get("our_castle_attacks", {}), castle_items, "castle", CASTLE_URL)
 
     state["fortress"].pop("_root_state", None)
     state["castle"].pop("_root_state", None)
