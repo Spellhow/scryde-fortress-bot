@@ -3,12 +3,17 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "Excaliburre",
+        "image": "https://static-eu.scrydecdn.com/clan-images/5d94cb0fb72f7982afba41f1ce6b78b6-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1778123118,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1778119905,
     "notified_reminder": false
   },
   "castle": {
@@ -28,8 +33,7 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1777937631:Полем": 1777934517,
-      "fortress:116:1778010759:LibrarianS": 1778008474
+      "fortress:116:1778123118:Excaliburre": 1778119905
     },
     "tg_update_offset": 848301097
   },
