@@ -23,7 +23,14 @@
     "siege_first_notify": 0,
     "notified_reminder": false
   },
-  "our_fortress_attacks": {},
+  "our_fortress_attacks": {
+    "111": {
+      "name": "Archaic Fortress",
+      "siege_at": 1778323434,
+      "notified": true,
+      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/dc0cb4210dae48568928b0b8ab09105e-full.jpg"
+    }
+  },
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {},
