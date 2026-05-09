@@ -105,24 +105,26 @@ def fetch_image(url, size=None):
         return None
 
 def fit_background_to_card(img, target_w, target_h):
-    """Scale by width only and center-crop vertically, so the scene is never stretched."""
+    """Fill the card without stretching, cropping from the centered scene."""
     if not img:
         return None
     src_w, src_h = img.size
     if src_w <= 0 or src_h <= 0:
         return None
 
-    scaled_h = max(1, round(src_h * (target_w / src_w)))
-    bg = img.resize((target_w, scaled_h), Image.LANCZOS).convert("RGBA")
+    scale = max(target_w / src_w, target_h / src_h)
+    scaled_w = max(1, round(src_w * scale))
+    scaled_h = max(1, round(src_h * scale))
+    bg = img.resize((scaled_w, scaled_h), Image.LANCZOS).convert("RGBA")
+    left = max(0, (scaled_w - target_w) // 2)
+    top = max(0, (scaled_h - target_h) // 2)
+    return bg.crop((left, top, left + target_w, top + target_h))
 
-    if scaled_h >= target_h:
-        top = (scaled_h - target_h) // 2
-        return bg.crop((0, top, target_w, top + target_h))
 
-    canvas = Image.new("RGBA", (target_w, target_h), C_BG)
-    y = (target_h - scaled_h) // 2
-    canvas.paste(bg, (0, y), bg)
-    return canvas
+def alpha_rect(card, box, color):
+    layer = Image.new("RGBA", card.size, C_TRANSP)
+    ImageDraw.Draw(layer).rectangle(box, fill=color)
+    card.alpha_composite(layer)
 
 def clan_icon(url):
     """Завантажує іконку клану 24x12 (оригінальний розмір L2). Або None."""
@@ -190,13 +192,13 @@ def build_card(
     bg_img    = fit_background_to_card(fetch_image(bg_url), CARD_W, card_h)
     if bg_img:
         card.paste(bg_img, (0, 0), bg_img)
-        ov = Image.new("RGBA", (CARD_W, card_h), (8, 22, 34, 165))
+        ov = Image.new("RGBA", (CARD_W, card_h), (8, 22, 34, 95))
         card.paste(ov, (0, 0), ov)
 
     d = ImageDraw.Draw(card)
 
     # ── Заголовок ──
-    d.rectangle([(0, 0), (CARD_W, HEADER_H)], fill=event_color + (175,))
+    alpha_rect(card, [(0, 0), (CARD_W, HEADER_H)], event_color + (145,))
     d.text((PAD, 7), event_text, font=font(16, bold=True), fill=C_WHITE)
 
     # ── Назва об'єкту ──
@@ -242,7 +244,7 @@ def build_card(
 
     # ── Footer ──
     footer_y = card_h - FOOTER_H
-    d.rectangle([(0, footer_y), (CARD_W, card_h)], fill=(0, 0, 0, 105))
+    alpha_rect(card, [(0, footer_y), (CARD_W, card_h)], (0, 0, 0, 85))
     d.text((PAD, footer_y + 3), page_url, font=font(10), fill=C_TEXT2)
 
     buf = io.BytesIO()
