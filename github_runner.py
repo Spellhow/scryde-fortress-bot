@@ -882,20 +882,52 @@ def build_event_card(obj_type, obj_name, event_text, event_color, owner_name, ow
         return None
 
 
+def default_object_state():
+    return {
+        "had": False,
+        "name": None,
+        "id": None,
+        "last_attackers": [],
+        "owner_image": None,
+        "last_siege_at": 0,
+        "notified_siege": False,
+        "notified_lost": False,
+        "siege_first_notify": 0,
+        "notified_reminder": False,
+    }
+
+
+def copy_object_state(dst, src):
+    for key in default_object_state().keys():
+        dst[key] = src.get(key, default_object_state()[key])
+
+
 def process_defence(state_section, items, obj_key, page_url):
     o = OBJ[obj_key]
     obj_type = o["acc"]
-    s = state_section
-    our = None
+    root_state = state_section.get("_root_state", {})
+    tracked = state_section.setdefault("objects", {})
+
+    if state_section.get("id") and str(state_section.get("id")) not in tracked:
+        tracked[str(state_section["id"])] = {
+            key: state_section.get(key, default_object_state()[key])
+            for key in default_object_state().keys()
+        }
+
+    our_items = []
     for item in items:
         owner = item.get("owner")
         if owner and owner.get("name") == OUR_CLAN:
-            our = item
-            break
+            our_items.append(item)
 
-    if our:
+    current_ids = set()
+    processed = []
+    for our in our_items:
         fort_name = our["name"]
         fort_id = our["id"]
+        fort_key = str(fort_id)
+        current_ids.add(fort_key)
+        s = tracked.setdefault(fort_key, default_object_state())
         attackers = get_attackers(our)
         siege_at = our.get("siege_at", 0)
 
@@ -925,7 +957,7 @@ def process_defence(state_section, items, obj_key, page_url):
             mins_left = (siege_at - now) // 60
 
             should_notify = (not s["notified_siege"]) or new_attackers or new_siege_time
-            if should_notify and not should_send_siege_alert(state_section.get("_root_state", {}), alert_key, now):
+            if should_notify and not should_send_siege_alert(root_state, alert_key, now):
                 log("skip duplicate siege alert {}".format(alert_key))
                 s["notified_siege"] = True
                 atk_list = (our.get("siege_sides") or {}).get("attackers", [])
@@ -961,7 +993,7 @@ def process_defence(state_section, items, obj_key, page_url):
                     atk_list = (our.get("siege_sides") or {}).get("attackers", [])
                     s["last_attackers"] = [{"name": a.get("name", "?"), "image": a.get("image")} for a in atk_list]
                     s["last_siege_at"] = siege_at
-                    remember_siege_alert(state_section.get("_root_state", {}), alert_key, now)
+                    remember_siege_alert(root_state, alert_key, now)
 
             first_notify = s.get("siege_first_notify", 0)
             time_since_first = now - first_notify if first_notify else 0
@@ -1001,7 +1033,11 @@ def process_defence(state_section, items, obj_key, page_url):
             s["last_siege_at"] = 0
             s["siege_first_notify"] = 0
             s["notified_reminder"] = False
-    else:
+        processed.append((our, s, bool(attackers and siege_at)))
+
+    for fort_key, s in list(tracked.items()):
+        if fort_key in current_ids:
+            continue
         if s["had"] and not s.get("notified_lost"):
             fort_name = s.get("name") or "невідомий об'єкт"
             our_old = next((f for f in items if f.get("id") == s.get("id")), None)
@@ -1022,7 +1058,17 @@ def process_defence(state_section, items, obj_key, page_url):
                 s["notified_reminder"] = False
             else:
                 s["had"] = False
-    return s
+
+    if processed:
+        preferred = next((entry for entry in processed if entry[2]), processed[0])
+        copy_object_state(state_section, preferred[1])
+    else:
+        active = [obj_state for obj_state in tracked.values() if obj_state.get("had")]
+        if active:
+            copy_object_state(state_section, active[0])
+        else:
+            state_section["had"] = False
+    return state_section
 
 
 def process_our_attacks(attack_state, items, obj_key, page_url):

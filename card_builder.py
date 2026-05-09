@@ -104,6 +104,26 @@ def fetch_image(url, size=None):
         _img_cache[key] = None
         return None
 
+def fit_background_to_card(img, target_w, target_h):
+    """Scale by width only and center-crop vertically, so the scene is never stretched."""
+    if not img:
+        return None
+    src_w, src_h = img.size
+    if src_w <= 0 or src_h <= 0:
+        return None
+
+    scaled_h = max(1, round(src_h * (target_w / src_w)))
+    bg = img.resize((target_w, scaled_h), Image.LANCZOS).convert("RGBA")
+
+    if scaled_h >= target_h:
+        top = (scaled_h - target_h) // 2
+        return bg.crop((0, top, target_w, top + target_h))
+
+    canvas = Image.new("RGBA", (target_w, target_h), C_BG)
+    y = (target_h - scaled_h) // 2
+    canvas.paste(bg, (0, y), bg)
+    return canvas
+
 def clan_icon(url):
     """Завантажує іконку клану 24x12 (оригінальний розмір L2). Або None."""
     img = fetch_image(url)
@@ -167,16 +187,16 @@ def build_card(
 
     is_castle = "замок" in obj_type.lower()
     bg_url    = castle_bg_url(obj_name) if is_castle else fortress_bg_url(obj_name)
-    bg_img    = fetch_image(bg_url, (CARD_W, card_h))
+    bg_img    = fit_background_to_card(fetch_image(bg_url), CARD_W, card_h)
     if bg_img:
-        card.paste(bg_img.convert("RGBA"), (0, 0))
+        card.paste(bg_img, (0, 0), bg_img)
         ov = Image.new("RGBA", (CARD_W, card_h), (8, 22, 34, 165))
         card.paste(ov, (0, 0), ov)
 
     d = ImageDraw.Draw(card)
 
     # ── Заголовок ──
-    d.rectangle([(0, 0), (CARD_W, HEADER_H)], fill=event_color + (225,))
+    d.rectangle([(0, 0), (CARD_W, HEADER_H)], fill=event_color + (175,))
     d.text((PAD, 7), event_text, font=font(16, bold=True), fill=C_WHITE)
 
     # ── Назва об'єкту ──
@@ -222,7 +242,7 @@ def build_card(
 
     # ── Footer ──
     footer_y = card_h - FOOTER_H
-    d.rectangle([(0, footer_y), (CARD_W, card_h)], fill=(0, 0, 0, 130))
+    d.rectangle([(0, footer_y), (CARD_W, card_h)], fill=(0, 0, 0, 105))
     d.text((PAD, footer_y + 3), page_url, font=font(10), fill=C_TEXT2)
 
     buf = io.BytesIO()
