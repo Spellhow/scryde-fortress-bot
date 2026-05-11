@@ -48,10 +48,11 @@
     "tg_update_offset": 848301097
   },
   "news": {
-    "last_seen_id": 4483,
+    "last_seen_id": 4484,
     "sent_ids": [
       4465,
-      4474
+      4474,
+      4484
     ],
     "pending": [
       {
@@ -72,6 +73,17 @@
         "url": "https://t.me/scryde/4474",
         "created_at": 1778263863,
         "publish_after": 1778265363,
+        "status": "pending",
+        "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4484,
+        "title": "Набори вболівальника Scryde International",
+        "text": "<b>Набори вболівальника Scryde International</b><br/><br/>З нагоди майбутнього турніру на Scryde з'явилися спеціальні набори, які доступні і для нашого сервера <b>x1000</b>. Це чудова можливість отримати ексклюзивну зовнішність та корисні монети. 🏆<br/><br/><b>Склад Набору Вболівальника для x1000:</b><br/><blockquote>😎 Купон на костюм Ассасина<br/>😎 Купон на Зброю Валакаса<br/>🐊 Green Coin (3,000 шт.)<br/>💵 Золота Монета (2,000 шт.)</blockquote><br/><i>Ви можете придбати набори, щоб отримати унікальний вигляд та проголосувати за улюблені команди.</i><br/><br/>🛡️ <a href=\"https://scrd.link/fankit?utm_source=social\"><b>Замовити Набір Вболівальника</b></a>",
+        "url": "https://t.me/scryde/4484",
+        "created_at": 1778492448,
+        "publish_after": 1778493948,
         "status": "pending",
         "debug_message_id": null,
         "source": "telegram"
