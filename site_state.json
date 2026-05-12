@@ -38,7 +38,14 @@
     "notified_reminder": false,
     "objects": {}
   },
-  "our_fortress_attacks": {},
+  "our_fortress_attacks": {
+    "112": {
+      "name": "Floran Fortress",
+      "siege_at": 1778597315,
+      "notified": true,
+      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/bdd02b75190f24a4df64efe6dd310f79-full.jpg"
+    }
+  },
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {},
