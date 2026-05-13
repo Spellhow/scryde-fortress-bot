@@ -63,7 +63,7 @@ STATE_FILE = os.environ.get("STATE_FILE", "site_state.json")
 
 BETWEEN_REQUESTS_DELAY = (4, 9)
 PRE_FETCH_DELAY = (8, 20)
-BACKOFF_MINUTES_ON_CHALLENGE = int(os.environ.get("BACKOFF_MINUTES_ON_CHALLENGE", "60"))
+BACKOFF_MINUTES_ON_CHALLENGE = int(os.environ.get("BACKOFF_MINUTES_ON_CHALLENGE", "0"))
 SITE_ERROR_NOTIFY_AFTER = 2
 GAME_TZ = ZoneInfo("Europe/Kyiv")
 
@@ -272,6 +272,9 @@ def random_prewait(label):
 
 
 def should_backoff(state, page_key):
+    if BACKOFF_MINUTES_ON_CHALLENGE <= 0:
+        clear_backoff(state, page_key)
+        return False
     until = state["meta"]["backoff_until"].get(page_key, 0)
     now = int(time.time())
     if until and now < until:
@@ -281,6 +284,9 @@ def should_backoff(state, page_key):
 
 
 def set_backoff(state, page_key, minutes):
+    if minutes <= 0:
+        clear_backoff(state, page_key)
+        return
     state["meta"]["backoff_until"][page_key] = int(time.time()) + minutes * 60
 
 
