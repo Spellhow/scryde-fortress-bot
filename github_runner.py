@@ -65,6 +65,7 @@ BETWEEN_REQUESTS_DELAY = (4, 9)
 PRE_FETCH_DELAY = (8, 20)
 BACKOFF_MINUTES_ON_CHALLENGE = int(os.environ.get("BACKOFF_MINUTES_ON_CHALLENGE", "0"))
 SITE_ERROR_NOTIFY_AFTER = 2
+FORTRESS_ANTIBOT_RETRIES = int(os.environ.get("FORTRESS_ANTIBOT_RETRIES", "1"))
 GAME_TZ = ZoneInfo("Europe/Kyiv")
 
 USER_AGENTS = [
@@ -798,39 +799,62 @@ def remember_siege_alert(state, alert_key, now, max_entries=50):
             del last_alerts[key]
 
 
+def fetch_page_html(pw, url, page_key, attempt, goto_timeout=45000, selector_timeout=15000):
+    html = ""
+    browser = pw.chromium.launch(headless=True)
+    context = browser.new_context(
+        user_agent=random.choice(USER_AGENTS),
+        locale="uk-UA",
+        viewport={"width": 1366, "height": 768},
+    )
+    page = context.new_page()
+    page.route(
+        "**/*",
+        lambda route: route.abort()
+        if route.request.resource_type in {"image", "font", "media", "stylesheet"}
+        else route.continue_(),
+    )
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=goto_timeout)
+        try:
+            page.wait_for_selector("script#__NEXT_DATA__", timeout=selector_timeout)
+        except PlaywrightTimeoutError:
+            page.wait_for_timeout(2000)
+        html = page.content()
+        log("{} fetch attempt {} completed".format(page_key, attempt))
+    finally:
+        browser.close()
+    return html
+
+
+def find_next_data_script(html):
+    soup = BeautifulSoup(html, "html.parser")
+    return soup.find("script", id="__NEXT_DATA__")
+
+
 def fetch_page_data(url, page_key, state):
     if should_backoff(state, page_key):
         return None
 
     random_prewait(page_key)
 
-    html = ""
+    retry_count = FORTRESS_ANTIBOT_RETRIES if page_key == "fortresses" else 0
+    script_tag = None
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
-        context = browser.new_context(
-            user_agent=random.choice(USER_AGENTS),
-            locale="uk-UA",
-            viewport={"width": 1366, "height": 768},
-        )
-        page = context.new_page()
-        page.route(
-            "**/*",
-            lambda route: route.abort()
-            if route.request.resource_type in {"image", "font", "media", "stylesheet"}
-            else route.continue_(),
-        )
-        try:
-            page.goto(url, wait_until="domcontentloaded", timeout=45000)
-            try:
-                page.wait_for_selector("script#__NEXT_DATA__", timeout=15000)
-            except PlaywrightTimeoutError:
-                page.wait_for_timeout(4000)
-            html = page.content()
-        finally:
-            browser.close()
-
-    soup = BeautifulSoup(html, "html.parser")
-    script_tag = soup.find("script", id="__NEXT_DATA__")
+        for attempt in range(1, retry_count + 2):
+            if attempt > 1:
+                log("{} retrying after anti-bot/no data".format(page_key))
+            html = fetch_page_html(
+                pw,
+                url,
+                page_key,
+                attempt,
+                goto_timeout=45000 if attempt == 1 else 25000,
+                selector_timeout=15000 if attempt == 1 else 8000,
+            )
+            script_tag = find_next_data_script(html)
+            if script_tag and script_tag.string:
+                break
     if not script_tag or not script_tag.string:
         _challenge_counts[page_key] += 1
         log("{} anti-bot/no data, count={}".format(page_key, _challenge_counts[page_key]))
