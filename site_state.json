@@ -42,8 +42,7 @@
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {
-      "fortresses": 1778680270,
-      "castles": 1778676770
+      "fortresses": 1778680270
     },
     "last_alerts": {
       "fortress:116:1778531441:JDM": 1778528538
