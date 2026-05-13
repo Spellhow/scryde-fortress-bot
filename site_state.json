@@ -58,7 +58,7 @@
     "tg_update_offset": 848301097
   },
   "news": {
-    "last_seen_id": 4491,
+    "last_seen_id": 4492,
     "sent_ids": [
       4465,
       4474,
@@ -66,7 +66,8 @@
       4487,
       4488,
       4489,
-      4490
+      4490,
+      4492
     ],
     "pending": [
       {
@@ -133,6 +134,17 @@
         "publish_after": 1778653577,
         "status": "published",
         "debug_message_id": 116,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4492,
+        "title": "Технічні роботи на проксі",
+        "text": "🚨 <b>Зараз на одному з проксі-серверів тривають технічні роботи</b><br/><br/><blockquote>Рекомендуємо обрати будь-який інший доступний проксі-сервер для підключення.</blockquote><br/><br/>Про завершення робіт повідомимо додатково 🧘",
+        "url": "https://t.me/scryde/4492",
+        "created_at": 1778682645,
+        "publish_after": 1778684145,
+        "status": "pending",
+        "debug_message_id": null,
         "source": "telegram"
       }
     ]
