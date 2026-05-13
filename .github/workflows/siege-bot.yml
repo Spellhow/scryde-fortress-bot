@@ -47,7 +47,7 @@ jobs:
         run: pip install -r requirements-actions.txt
 
       - name: Install Playwright Chromium
-        run: python -m playwright install --with-deps chromium
+        run: python -m playwright install chromium
 
       - name: Ensure state file exists
         run: |
