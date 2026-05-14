@@ -49,7 +49,7 @@
     "tg_update_offset": 848301097
   },
   "news": {
-    "last_seen_id": 4492,
+    "last_seen_id": 4493,
     "sent_ids": [
       4465,
       4474,
@@ -58,7 +58,8 @@
       4488,
       4489,
       4490,
-      4492
+      4492,
+      4493
     ],
     "pending": [
       {
@@ -134,6 +135,17 @@
         "url": "https://t.me/scryde/4492",
         "created_at": 1778682645,
         "publish_after": 1778684145,
+        "status": "pending",
+        "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4493,
+        "title": "Подарунки за ОБТ для x1000",
+        "text": "<b>ОБТ Скрайд X100 стартує вже завтра!</b><br/><br/>15 травня о 20:00 розпочнеться Відкрите Тестування нового сервера. Це чудова можливість не лише протестувати оновлення, а й отримати <b>подарунки для нашого сервера x1000</b>. 🎁<br/><br/>Для отримання винагороди потрібно хоча б раз виконати щоденні завдання (Daily Quests) на ОБТ-сервері.<br/><br/><b>Список подарунків для x1000:</b><br/><blockquote>📜 Destruction Olf Enchant Scroll (2 шт.)<br/>💳 Red Gem Ticket<br/>💳 Black Gem Ticket</blockquote><br/>Також під час ОБТ можна взяти участь у турнірі. Реєстрація відкрита у NPC Valeria <u>з 15 травня 20:00 до 17 травня 14:00</u>. ⚔️<br/><br/><tg-spoiler>Ознайомитися з правилами турніру та повним описом оновлень можна на форумі проєкту.</tg-spoiler>",
+        "url": "https://t.me/scryde/4493",
+        "created_at": 1778757631,
+        "publish_after": 1778759131,
         "status": "pending",
         "debug_message_id": null,
         "source": "telegram"
