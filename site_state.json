@@ -49,7 +49,7 @@
     "tg_update_offset": 848301097
   },
   "news": {
-    "last_seen_id": 4498,
+    "last_seen_id": 4499,
     "sent_ids": [
       4465,
       4474,
@@ -62,7 +62,8 @@
       4493,
       4494,
       4495,
-      4498
+      4498,
+      4499
     ],
     "pending": [
       {
@@ -162,6 +163,17 @@
         "publish_after": 1778777741,
         "status": "published",
         "debug_message_id": 119,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4499,
+        "title": "Оновлення Лаунчера: Виправлення помилок",
+        "text": "🚨 <b>Дуже важливо</b><br/><br/>Через останнє оновлення Лаунчера, в якому було додано багатопотокову перевірку файлів, багато гравців зіткнулися з помилкою під час його запуску. <br/><br/>Щоб усе працювало коректно — необхідно встановити свіжі компоненти С++:<br/><br/><blockquote>1. Завантажуємо їх <a href=\"https://download.visualstudio.microsoft.com/download/pr/40b59c73-1480-4caf-ab5b-4886f176bf71/435A0DE411B991E2BFC7FD1D5439639E7B32206960D3099370E36172018F52FE/VC_redist.x86.exe\"><b>за посиланням</b></a><br/>2. Встановлюємо після завантаження<br/>3. Запускаємо Лаунчер</blockquote><br/><i>Зробіть це прямо зараз, якщо виникають проблеми із запуском Лаунчера.</i> 🛠️",
+        "url": "https://t.me/scryde/4499",
+        "created_at": 1778843431,
+        "publish_after": 1778844931,
+        "status": "pending",
+        "debug_message_id": null,
         "source": "telegram"
       }
     ]
