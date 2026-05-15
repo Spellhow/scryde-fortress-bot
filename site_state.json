@@ -49,7 +49,7 @@
     "tg_update_offset": 848301097
   },
   "news": {
-    "last_seen_id": 4507,
+    "last_seen_id": 4509,
     "sent_ids": [
       4465,
       4474,
@@ -64,7 +64,8 @@
       4495,
       4498,
       4499,
-      4505
+      4505,
+      4509
     ],
     "pending": [
       {
@@ -184,6 +185,17 @@
         "url": "https://t.me/scryde/4505",
         "created_at": 1778863835,
         "publish_after": 1778865335,
+        "status": "pending",
+        "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4509,
+        "title": "Проблеми з доступністю сайту 🚨",
+        "text": "🚨 <b>Проблеми з доступністю сайту</b><br/><br/>Наразі спостерігаються труднощі з роботою сайту Scryde. Фахівці вже працюють над виправленням, щоб усі сервіси повернулися до ладу якнайшвидше. 🛠️<br/><br/>Через це час дії поточних знижок продовжено до 01:00 (GMT+3).<br/><br/><blockquote>Про відновлення роботи сайту повідомимо додатково. Дякуємо за терпіння! 🧘</blockquote><br/><tg-spoiler>🐊 <a href=\"https://scrd.link/howtovote-ru\"><b>Як проголосувати за сервер</b></a></tg-spoiler>",
+        "url": "https://t.me/scryde/4509",
+        "created_at": 1778877641,
+        "publish_after": 1778879141,
         "status": "pending",
         "debug_message_id": null,
         "source": "telegram"
