@@ -49,7 +49,7 @@
     "tg_update_offset": 848301097
   },
   "news": {
-    "last_seen_id": 4504,
+    "last_seen_id": 4505,
     "sent_ids": [
       4465,
       4474,
@@ -63,7 +63,8 @@
       4494,
       4495,
       4498,
-      4499
+      4499,
+      4505
     ],
     "pending": [
       {
@@ -172,6 +173,17 @@
         "url": "https://t.me/scryde/4499",
         "created_at": 1778843431,
         "publish_after": 1778844931,
+        "status": "pending",
+        "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4505,
+        "title": "Готовність 10 хвилин ⏳",
+        "text": "<b>Готовність 10 хвилин</b><br/><br/>Усе фінально перевіряємо та запускаємо 🚀<br/><br/><blockquote>ОБОВ'ЯЗКОВО ОНОВІТЬ ГРУ ЛАУНЧЕРОМ, ЩОБ УСЕ ПРАЦЮВАЛО КОРЕКТНО</blockquote>",
+        "url": "https://t.me/scryde/4505",
+        "created_at": 1778863835,
+        "publish_after": 1778865335,
         "status": "pending",
         "debug_message_id": null,
         "source": "telegram"
