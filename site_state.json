@@ -49,7 +49,7 @@
     "tg_update_offset": 848301097
   },
   "news": {
-    "last_seen_id": 4509,
+    "last_seen_id": 4510,
     "sent_ids": [
       4465,
       4474,
@@ -65,7 +65,8 @@
       4498,
       4499,
       4505,
-      4509
+      4509,
+      4510
     ],
     "pending": [
       {
@@ -198,6 +199,17 @@
         "publish_after": 1778879141,
         "status": "pending",
         "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4510,
+        "title": "Новий промокод та подарунки 🎁",
+        "text": "Ділимося свіжим промокодом <code>X100BETA1505</code>, який містить приємні бонуси для гравців нашого сервера. ⚔️\n\n<b>Нагороди для x1000:</b>\n<blockquote>• Destruction Olf Enchant Scroll (2 шт.) 📜\n• Red Gem Ticket 💳\n• Black Gem Ticket 💳</blockquote>\n\n<tg-spoiler>Активація промокоду буде доступна з 22 травня о 20:00. Не забувайте виконувати щоденні завдання, щоб отримати нагороду!</tg-spoiler>",
+        "url": "https://t.me/scryde/4510",
+        "created_at": 1778920230,
+        "publish_after": 1778921730,
+        "status": "pending",
+        "debug_message_id": 130,
         "source": "telegram"
       }
     ]
