@@ -1,8 +1,16 @@
 # TODO
 
+- [completed] Harden Siege Bot fetch/parser diagnostics against site changes and anti-bot failures
+- [completed] Audit recent GitHub Action parser/log errors
+- [completed] Optimize GitHub Actions Playwright setup time
+- [completed] Add quick retry for fortress anti-bot misses
+- [completed] Investigate latest missing siege notification
+- [completed] Investigate missing Siege post for multi-attacker fortress row
+- [completed] Update siege card background scaling and translucent bars
 - [in_progress] Split siege and news processing into separate workflows
 - [in_progress] Add cross-source dedupe and Telegram-preferred upgrade between forum and Telegram news
 - [in_progress] Add text-command moderation fallback for cron-style GitHub Actions runs
+- [completed] Add Gemini retry/backoff for transient API overload
 - [completed] Remove duplicated generated titles from Gemini-formatted news bodies
 - [completed] Add forum updates source with x1000 Gemini filtering
 - [completed] Persist forum post state and route through pending approval flow
@@ -26,3 +34,4 @@
 - Our attack card path must use the full attacker object from `siege_sides.attackers`; synthesizing `{"name": OUR_CLAN, "image": None}` drops the clan emblem on the card.
 - GitHub Actions can send duplicate alerts when a run reads stale `site_state.json`; sync from `origin/master` and keep a recent alert fingerprint in state.
 - Forum updates thread is best parsed from regular XenForo HTML using `article.message` and `div.bbWrapper`; separate manual forum test ids are useful for validating Gemini output without waiting for live updates.
+- A missing siege alert that appears on the next run can be site/state timing, not necessarily parser failure; still test multi-owned-object cases separately because defence tracking used to process only the first owned object.

@@ -70,7 +70,19 @@ jobs:
           SCRYDE_FORUM_UPDATES_URL: https://board.scryde.net/threads/obnovlenija.30694/page-19?from=game-news
           STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 0
+          CASTLE_ANTIBOT_RETRIES: 1
+          DEBUG_SCRYDE_FETCH: false
+          SIEGE_DIAG_DIR: siege_diagnostics
         run: python github_runner.py
+
+      - name: Upload siege diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: siege-diagnostics
+          path: siege_diagnostics
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Commit updated state
         shell: bash

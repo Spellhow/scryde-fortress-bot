@@ -5,6 +5,7 @@ import os
 import random
 import re
 import time
+import html as html_lib
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -36,6 +37,7 @@ except Exception:
     C_RED = None
 
 try:
+    from playwright.sync_api import Error as PlaywrightError
     from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
     from playwright.sync_api import sync_playwright
 except Exception as exc:
@@ -66,6 +68,9 @@ PRE_FETCH_DELAY = (8, 20)
 BACKOFF_MINUTES_ON_CHALLENGE = int(os.environ.get("BACKOFF_MINUTES_ON_CHALLENGE", "0"))
 SITE_ERROR_NOTIFY_AFTER = 2
 FORTRESS_ANTIBOT_RETRIES = int(os.environ.get("FORTRESS_ANTIBOT_RETRIES", "1"))
+CASTLE_ANTIBOT_RETRIES = int(os.environ.get("CASTLE_ANTIBOT_RETRIES", "1"))
+DEBUG_SCRYDE_FETCH = os.environ.get("DEBUG_SCRYDE_FETCH", "false").lower() == "true"
+SIEGE_DIAG_DIR = os.environ.get("SIEGE_DIAG_DIR", "siege_diagnostics")
 GAME_TZ = ZoneInfo("Europe/Kyiv")
 
 USER_AGENTS = [
@@ -155,6 +160,10 @@ def send_debug(text):
     if TG_CHAT_DEBUG:
         return send_telegram(text, chat_id=TG_CHAT_DEBUG)
     return False
+
+
+def escape_debug(value):
+    return html_lib.escape(str(value), quote=False)
 
 
 def send_telegram_photo(image_bytes, caption, chat_id=None):
@@ -799,13 +808,122 @@ def remember_siege_alert(state, alert_key, now, max_entries=50):
             del last_alerts[key]
 
 
-def fetch_page_html(pw, url, page_key, attempt, goto_timeout=45000, selector_timeout=15000):
-    html = ""
+def classify_page_text(text):
+    lower = (text or "").lower()
+    markers = {
+        "captcha": ["captcha", "g-recaptcha", "hcaptcha"],
+        "cloudflare": ["cloudflare", "checking your browser", "cf-chl", "challenge-platform"],
+        "access_denied": ["access denied", "403 forbidden", "forbidden"],
+        "empty_page": [],
+    }
+    if not lower.strip():
+        return "empty_page"
+    for reason, needles in markers.items():
+        if needles and any(needle in lower for needle in needles):
+            return reason
+    return "next_data_missing"
+
+
+def compact_text(value, limit=500):
+    value = re.sub(r"\s+", " ", value or "").strip()
+    if len(value) > limit:
+        return value[:limit] + "..."
+    return value
+
+
+def ensure_diag_dir():
+    try:
+        os.makedirs(SIEGE_DIAG_DIR, exist_ok=True)
+        return True
+    except Exception as exc:
+        log("diagnostics directory failed: {}".format(exc))
+        return False
+
+
+def write_diagnostic(page_key, reason, payload):
+    if not ensure_diag_dir():
+        return
+    safe_reason = re.sub(r"[^a-zA-Z0-9_.-]+", "_", reason or "unknown")[:60]
+    path = os.path.join(SIEGE_DIAG_DIR, "{}_{}_{}.json".format(int(time.time()), page_key, safe_reason))
+    try:
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, ensure_ascii=False, indent=2)
+        log("{} diagnostic written {}".format(page_key, path))
+    except Exception as exc:
+        log("{} diagnostic write failed: {}".format(page_key, exc))
+
+
+def send_fetch_debug(page_key, reason, url, detail=None, title=None, final_url=None, snippet=None):
+    detail = compact_text(str(detail or ""), 260)
+    snippet = compact_text(snippet or "", 360)
+    lines = [
+        "<b>Scryde fetch/parser issue</b>",
+        "page: <code>{}</code>".format(escape_debug(page_key)),
+        "reason: <code>{}</code>".format(escape_debug(reason)),
+        "url: {}".format(escape_debug(final_url or url)),
+    ]
+    if title:
+        lines.append("title: <code>{}</code>".format(escape_debug(compact_text(title, 120))))
+    if detail:
+        lines.append("detail: <code>{}</code>".format(escape_debug(detail)))
+    if snippet and DEBUG_SCRYDE_FETCH:
+        lines.append("snippet: <code>{}</code>".format(escape_debug(snippet)))
+    send_debug("\n".join(lines))
+
+
+def extract_next_data_text(page, page_key, attempt):
+    try:
+        text = page.locator("script#__NEXT_DATA__").text_content(timeout=1500)
+        if text:
+            log("{} NEXT_DATA extracted via js on attempt {}".format(page_key, attempt))
+            return text
+    except PlaywrightTimeoutError:
+        return None
+    except PlaywrightError as exc:
+        log("{} NEXT_DATA js extraction failed on attempt {}: {}".format(page_key, attempt, compact_text(str(exc), 160)))
+    return None
+
+
+def collect_page_snapshot(page, html_text, page_key, reason, url):
+    title = ""
+    final_url = url
+    body_text = ""
+    try:
+        title = page.title(timeout=2000)
+    except Exception:
+        pass
+    try:
+        final_url = page.url or url
+    except Exception:
+        pass
+    try:
+        body_text = page.locator("body").inner_text(timeout=1500)
+    except Exception:
+        body_text = html_text or ""
+    snippet = compact_text(body_text or html_text or "", 700)
+    payload = {
+        "page": page_key,
+        "reason": reason,
+        "url": url,
+        "final_url": final_url,
+        "title": title,
+        "snippet": snippet,
+        "html_length": len(html_text or ""),
+        "timestamp": int(time.time()),
+    }
+    write_diagnostic(page_key, reason, payload)
+    return payload
+
+
+def fetch_page_payload(pw, url, page_key, attempt, goto_timeout=45000, selector_timeout=15000):
+    result = {"html": "", "next_data": None, "snapshot": None, "reason": None}
     browser = pw.chromium.launch(headless=True)
     context = browser.new_context(
         user_agent=random.choice(USER_AGENTS),
         locale="uk-UA",
+        timezone_id="Europe/Kyiv",
         viewport={"width": 1366, "height": 768},
+        extra_http_headers={"Accept-Language": "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7"},
     )
     page = context.new_page()
     page.route(
@@ -820,16 +938,139 @@ def fetch_page_html(pw, url, page_key, attempt, goto_timeout=45000, selector_tim
             page.wait_for_selector("script#__NEXT_DATA__", timeout=selector_timeout)
         except PlaywrightTimeoutError:
             page.wait_for_timeout(2000)
-        html = page.content()
+        result["next_data"] = extract_next_data_text(page, page_key, attempt)
+        html = read_page_content(page, page_key, attempt) if not result["next_data"] else ""
+        result["html"] = html
+        if not result["next_data"]:
+            result["reason"] = classify_page_text(html)
+            result["snapshot"] = collect_page_snapshot(page, html, page_key, result["reason"], url)
         log("{} fetch attempt {} completed".format(page_key, attempt))
     finally:
         browser.close()
-    return html
+    return result
+
+
+def read_page_content(page, page_key, attempt):
+    for content_attempt in range(1, 4):
+        try:
+            if content_attempt > 1:
+                page.wait_for_load_state("domcontentloaded", timeout=3000)
+                page.wait_for_timeout(500)
+            return page.content()
+        except PlaywrightError as exc:
+            message = str(exc)
+            if "page is navigating and changing the content" not in message:
+                raise
+            if content_attempt == 3:
+                log("{} content read still racing navigation on attempt {}; treating as no data".format(page_key, attempt))
+                return ""
+            log("{} content read raced navigation on attempt {}.{}".format(page_key, attempt, content_attempt))
+    return ""
 
 
 def find_next_data_script(html):
     soup = BeautifulSoup(html, "html.parser")
     return soup.find("script", id="__NEXT_DATA__")
+
+
+def find_items_candidate(value):
+    if isinstance(value, dict):
+        if isinstance(value.get("items"), list):
+            items = value["items"]
+            if items and all(isinstance(item, dict) for item in items):
+                sample = items[:5]
+                score = 0
+                for item in sample:
+                    keys = set(item.keys())
+                    if keys.intersection({"id", "name", "owner", "siege_sides", "image"}):
+                        score += 1
+                if score:
+                    return items
+        if isinstance(value.get("rankingRows"), dict):
+            rows = value["rankingRows"].get("items")
+            if isinstance(rows, list):
+                return rows
+        for child in value.values():
+            result = find_items_candidate(child)
+            if result is not None:
+                return result
+    elif isinstance(value, list):
+        if value and all(isinstance(item, dict) for item in value):
+            score = 0
+            sample = value[:5]
+            for item in sample:
+                keys = set(item.keys())
+                if keys.intersection({"id", "name", "owner", "siege_sides", "image"}):
+                    score += 1
+            if score:
+                return value
+        for child in value:
+            result = find_items_candidate(child)
+            if result is not None:
+                return result
+    return None
+
+
+def extract_ranking_items(data, page_key):
+    try:
+        items = data["props"]["pageProps"]["rankingRows"]["items"]
+        if isinstance(items, list):
+            return items, "primary"
+        raise TypeError("rankingRows.items is {}".format(type(items).__name__))
+    except (KeyError, TypeError) as exc:
+        items = find_items_candidate(data)
+        if items is not None:
+            log("{} ranking items found via fallback after schema miss: {}".format(page_key, exc))
+            notify_schema_fallback(page_key, data, exc)
+            return items, "fallback"
+        top_keys = sorted(data.keys()) if isinstance(data, dict) else []
+        raise ValueError("schema_changed: rankingRows.items missing; top_keys={}".format(top_keys)) from exc
+
+
+def record_fetch_failure(state, page_key, url, reason, detail=None, snapshot=None):
+    _error_counts[page_key] += 1
+    log("{} fetch/parser failed: {} {}".format(page_key, reason, compact_text(str(detail or ""), 180)))
+    should_notify = DEBUG_SCRYDE_FETCH or _error_counts[page_key] == SITE_ERROR_NOTIFY_AFTER
+    if snapshot and should_notify:
+        send_fetch_debug(
+            page_key,
+            reason,
+            url,
+            detail=detail,
+            title=snapshot.get("title"),
+            final_url=snapshot.get("final_url"),
+            snippet=snapshot.get("snippet"),
+        )
+    elif should_notify:
+        send_debug(DEBUG_SITE_DOWN.format(page=page_key, count=_error_counts[page_key], url=url))
+
+
+def reset_fetch_failure(page_key):
+    clear_needed = _error_counts[page_key] >= SITE_ERROR_NOTIFY_AFTER
+    if clear_needed:
+        send_debug(DEBUG_SITE_UP.format(page=page_key))
+    _error_counts[page_key] = 0
+    _challenge_counts[page_key] = 0
+
+
+def notify_schema_fallback(page_key, data, detail):
+    top_keys = sorted(data.keys()) if isinstance(data, dict) else []
+    payload = {
+        "page": page_key,
+        "reason": "schema_fallback",
+        "detail": str(detail),
+        "top_keys": top_keys,
+        "timestamp": int(time.time()),
+    }
+    write_diagnostic(page_key, "schema_fallback", payload)
+    if not DEBUG_SCRYDE_FETCH:
+        return
+    send_fetch_debug(
+        page_key,
+        "schema_fallback",
+        FORTRESS_URL if page_key == "fortresses" else CASTLE_URL,
+        detail="rankingRows.items missing, fallback parser succeeded; top_keys={}".format(top_keys),
+    )
 
 
 def fetch_page_data(url, page_key, state):
@@ -838,13 +1079,15 @@ def fetch_page_data(url, page_key, state):
 
     random_prewait(page_key)
 
-    retry_count = FORTRESS_ANTIBOT_RETRIES if page_key == "fortresses" else 0
-    script_tag = None
+    retry_count = FORTRESS_ANTIBOT_RETRIES if page_key == "fortresses" else CASTLE_ANTIBOT_RETRIES
+    next_data_text = None
+    last_snapshot = None
+    last_reason = "next_data_missing"
     with sync_playwright() as pw:
         for attempt in range(1, retry_count + 2):
             if attempt > 1:
                 log("{} retrying after anti-bot/no data".format(page_key))
-            html = fetch_page_html(
+            payload = fetch_page_payload(
                 pw,
                 url,
                 page_key,
@@ -852,28 +1095,50 @@ def fetch_page_data(url, page_key, state):
                 goto_timeout=45000 if attempt == 1 else 25000,
                 selector_timeout=15000 if attempt == 1 else 8000,
             )
-            script_tag = find_next_data_script(html)
-            if script_tag and script_tag.string:
+            next_data_text = payload.get("next_data")
+            if not next_data_text:
+                script_tag = find_next_data_script(payload.get("html") or "")
+                if script_tag and script_tag.string:
+                    next_data_text = script_tag.string
+            last_snapshot = payload.get("snapshot") or last_snapshot
+            last_reason = payload.get("reason") or last_reason
+            if next_data_text:
                 break
-    if not script_tag or not script_tag.string:
+    if not next_data_text:
         _challenge_counts[page_key] += 1
         log("{} anti-bot/no data, count={}".format(page_key, _challenge_counts[page_key]))
         if _challenge_counts[page_key] >= 1:
             set_backoff(state, page_key, BACKOFF_MINUTES_ON_CHALLENGE)
-        _error_counts[page_key] += 1
-        if _error_counts[page_key] == SITE_ERROR_NOTIFY_AFTER:
-            send_debug(DEBUG_SITE_DOWN.format(page=page_key, count=_error_counts[page_key], url=url))
+        record_fetch_failure(state, page_key, url, last_reason, detail="__NEXT_DATA__ missing", snapshot=last_snapshot)
         return None
 
     clear_backoff(state, page_key)
-    if _error_counts[page_key] >= SITE_ERROR_NOTIFY_AFTER:
-        send_debug(DEBUG_SITE_UP.format(page=page_key))
-    _error_counts[page_key] = 0
-    _challenge_counts[page_key] = 0
 
-    data = json.loads(script_tag.string)
-    log("{} loaded {} objects".format(page_key, len(data["props"]["pageProps"]["rankingRows"]["items"])))
-    return data["props"]["pageProps"]["rankingRows"]["items"]
+    data = json.loads(next_data_text)
+    items, source = extract_ranking_items(data, page_key)
+    reset_fetch_failure(page_key)
+    log("{} loaded {} objects ({})".format(page_key, len(items), source))
+    return items
+
+
+def safe_fetch_page_data(url, page_key, state):
+    try:
+        items = fetch_page_data(url, page_key, state)
+        if items is None:
+            log("{} skipped, preserving previous state".format(page_key))
+        return items
+    except json.JSONDecodeError as exc:
+        record_fetch_failure(state, page_key, url, "invalid_next_data_json", detail=exc)
+    except PlaywrightTimeoutError as exc:
+        record_fetch_failure(state, page_key, url, "playwright_timeout", detail=exc)
+    except PlaywrightError as exc:
+        record_fetch_failure(state, page_key, url, "playwright_error", detail=exc)
+    except ValueError as exc:
+        record_fetch_failure(state, page_key, url, "schema_changed", detail=exc)
+    except Exception as exc:
+        record_fetch_failure(state, page_key, url, type(exc).__name__, detail=exc)
+    log("{} skipped after fetch/parser failure, preserving previous state".format(page_key))
+    return None
 
 
 def get_attackers(item):
@@ -1176,11 +1441,11 @@ def main():
         process_pending_news_queue(state)
 
     if RUN_SIEGES:
-        fortress_items = fetch_page_data(FORTRESS_URL, "fortresses", state)
+        fortress_items = safe_fetch_page_data(FORTRESS_URL, "fortresses", state)
         delay = random.randint(*BETWEEN_REQUESTS_DELAY)
         log("between requests delay {}s".format(delay))
         time.sleep(delay)
-        castle_items = fetch_page_data(CASTLE_URL, "castles", state)
+        castle_items = safe_fetch_page_data(CASTLE_URL, "castles", state)
 
         if fortress_items is not None:
             state["fortress"] = process_defence(state["fortress"], fortress_items, "fortress", FORTRESS_URL)
