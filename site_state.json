@@ -7,6 +7,10 @@
       {
         "name": "KnightOfHonor",
         "image": "https://static-eu.scrydecdn.com/clan-images/b990b03fbc5183ccc230574edf78cfe0-full.jpg"
+      },
+      {
+        "name": "KYOTO",
+        "image": "https://static-eu.scrydecdn.com/clan-images/b48797cc7a36e3c077d1537dcceb36ca-full.jpg"
       }
     ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -24,6 +28,10 @@
           {
             "name": "KnightOfHonor",
             "image": "https://static-eu.scrydecdn.com/clan-images/b990b03fbc5183ccc230574edf78cfe0-full.jpg"
+          },
+          {
+            "name": "KYOTO",
+            "image": "https://static-eu.scrydecdn.com/clan-images/b48797cc7a36e3c077d1537dcceb36ca-full.jpg"
           }
         ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -54,7 +62,8 @@
     "backoff_until": {},
     "last_alerts": {
       "fortress:116:1779130926:Might": 1779127915,
-      "fortress:116:1779177797:KnightOfHonor": 1779174700
+      "fortress:116:1779177797:KnightOfHonor": 1779174700,
+      "fortress:116:1779177797:KYOTO|KnightOfHonor": 1779176515
     },
     "tg_update_offset": 848301097
   },
