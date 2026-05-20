@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "FarPost",
+        "image": null
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1779283047,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1779279718,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "FarPost",
+            "image": null
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1779283047,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1779279718,
         "notified_reminder": false
       }
     }
@@ -43,10 +53,7 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1779130926:Might": 1779127915,
-      "fortress:116:1779177797:KnightOfHonor": 1779174700,
-      "fortress:116:1779177797:KYOTO|KnightOfHonor": 1779176515,
-      "fortress:116:1779195797:MoonLights": 1779189113
+      "fortress:116:1779283047:FarPost": 1779279718
     },
     "tg_update_offset": 848301101
   },
