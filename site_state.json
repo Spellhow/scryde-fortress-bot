@@ -49,7 +49,7 @@
     "tg_update_offset": 848301101
   },
   "news": {
-    "last_seen_id": 4542,
+    "last_seen_id": 4543,
     "sent_ids": [
       4465,
       4474,
@@ -72,7 +72,8 @@
       4514,
       4515,
       4527,
-      4541
+      4541,
+      4543
     ],
     "pending": [
       {
@@ -236,6 +237,17 @@
         "url": "https://t.me/scryde/4541",
         "created_at": 1779361239,
         "publish_after": 1779362739,
+        "status": "pending",
+        "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4543,
+        "title": "Додатковий пресет талантів 🆕",
+        "text": "<b>Додатковий пресет талантів вже завтра!</b> 🆕<br/><br/>Разом із ранковим рестартом на всі сервери Scryde надійде корисне оновлення — розробники додадуть ще <b>+1 пресет для талантів</b>. <br/><br/>Тепер налаштовувати та перемикати свої білди під різні ситуації стане ще зручніше! ⚖️",
+        "url": "https://t.me/scryde/4543",
+        "created_at": 1779380436,
+        "publish_after": 1779381936,
         "status": "pending",
         "debug_message_id": null,
         "source": "telegram"
