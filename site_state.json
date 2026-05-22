@@ -49,7 +49,7 @@
     "tg_update_offset": 848301101
   },
   "news": {
-    "last_seen_id": 4561,
+    "last_seen_id": 4562,
     "sent_ids": [
       4465,
       4474,
@@ -76,7 +76,8 @@
       4543,
       4546,
       4559,
-      4560
+      4560,
+      4562
     ],
     "pending": [
       {
@@ -284,6 +285,17 @@
         "url": "https://t.me/scryde/4560",
         "created_at": 1779456642,
         "publish_after": 1779458142,
+        "status": "pending",
+        "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4562,
+        "title": "Промокод на подарунки 🛡️",
+        "text": "🛡️ Ловіть новий промокод <code>DDOS2205</code>!<br/>Він діє до 23.05 (23:59).<br/><br/><b>Подарунки для Scryde x1000:</b><br/>• 🥌 Sapphire ×15<br/>• 🎁 Gold Gem Ticket ×1<br/>• 👕 Olf’s T-Shirt of Destruction ×1<br/><br/><i>Активувати промокод можна в особистому кабінеті. Поспішайте забрати свій бонус!</i>",
+        "url": "https://t.me/scryde/4562",
+        "created_at": 1779472237,
+        "publish_after": 1779473737,
         "status": "pending",
         "debug_message_id": null,
         "source": "telegram"
