@@ -49,7 +49,7 @@
     "tg_update_offset": 848301101
   },
   "news": {
-    "last_seen_id": 4545,
+    "last_seen_id": 4547,
     "sent_ids": [
       4465,
       4474,
@@ -73,7 +73,8 @@
       4515,
       4527,
       4541,
-      4543
+      4543,
+      4546
     ],
     "pending": [
       {
@@ -248,6 +249,17 @@
         "url": "https://t.me/scryde/4543",
         "created_at": 1779380436,
         "publish_after": 1779381936,
+        "status": "pending",
+        "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4546,
+        "title": "Оновлення РАР зброї ⚔️",
+        "text": "🔔 <b>Сьогодні з ранковим рестартом об 11:00 (GMT+3) на всі сервери додадуть оновлення РАР пушок.</b> Коротка вижимка щодо хай-лвл зброї 👇<br/><br/>🗡 <b>Icarus</b><br/><i>• Icarus Sawsword / Icarus Stinger — +54.4 шанс критичного удару<br/>• Icarus Hand — Atk. Speed 5%<br/>• Icarus Hall — Mag. Clarity 5% + HP 492<br/>• Icarus Spirit — MP Regeneration 5% + M. Atk 7%<br/>• Icarus Trident — Atk. Speed 5%<br/>• Icarus Dual — P. Atk 5%</i><br/><br/>🔥 <b>Vesper</b><br/><i>• Vesper Caster — Mag. Clarity 5% + дальність спрямованих магічних скілів 100<br/>• Vesper Booster — MP Regeneration 5% + дальність спрямованих магічних скілів 100<br/>• Vesper Singer — HP 511 + Healing Power 43<br/>• Vesper Avenger — 8% шанс застанити супротивника при атаці + Atk. Speed 5%<br/>• Vesper Stormer — +54.4 шанс критичного удару + 50 до радіусу AoE-скілів<br/>• Vesper Dual — P. Atk 5%</i><br/><br/><i>Повний список оновленої зброї можна прочитати за посиланням:</i><br/>📜 <a href=\"https://scrd.link/RareWeapon-ru\"><b>Оновлення РАР зброї</b></a>",
+        "url": "https://t.me/scryde/4546",
+        "created_at": 1779436842,
+        "publish_after": 1779438342,
         "status": "pending",
         "debug_message_id": null,
         "source": "telegram"
