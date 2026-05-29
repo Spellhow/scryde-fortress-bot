@@ -50,7 +50,7 @@
     "tg_update_offset": 848301101
   },
   "news": {
-    "last_seen_id": 4609,
+    "last_seen_id": 4610,
     "sent_ids": [
       4465,
       4474,
@@ -80,7 +80,8 @@
       4560,
       4562,
       4588,
-      4592
+      4592,
+      4610
     ],
     "pending": [
       {
@@ -323,6 +324,17 @@
         "publish_after": 1779806150,
         "status": "published",
         "debug_message_id": 135,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4610,
+        "title": "Ексклюзивний Набір Фафуріона 🛡️",
+        "text": "<b>З таким виглядом тебе точно поважатимуть на районі!</b> 😎<br/><br/>На Scryde зараз доступний для замовлення рідкісний набір. У нього поклали ексклюзивну зовнішку – <b>Броню Фафуріона</b>. Якщо ви хочете прикрасити свого персонажа красивим костюмом та вкрай вигідно закупити розхідники – рекомендуємо забрати набір прямо зараз. 🔥<br/><br/><b>Що всередині для Scryde x1000:</b><br/><blockquote>🛡️ Броня Фафуріона (купон)<br/>🧥 Плащ Фафуріона з ефектом<br/>⚔️ Зброя Фафуріона (купон)<br/>🪙 Золоті Монети (2000 шт.)<br/>🎁 Red Gem Ticket<br/>📜 Destruction Gem Scroll Event<br/>💎 Top-Grade Amulet Life Stone Event (10 шт.)</blockquote><br/>⏳ <i>Поспішайте! Набір доступний лише до 31 травня (23:59 за Києвом).</i><br/><br/>🔗 <a href=\"https://scrd.link/fafurionbundle?utm_source=social\"><b>Замовити Набір Фафуріона</b></a>",
+        "url": "https://t.me/scryde/4610",
+        "created_at": 1780056037,
+        "publish_after": 1780057537,
+        "status": "pending",
+        "debug_message_id": null,
         "source": "telegram"
       }
     ]
