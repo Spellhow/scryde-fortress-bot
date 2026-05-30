@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "DanDaDan",
+        "image": "https://static-eu.scrydecdn.com/clan-images/3e9bc188e25075364a93403ac4e94fad-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1780103486,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1780100510,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "DanDaDan",
+            "image": "https://static-eu.scrydecdn.com/clan-images/3e9bc188e25075364a93403ac4e94fad-full.jpg"
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1780103486,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1780100510,
         "notified_reminder": false
       }
     }
@@ -43,9 +53,9 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1779999991:PhantomFinale": 1779997309,
       "fortress:116:1780035854:KnightOfHonor": 1780032700,
-      "fortress:116:1780070929:BLR": 1780067504
+      "fortress:116:1780070929:BLR": 1780067504,
+      "fortress:116:1780103486:DanDaDan": 1780100510
     },
     "tg_update_offset": 848301101
   },
