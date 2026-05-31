@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "NaziGANG",
+        "image": "https://static-eu.scrydecdn.com/clan-images/24450dd12af3e738cf90ec1425facd24-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1780249032,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1780245707,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "NaziGANG",
+            "image": "https://static-eu.scrydecdn.com/clan-images/24450dd12af3e738cf90ec1425facd24-full.jpg"
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1780249032,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1780245707,
         "notified_reminder": false
       }
     }
@@ -43,7 +53,8 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1780201961:WelcomeToHell": 1780198920
+      "fortress:116:1780201961:WelcomeToHell": 1780198920,
+      "fortress:116:1780249032:NaziGANG": 1780245707
     },
     "tg_update_offset": 848301101
   },
