@@ -6,6 +6,8 @@ import random
 import re
 import time
 import html as html_lib
+import hmac
+import hashlib
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -47,6 +49,7 @@ except Exception as exc:
 TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT = os.environ["TG_CHAT"]
 TG_CHAT_DEBUG = os.environ.get("TG_CHAT_DEBUG", "")
+TG_BOT_USERNAME = os.environ.get("TG_BOT_USERNAME", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 GEMINI_THINKING_LEVEL = "HIGH"
@@ -83,6 +86,7 @@ USER_AGENTS = [
 
 _error_counts = {"fortresses": 0, "castles": 0}
 _challenge_counts = {"fortresses": 0, "castles": 0}
+_bot_username_cache = None
 
 TELEGRAM_ALLOWED_TAGS = {"b", "i", "code", "a", "tg-spoiler"}
 TELEGRAM_TAG_RENAMES = {"strong": "b", "em": "i"}
@@ -264,6 +268,25 @@ def send_debug(text):
 
 def escape_debug(value):
     return html_lib.escape(str(value), quote=False)
+
+
+def get_bot_username():
+    global _bot_username_cache
+    if _bot_username_cache:
+        return _bot_username_cache
+    if TG_BOT_USERNAME:
+        _bot_username_cache = TG_BOT_USERNAME.lstrip("@")
+        return _bot_username_cache
+    try:
+        response = requests.get("https://api.telegram.org/bot{}/getMe".format(TG_TOKEN), timeout=10)
+        response.raise_for_status()
+        username = response.json().get("result", {}).get("username", "")
+        if username:
+            _bot_username_cache = username
+            return _bot_username_cache
+    except Exception as exc:
+        log("TG getMe failed: {}".format(exc))
+    return ""
 
 
 def send_telegram_photo(image_bytes, caption, chat_id=None):
@@ -628,6 +651,66 @@ def news_command_help(state_key=None, post_id=None):
     )
 
 
+def news_deeplink_payload(action, state_key, post_id, extra=None):
+    state_alias = "f" if state_key == "forum_news" else "t"
+    parts = ["n", action, state_alias, str(post_id)]
+    if extra is not None:
+        parts.append(str(extra))
+    body = "-".join(parts)
+    sig = hmac.new(TG_TOKEN.encode("utf-8"), body.encode("utf-8"), hashlib.sha256).hexdigest()[:8]
+    return "{}-{}".format(body, sig)
+
+
+def verify_news_deeplink_payload(payload):
+    parts = (payload or "").split("-")
+    if len(parts) not in {5, 6} or parts[0] != "n":
+        return None
+    sig = parts[-1]
+    body = "-".join(parts[:-1])
+    expected = hmac.new(TG_TOKEN.encode("utf-8"), body.encode("utf-8"), hashlib.sha256).hexdigest()[:8]
+    if not hmac.compare_digest(sig, expected):
+        return None
+    action = parts[1]
+    state_key = "forum_news" if parts[2] == "f" else "news" if parts[2] == "t" else ""
+    if action not in {"pub", "can", "del", "show"} or not state_key or not parts[3].isdigit():
+        return None
+    extra = parts[4] if len(parts) == 6 else None
+    return action, state_key, int(parts[3]), extra
+
+
+def news_deeplink_url(action, state_key, post_id, extra=None):
+    username = get_bot_username()
+    if not username:
+        return None
+    return "https://t.me/{}?start={}".format(username, news_deeplink_payload(action, state_key, post_id, extra=extra))
+
+
+def news_action_buttons(state_key, post_id):
+    publish_url = news_deeplink_url("pub", state_key, post_id)
+    cancel_url = news_deeplink_url("can", state_key, post_id)
+    delay_url = news_deeplink_url("del", state_key, post_id, extra=60)
+    show_url = news_deeplink_url("show", state_key, post_id)
+    if not publish_url or not cancel_url:
+        return {
+            "inline_keyboard": [[
+                {"text": "Запостити зараз", "callback_data": "news:publish:{}:{}".format(state_key, post_id)},
+                {"text": "Скасувати", "callback_data": "news:cancel:{}:{}".format(state_key, post_id)},
+            ]]
+        }
+    return {
+        "inline_keyboard": [
+            [
+                {"text": "Запостити зараз", "url": publish_url},
+                {"text": "Скасувати", "url": cancel_url},
+            ],
+            [
+                {"text": "Відкласти 60 хв", "url": delay_url},
+                {"text": "Показати", "url": show_url},
+            ],
+        ]
+    }
+
+
 def find_news_item(state, state_key, post_id, only_pending=False):
     news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
     for item in news_state.get("pending", []):
@@ -771,12 +854,7 @@ def process_feed_posts(state, posts, state_key, source_label):
                 target_item["source"] = source_label
                 if target_item.get("debug_message_id") and TG_CHAT_DEBUG:
                     edit_telegram_reply_markup(TG_CHAT_DEBUG, target_item["debug_message_id"])
-                    buttons = {
-                        "inline_keyboard": [[
-                            {"text": "Запостити зараз", "callback_data": "news:publish:{}:{}".format(rewritten["target_state_key"], target_item["post_id"])},
-                            {"text": "Скасувати", "callback_data": "news:cancel:{}:{}".format(rewritten["target_state_key"], target_item["post_id"])},
-                        ]]
-                    }
+                    buttons = news_action_buttons(rewritten["target_state_key"], target_item["post_id"])
                     command_help = news_command_help(rewritten["target_state_key"], target_item["post_id"])
                     if NEWS_TARGET_CHAT == "debug":
                         footer = "Автопублікація: <b>вимкнена (debug mode)</b>"
@@ -804,12 +882,7 @@ def process_feed_posts(state, posts, state_key, source_label):
         }
 
         if TG_CHAT_DEBUG:
-            buttons = {
-                "inline_keyboard": [[
-                    {"text": "Запостити зараз", "callback_data": "news:publish:{}:{}".format(state_key, post["id"])},
-                    {"text": "Скасувати", "callback_data": "news:cancel:{}:{}".format(state_key, post["id"])},
-                ]]
-            }
+            buttons = news_action_buttons(state_key, post["id"])
             if NEWS_TARGET_CHAT == "debug":
                 footer = "Автопублікація: <b>вимкнена (debug mode)</b>"
             else:
@@ -944,6 +1017,36 @@ def send_news_list(state, chat_id):
     return True
 
 
+def handle_start_command(state, message):
+    text = (message.get("text") or "").strip()
+    if not text.startswith("/start"):
+        return False
+    parts = text.split(maxsplit=1)
+    if len(parts) != 2:
+        return False
+    parsed = verify_news_deeplink_payload(parts[1].strip())
+    chat_id = str(message.get("chat", {}).get("id"))
+    if not parsed:
+        send_telegram("Некоректне або застаріле посилання керування новиною", chat_id=chat_id)
+        return True
+    action, state_key, post_id, extra = parsed
+    if action == "pub":
+        return execute_news_action(state, state_key, post_id, "publish", feedback_chat_id=chat_id)
+    if action == "can":
+        return execute_news_action(state, state_key, post_id, "cancel", feedback_chat_id=chat_id)
+    if action == "del":
+        minutes = int(extra or 60) if str(extra or "").isdigit() else 60
+        return execute_news_delay(state, state_key, post_id, minutes, feedback_chat_id=chat_id)
+    if action == "show":
+        item = find_news_item(state, state_key, post_id, only_pending=False)
+        if item:
+            send_telegram(format_news_item_preview(state_key, item), chat_id=chat_id)
+        else:
+            send_telegram("Пост не знайдено: {} {}".format(state_key, post_id), chat_id=chat_id)
+        return True
+    return False
+
+
 def handle_news_callback(state, callback):
     data = callback.get("data") or ""
     if not data.startswith("news:"):
@@ -1056,6 +1159,7 @@ def process_callback_updates(state):
             handle_news_callback(state, callback)
         message = update.get("message")
         if message:
+            handle_start_command(state, message)
             handle_news_command(state, message)
 
     if max_update_id is not None:
