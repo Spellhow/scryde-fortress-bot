@@ -49,7 +49,7 @@
     "tg_update_offset": 848301101
   },
   "news": {
-    "last_seen_id": 4647,
+    "last_seen_id": 4648,
     "sent_ids": [
       4465,
       4474,
@@ -87,7 +87,8 @@
       4626,
       4628,
       4644,
-      4647
+      4647,
+      4648
     ],
     "pending": [
       {
@@ -394,6 +395,17 @@
         "url": "https://t.me/scryde/4647",
         "created_at": 1780561247,
         "publish_after": 1780562747,
+        "status": "pending",
+        "debug_message_id": null,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4648,
+        "title": "Технічні роботи 🚨",
+        "text": "🚨 <b>О 12:15 (GMT+3) сервер Scryde x1000 буде вимкнено для проведення технічних робіт</b><br/><br/><blockquote>Це займе до 20 хвилин ⏱️</blockquote>",
+        "url": "https://t.me/scryde/4648",
+        "created_at": 1780651235,
+        "publish_after": 1780652735,
         "status": "pending",
         "debug_message_id": null,
         "source": "telegram"
