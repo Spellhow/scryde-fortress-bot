@@ -606,6 +606,68 @@ def build_pending_context(state):
     return pending_items[-10:]
 
 
+def news_command_help(state_key=None, post_id=None):
+    if state_key and post_id:
+        return (
+            "\n\n<b>Керування командами:</b>\n"
+            "/news_publish {state_key} {post_id}\n"
+            "/news_cancel {state_key} {post_id}\n"
+            "/news_delay {state_key} {post_id} 60\n"
+            "/news_show {state_key} {post_id}\n"
+            "/news_retry {state_key} {post_id}\n"
+            "/news_list"
+        ).format(state_key=state_key, post_id=post_id)
+    return (
+        "<b>Керування новинами:</b>\n"
+        "/news_list\n"
+        "/news_show news 4650\n"
+        "/news_publish news 4650\n"
+        "/news_cancel news 4650\n"
+        "/news_delay news 4650 60\n"
+        "/news_retry news 4650"
+    )
+
+
+def find_news_item(state, state_key, post_id, only_pending=False):
+    news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
+    for item in news_state.get("pending", []):
+        if int(item.get("post_id", 0) or 0) != int(post_id):
+            continue
+        if only_pending and item.get("status") != "pending":
+            continue
+        return item
+    return None
+
+
+def format_news_item_summary(state_key, item):
+    return "{} {} [{}] — {}".format(
+        state_key,
+        item.get("post_id"),
+        item.get("status", "unknown"),
+        compact_text(item.get("title", "Новина"), 80),
+    )
+
+
+def format_news_item_preview(state_key, item):
+    return (
+        "<b>[NEWS ITEM]</b> <b>{title}</b>\n"
+        "state: <code>{state_key}</code>\n"
+        "post_id: <code>{post_id}</code>\n"
+        "status: <code>{status}</code>\n\n"
+        "{text}\n\n"
+        "{commands}\n\n"
+        "{url}"
+    ).format(
+        title=item.get("title", "Новина"),
+        state_key=state_key,
+        post_id=item.get("post_id"),
+        status=item.get("status", "unknown"),
+        text=item.get("text", ""),
+        commands=news_command_help(state_key, item.get("post_id")),
+        url=item.get("url", ""),
+    )
+
+
 def process_channel_news(state):
     posts = fetch_channel_posts(SCRYDE_CHANNEL_URL)
     if not posts:
@@ -715,7 +777,7 @@ def process_feed_posts(state, posts, state_key, source_label):
                             {"text": "Скасувати", "callback_data": "news:cancel:{}:{}".format(rewritten["target_state_key"], target_item["post_id"])},
                         ]]
                     }
-                    command_help = "\n\n<code>/news_publish {} {}</code>\n<code>/news_cancel {} {}</code>".format(rewritten["target_state_key"], target_item["post_id"], rewritten["target_state_key"], target_item["post_id"])
+                    command_help = news_command_help(rewritten["target_state_key"], target_item["post_id"])
                     if NEWS_TARGET_CHAT == "debug":
                         footer = "Автопублікація: <b>вимкнена (debug mode)</b>"
                     else:
@@ -752,7 +814,7 @@ def process_feed_posts(state, posts, state_key, source_label):
                 footer = "Автопублікація: <b>вимкнена (debug mode)</b>"
             else:
                 footer = "Автопублікація через <b>{} хв</b>".format(NEWS_APPROVE_DELAY_MIN)
-            command_help = "\n\n<code>/news_publish {} {}</code>\n<code>/news_cancel {} {}</code>".format(state_key, post["id"], state_key, post["id"])
+            command_help = news_command_help(state_key, post["id"])
             preview = "<b>[{} PENDING]</b> <b>{}</b>\n\n{}\n\n{}{}\n\n{}".format(source_label.upper(), display_title, body, footer, command_help, post["url"])
             pending_item["debug_message_id"] = send_telegram_with_markup(preview, buttons, chat_id=TG_CHAT_DEBUG)
 
@@ -837,6 +899,51 @@ def execute_news_action(state, state_key, post_id, action, feedback_chat_id=None
     return True
 
 
+def execute_news_delay(state, state_key, post_id, minutes, feedback_chat_id=None):
+    item = find_news_item(state, state_key, post_id, only_pending=True)
+    if not item:
+        if feedback_chat_id:
+            send_telegram("Pending post не знайдено", chat_id=str(feedback_chat_id))
+        return True
+    item["publish_after"] = int(time.time()) + max(1, int(minutes)) * 60
+    if feedback_chat_id:
+        send_telegram("Відкладено на {} хв: {} {}".format(minutes, state_key, post_id), chat_id=str(feedback_chat_id))
+    return True
+
+
+def execute_news_retry(state, state_key, post_id, feedback_chat_id=None):
+    item = find_news_item(state, state_key, post_id, only_pending=False)
+    if not item:
+        if feedback_chat_id:
+            send_telegram("Пост не знайдено", chat_id=str(feedback_chat_id))
+        return True
+    item["status"] = "pending"
+    item["publish_after"] = int(time.time())
+    item["created_at"] = int(time.time())
+    if feedback_chat_id:
+        send_telegram("Поставив у retry/pending: {} {}".format(state_key, post_id), chat_id=str(feedback_chat_id))
+    return True
+
+
+def send_news_list(state, chat_id):
+    lines = ["<b>Pending news:</b>"]
+    count = 0
+    for state_key in ("news", "forum_news"):
+        news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
+        for item in news_state.get("pending", []):
+            if item.get("status") != "pending":
+                continue
+            count += 1
+            lines.append(format_news_item_summary(state_key, item))
+            lines.append("/news_show {} {}".format(state_key, item.get("post_id")))
+    if count == 0:
+        lines.append("Нема pending новин.")
+    lines.append("")
+    lines.append(news_command_help())
+    send_telegram("\n".join(lines), chat_id=str(chat_id))
+    return True
+
+
 def handle_news_callback(state, callback):
     data = callback.get("data") or ""
     if not data.startswith("news:"):
@@ -869,25 +976,55 @@ def handle_news_command(state, message):
         return False
 
     parts = text.split()
-    if len(parts) != 3:
-        send_telegram("Формат: <code>/news_publish state_key post_id</code> або <code>/news_cancel state_key post_id</code>", chat_id=str(message.get("chat", {}).get("id")))
+    chat_id = str(message.get("chat", {}).get("id"))
+    command = parts[0].split("@", 1)[0]
+
+    if command == "/news_list":
+        return send_news_list(state, chat_id)
+
+    if command == "/news_help":
+        send_telegram(news_command_help(), chat_id=chat_id)
         return True
 
-    command, state_key, post_id_raw = parts
+    if len(parts) < 3:
+        send_telegram(news_command_help(), chat_id=chat_id)
+        return True
+
+    state_key, post_id_raw = parts[1], parts[2]
     if state_key not in {"news", "forum_news"} or not post_id_raw.isdigit():
-        send_telegram("Некоректна команда", chat_id=str(message.get("chat", {}).get("id")))
+        send_telegram("Некоректна команда\n\n{}".format(news_command_help()), chat_id=chat_id)
         return True
 
-    action = "publish" if command.startswith("/news_publish") else "cancel" if command.startswith("/news_cancel") else None
+    post_id = int(post_id_raw)
+
+    if command == "/news_show":
+        item = find_news_item(state, state_key, post_id, only_pending=False)
+        if item:
+            send_telegram(format_news_item_preview(state_key, item), chat_id=chat_id)
+        else:
+            send_telegram("Пост не знайдено: {} {}".format(state_key, post_id), chat_id=chat_id)
+        return True
+
+    if command == "/news_delay":
+        if len(parts) != 4 or not parts[3].isdigit():
+            send_telegram("Формат: /news_delay {} {} 60".format(state_key, post_id), chat_id=chat_id)
+            return True
+        return execute_news_delay(state, state_key, post_id, int(parts[3]), feedback_chat_id=chat_id)
+
+    if command == "/news_retry":
+        return execute_news_retry(state, state_key, post_id, feedback_chat_id=chat_id)
+
+    action = "publish" if command == "/news_publish" else "cancel" if command == "/news_cancel" else None
     if not action:
+        send_telegram(news_command_help(), chat_id=chat_id)
         return False
 
     return execute_news_action(
         state,
         state_key,
-        int(post_id_raw),
+        post_id,
         action,
-        feedback_chat_id=message.get("chat", {}).get("id"),
+        feedback_chat_id=chat_id,
     )
 
 
