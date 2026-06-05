@@ -442,8 +442,11 @@ def fetch_channel_posts(channel_url):
 def fetch_forum_posts(forum_url):
     urls = [forum_url]
     try:
-        latest_url = forum_url.split("?")[0].rstrip("/")
-        latest_url = re.sub(r"/page-\d+$", "", latest_url) + "/latest"
+        latest_base_url = forum_url.split("?")[0].split("#")[0].rstrip("/")
+        if latest_base_url.endswith("/latest"):
+            latest_url = latest_base_url
+        else:
+            latest_url = re.sub(r"/page-\d+$", "", latest_base_url) + "/latest"
         latest_response = requests.get(latest_url, timeout=25, headers={"User-Agent": USER_AGENTS[0]})
         latest_response.raise_for_status()
         resolved_latest = latest_response.url.split("#")[0]
@@ -783,6 +786,7 @@ def process_pending_news_queue(state):
             sent_ok = send_telegram(message, chat_id=TG_CHAT)
             if sent_ok:
                 item["status"] = "published"
+                log("{} pending post {} published".format(state_key, item.get("post_id")))
                 if item.get("debug_message_id") and TG_CHAT_DEBUG:
                     edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
                     send_telegram("<b>[NEWS PUBLISHED AUTO]</b> <b>{}</b>\n\n{}".format(item.get("title", "Новина"), item.get("url", "")), chat_id=TG_CHAT_DEBUG)
@@ -812,6 +816,7 @@ def execute_news_action(state, state_key, post_id, action, feedback_chat_id=None
         outgoing = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
         if send_telegram(outgoing, chat_id=TG_CHAT):
             item["status"] = "published"
+            log("{} pending post {} published manually".format(state_key, post_id))
             if feedback_chat_id and feedback_message_id:
                 edit_telegram_reply_markup(feedback_chat_id, feedback_message_id)
             if callback_query_id:
