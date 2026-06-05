@@ -54,6 +54,8 @@ NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
+NEWS_PENDING_EXPIRE_HOURS = int(os.environ.get("NEWS_PENDING_EXPIRE_HOURS", "24"))
+NEWS_MAX_NEW_POSTS_PER_RUN = int(os.environ.get("NEWS_MAX_NEW_POSTS_PER_RUN", "5"))
 RUN_NEWS = os.environ.get("RUN_NEWS", "true").lower() == "true"
 RUN_SIEGES = os.environ.get("RUN_SIEGES", "true").lower() == "true"
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
@@ -82,24 +84,110 @@ USER_AGENTS = [
 _error_counts = {"fortresses": 0, "castles": 0}
 _challenge_counts = {"fortresses": 0, "castles": 0}
 
+TELEGRAM_ALLOWED_TAGS = {"b", "i", "code", "a", "tg-spoiler"}
+TELEGRAM_TAG_RENAMES = {"strong": "b", "em": "i"}
+TELEGRAM_MESSAGE_LIMIT = 4096
+TELEGRAM_SAFE_LIMIT = 3900
+
 
 def log(msg):
     print("{} {}".format(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), msg), flush=True)
 
 
+def compact_text(value, limit=500):
+    value = re.sub(r"\s+", " ", value or "").strip()
+    if len(value) > limit:
+        return value[:limit] + "..."
+    return value
+
+
+def truncate_telegram_text(text, limit=TELEGRAM_SAFE_LIMIT):
+    text = text or ""
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 40)].rstrip() + "\n\n<i>…текст обрізано</i>"
+
+
+def html_to_plain_text(text, limit=TELEGRAM_SAFE_LIMIT):
+    soup = BeautifulSoup(text or "", "html.parser")
+    plain = soup.get_text("\n", strip=True)
+    plain = re.sub(r"\n{3,}", "\n\n", plain).strip()
+    if len(plain) > limit:
+        plain = plain[: max(0, limit - 20)].rstrip() + "\n\n…текст обрізано"
+    return plain
+
+
+def sanitize_telegram_html(text, limit=TELEGRAM_SAFE_LIMIT):
+    soup = BeautifulSoup(text or "", "html.parser")
+
+    for br in soup.find_all("br"):
+        br.replace_with("\n")
+
+    for tag in soup.find_all(True):
+        name = (tag.name or "").lower()
+        if name in TELEGRAM_TAG_RENAMES:
+            tag.name = TELEGRAM_TAG_RENAMES[name]
+            name = tag.name
+
+        if name in {"p", "div", "section", "article", "ul", "ol", "li", "blockquote"}:
+            tag.insert_before("\n")
+            tag.insert_after("\n")
+            tag.unwrap()
+            continue
+
+        if name not in TELEGRAM_ALLOWED_TAGS:
+            tag.unwrap()
+            continue
+
+        if name == "a":
+            href = (tag.get("href") or "").strip()
+            if not href.startswith(("http://", "https://", "tg://")):
+                tag.unwrap()
+                continue
+            tag.attrs = {"href": href}
+        else:
+            tag.attrs = {}
+
+    cleaned = soup.decode(formatter="minimal")
+    cleaned = re.sub(r"\n[ \t]+", "\n", cleaned)
+    cleaned = re.sub(r"[ \t]+\n", "\n", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+    return truncate_telegram_text(cleaned, limit=limit)
+
+
+def telegram_error_detail(response):
+    if response is None:
+        return ""
+    try:
+        return compact_text(response.text, 500)
+    except Exception:
+        return ""
+
+
 def send_telegram(text, retries=3, chat_id=None):
     url = "https://api.telegram.org/bot{}/sendMessage".format(TG_TOKEN)
+    safe_text = sanitize_telegram_html(text)
     payload = {
         "chat_id": chat_id or TG_CHAT,
-        "text": text,
+        "text": safe_text,
         "parse_mode": "HTML",
         "disable_web_page_preview": True,
     }
     for attempt in range(1, retries + 1):
         try:
             r = requests.post(url, json=payload, timeout=20)
-            r.raise_for_status()
-            return True
+            if r.ok:
+                return True
+            log("TG send failed {}/{}: status={} body={} len={}".format(attempt, retries, r.status_code, telegram_error_detail(r), len(payload.get("text", ""))))
+            if r.status_code == 400 and payload.get("parse_mode") == "HTML":
+                fallback_payload = dict(payload)
+                fallback_payload.pop("parse_mode", None)
+                fallback_payload["text"] = html_to_plain_text(text)
+                fallback_response = requests.post(url, json=fallback_payload, timeout=20)
+                if fallback_response.ok:
+                    log("TG send recovered with plain-text fallback")
+                    return True
+                log("TG plain fallback failed {}/{}: status={} body={} len={}".format(attempt, retries, fallback_response.status_code, telegram_error_detail(fallback_response), len(fallback_payload.get("text", ""))))
         except Exception as exc:
             log("TG send failed {}/{}: {}".format(attempt, retries, exc))
             if attempt < retries:
@@ -109,9 +197,10 @@ def send_telegram(text, retries=3, chat_id=None):
 
 def send_telegram_with_markup(text, reply_markup, retries=3, chat_id=None):
     url = "https://api.telegram.org/bot{}/sendMessage".format(TG_TOKEN)
+    safe_text = sanitize_telegram_html(text)
     payload = {
         "chat_id": chat_id or TG_CHAT,
-        "text": text,
+        "text": safe_text,
         "parse_mode": "HTML",
         "disable_web_page_preview": True,
         "reply_markup": reply_markup,
@@ -119,9 +208,20 @@ def send_telegram_with_markup(text, reply_markup, retries=3, chat_id=None):
     for attempt in range(1, retries + 1):
         try:
             r = requests.post(url, json=payload, timeout=20)
-            r.raise_for_status()
-            result = r.json().get("result", {})
-            return result.get("message_id")
+            if r.ok:
+                result = r.json().get("result", {})
+                return result.get("message_id")
+            log("TG send with markup failed {}/{}: status={} body={} len={}".format(attempt, retries, r.status_code, telegram_error_detail(r), len(payload.get("text", ""))))
+            if r.status_code == 400 and payload.get("parse_mode") == "HTML":
+                fallback_payload = dict(payload)
+                fallback_payload.pop("parse_mode", None)
+                fallback_payload["text"] = html_to_plain_text(text)
+                fallback_response = requests.post(url, json=fallback_payload, timeout=20)
+                if fallback_response.ok:
+                    log("TG send with markup recovered with plain-text fallback")
+                    result = fallback_response.json().get("result", {})
+                    return result.get("message_id")
+                log("TG markup plain fallback failed {}/{}: status={} body={} len={}".format(attempt, retries, fallback_response.status_code, telegram_error_detail(fallback_response), len(fallback_payload.get("text", ""))))
         except Exception as exc:
             log("TG send with markup failed {}/{}: {}".format(attempt, retries, exc))
             if attempt < retries:
@@ -335,41 +435,66 @@ def fetch_channel_posts(channel_url):
             "formatted_html": formatted_html,
         })
     posts.sort(key=lambda item: item["id"])
+    log("telegram channel fetched {} posts".format(len(posts)))
     return posts
 
 
 def fetch_forum_posts(forum_url):
+    urls = [forum_url]
     try:
-        response = requests.get(forum_url, timeout=25, headers={"User-Agent": USER_AGENTS[0]})
-        response.raise_for_status()
+        latest_url = forum_url.split("?")[0].rstrip("/")
+        latest_url = re.sub(r"/page-\d+$", "", latest_url) + "/latest"
+        latest_response = requests.get(latest_url, timeout=25, headers={"User-Agent": USER_AGENTS[0]})
+        latest_response.raise_for_status()
+        resolved_latest = latest_response.url.split("#")[0]
+        if resolved_latest and resolved_latest not in urls:
+            urls.append(resolved_latest)
+            match = re.search(r"/page-(\d+)$", resolved_latest)
+            if match and int(match.group(1)) > 1:
+                prev_url = re.sub(r"/page-\d+$", "/page-{}".format(int(match.group(1)) - 1), resolved_latest)
+                if prev_url not in urls:
+                    urls.append(prev_url)
     except Exception as exc:
-        log("forum fetch failed: {}".format(exc))
-        return []
+        log("forum latest discovery failed: {}".format(exc))
 
-    html = response.content.decode(response.apparent_encoding or "utf-8", errors="replace")
-    soup = BeautifulSoup(html, "html.parser")
     posts = []
-    for article in soup.select("article.message"):
-        article_id = article.get("data-content") or article.get("id") or ""
-        match = re.search(r"post-?(\d+)", article_id)
-        if not match:
+    seen = set()
+    for url in urls:
+        try:
+            response = requests.get(url, timeout=25, headers={"User-Agent": USER_AGENTS[0]})
+            response.raise_for_status()
+        except Exception as exc:
+            log("forum fetch failed {}: {}".format(url, exc))
             continue
-        post_id = int(match.group(1))
-        body_node = article.select_one("div.bbWrapper")
-        if not body_node:
-            continue
-        text = body_node.get_text("\n", strip=True)
-        if not text:
-            continue
-        formatted_html = body_node.decode_contents().strip()
-        posts.append({
-            "id": post_id,
-            "url": "{}#post-{}".format(forum_url.split("?")[0], post_id),
-            "text": text,
-            "formatted_html": formatted_html,
-            "source": "forum",
-        })
+
+        base_url = response.url.split("?")[0].split("#")[0]
+        html = response.content.decode(response.apparent_encoding or "utf-8", errors="replace")
+        soup = BeautifulSoup(html, "html.parser")
+        for article in soup.select("article.message"):
+            article_id = article.get("data-content") or article.get("id") or ""
+            match = re.search(r"post-?(\d+)", article_id)
+            if not match:
+                continue
+            post_id = int(match.group(1))
+            if post_id in seen:
+                continue
+            body_node = article.select_one("div.bbWrapper")
+            if not body_node:
+                continue
+            text = body_node.get_text("\n", strip=True)
+            if not text:
+                continue
+            formatted_html = body_node.decode_contents().strip()
+            seen.add(post_id)
+            posts.append({
+                "id": post_id,
+                "url": "{}#post-{}".format(base_url, post_id),
+                "text": text,
+                "formatted_html": formatted_html,
+                "source": "forum",
+            })
     posts.sort(key=lambda item: item["id"])
+    log("forum fetched {} posts from {} page(s)".format(len(posts), len(urls)))
     return posts
 
 
@@ -541,7 +666,15 @@ def process_feed_posts(state, posts, state_key, source_label):
 
     new_posts = [post for post in posts if post["id"] > last_seen_id]
     if not new_posts:
+        log("{} no new posts after last_seen_id={}".format(source_label, last_seen_id))
         return
+
+    if NEWS_MAX_NEW_POSTS_PER_RUN > 0 and len(new_posts) > NEWS_MAX_NEW_POSTS_PER_RUN:
+        skipped = len(new_posts) - NEWS_MAX_NEW_POSTS_PER_RUN
+        log("{} backlog has {} new posts; skipping {} older posts and processing latest {}".format(source_label, len(new_posts), skipped, NEWS_MAX_NEW_POSTS_PER_RUN))
+        new_posts = new_posts[-NEWS_MAX_NEW_POSTS_PER_RUN:]
+
+    log("{} processing {} new posts after last_seen_id={}".format(source_label, len(new_posts), last_seen_id))
 
     for post in new_posts:
         rewritten = gemini_rewrite_x1000_news(
@@ -629,12 +762,17 @@ def process_feed_posts(state, posts, state_key, source_label):
 
 def process_pending_news_queue(state):
     now = int(time.time())
+    expire_before = now - NEWS_PENDING_EXPIRE_HOURS * 60 * 60
     for state_key in ("news", "forum_news"):
         news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
         pending_items = news_state.get("pending", [])
 
         for item in pending_items:
             if item.get("status") != "pending":
+                continue
+            if int(item.get("created_at", 0) or 0) < expire_before:
+                item["status"] = "expired"
+                log("{} pending post {} expired without publishing".format(state_key, item.get("post_id")))
                 continue
             if NEWS_TARGET_CHAT == "debug":
                 continue
@@ -822,13 +960,6 @@ def classify_page_text(text):
         if needles and any(needle in lower for needle in needles):
             return reason
     return "next_data_missing"
-
-
-def compact_text(value, limit=500):
-    value = re.sub(r"\s+", " ", value or "").strip()
-    if len(value) > limit:
-        return value[:limit] + "..."
-    return value
 
 
 def ensure_diag_dir():

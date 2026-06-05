@@ -1,5 +1,6 @@
 # TODO
 
+- [completed] Investigate News Bot Telegram/forum posting breakage
 - [completed] Harden Siege Bot fetch/parser diagnostics against site changes and anti-bot failures
 - [completed] Audit recent GitHub Action parser/log errors
 - [completed] Optimize GitHub Actions Playwright setup time
