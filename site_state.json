@@ -111,7 +111,7 @@
         "url": "https://t.me/scryde/4487",
         "created_at": 1778263863,
         "publish_after": 1778265363,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -122,7 +122,7 @@
         "url": "https://t.me/scryde/4515",
         "created_at": 1778492448,
         "publish_after": 1778493948,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -144,7 +144,7 @@
         "url": "https://t.me/scryde/4489",
         "created_at": 1778594782,
         "publish_after": 1778596282,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -166,7 +166,7 @@
         "url": "https://t.me/scryde/4492",
         "created_at": 1778682645,
         "publish_after": 1778684145,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -199,7 +199,7 @@
         "url": "https://t.me/scryde/4499",
         "created_at": 1778843431,
         "publish_after": 1778844931,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -210,7 +210,7 @@
         "url": "https://t.me/scryde/4505",
         "created_at": 1778863835,
         "publish_after": 1778865335,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -221,7 +221,7 @@
         "url": "https://t.me/scryde/4509",
         "created_at": 1778877641,
         "publish_after": 1778879141,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -254,7 +254,7 @@
         "url": "https://t.me/scryde/4541",
         "created_at": 1779361239,
         "publish_after": 1779362739,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -265,7 +265,7 @@
         "url": "https://t.me/scryde/4543",
         "created_at": 1779380436,
         "publish_after": 1779381936,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -276,7 +276,7 @@
         "url": "https://t.me/scryde/4546",
         "created_at": 1779436842,
         "publish_after": 1779438342,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -287,7 +287,7 @@
         "url": "https://t.me/scryde/4559",
         "created_at": 1779451835,
         "publish_after": 1779453335,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -298,7 +298,7 @@
         "url": "https://t.me/scryde/4560",
         "created_at": 1779456642,
         "publish_after": 1779458142,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -309,7 +309,7 @@
         "url": "https://t.me/scryde/4562",
         "created_at": 1779472237,
         "publish_after": 1779473737,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -320,7 +320,7 @@
         "url": "https://t.me/scryde/4588",
         "created_at": 1779646831,
         "publish_after": 1779648331,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -353,7 +353,7 @@
         "url": "https://t.me/scryde/4612",
         "created_at": 1780077034,
         "publish_after": 1780078534,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -364,7 +364,7 @@
         "url": "https://t.me/scryde/4616",
         "created_at": 1780250433,
         "publish_after": 1780251933,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -375,7 +375,7 @@
         "url": "https://t.me/scryde/4626",
         "created_at": 1780331442,
         "publish_after": 1780332942,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -386,7 +386,7 @@
         "url": "https://t.me/scryde/4628",
         "created_at": 1780389648,
         "publish_after": 1780391148,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -397,7 +397,7 @@
         "url": "https://t.me/scryde/4649",
         "created_at": 1780561247,
         "publish_after": 1780562747,
-        "status": "pending",
+        "status": "expired",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -408,7 +408,7 @@
         "url": "https://t.me/scryde/4648",
         "created_at": 1780651235,
         "publish_after": 1780652735,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": null,
         "source": "telegram"
       },
@@ -419,17 +419,18 @@
         "url": "https://t.me/scryde/4650",
         "created_at": 1780668043,
         "publish_after": 1780669543,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": null,
         "source": "telegram"
       }
     ]
   },
   "forum_news": {
-    "last_seen_id": 2645240,
+    "last_seen_id": 2662386,
     "sent_ids": [
       2641914,
-      2642269
+      2642269,
+      2662386
     ],
     "pending": [
       {
@@ -452,6 +453,17 @@
         "publish_after": 1777976757,
         "status": "published",
         "debug_message_id": 110,
+        "source": "forum"
+      },
+      {
+        "post_id": 2662386,
+        "title": "⚙️ Оновлення механіки спойлу 🛠️",
+        "text": "<b>Оновлення від 05.06.26</b> 🛠️<br/><br/>На сервері встановлено невелике виправлення:<br/>• Виправлено помилку, через яку після невдалої спроби спойлу монстри залишалися недоступними для спойлу довше, ніж належить. 👾",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2662386",
+        "created_at": 1780676707,
+        "publish_after": 1780678207,
+        "status": "pending",
+        "debug_message_id": 137,
         "source": "forum"
       }
     ]
