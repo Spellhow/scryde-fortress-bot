@@ -5,7 +5,6 @@ import os
 import random
 import re
 import time
-import unicodedata
 import html as html_lib
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -57,7 +56,7 @@ FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "")
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 NEWS_PENDING_EXPIRE_HOURS = int(os.environ.get("NEWS_PENDING_EXPIRE_HOURS", "24"))
 NEWS_MAX_NEW_POSTS_PER_RUN = int(os.environ.get("NEWS_MAX_NEW_POSTS_PER_RUN", "5"))
-NEWS_DEBUG_PREVIEW_VERSION = 4
+NEWS_DEBUG_PREVIEW_VERSION = 5
 RUN_NEWS = os.environ.get("RUN_NEWS", "true").lower() == "true"
 RUN_SIEGES = os.environ.get("RUN_SIEGES", "true").lower() == "true"
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
@@ -103,32 +102,9 @@ def compact_text(value, limit=500):
     return value
 
 
-def normalize_news_heading(value):
-    text = BeautifulSoup(value or "", "html.parser").get_text(" ", strip=True)
-    text = html_lib.unescape(text).casefold()
-    text = "".join(ch if unicodedata.category(ch)[0] not in {"P", "S"} else " " for ch in text)
-    return re.sub(r"\s+", " ", text).strip()
-
-
-def strip_duplicate_news_title(title, body):
-    body = (body or "").strip()
-    if not body:
-        return body
-    lines = body.splitlines()
-    first_idx = next((idx for idx, line in enumerate(lines) if line.strip()), None)
-    if first_idx is None:
-        return ""
-    title_norm = normalize_news_heading(title)
-    first_norm = normalize_news_heading(lines[first_idx])
-    if title_norm and first_norm and (first_norm == title_norm or first_norm in title_norm or title_norm in first_norm):
-        remaining = lines[:first_idx] + lines[first_idx + 1:]
-        return "\n".join(remaining).strip()
-    return body
-
-
 def build_news_post_message(title, body, url):
-    clean_body = strip_duplicate_news_title(title, body)
-    return "<b>{}</b>\n\n{}\n\n{}".format(title or "Новина Scryde x1000", clean_body, url or "")
+    content = (body or "").strip() or (title or "Новина Scryde x1000")
+    return "{}\n\n{}".format(content, url or "")
 
 
 def truncate_telegram_text(text, limit=TELEGRAM_SAFE_LIMIT):
@@ -690,11 +666,10 @@ def news_preview_footer():
 
 def build_pending_preview(source_label, title, body, url, updated=False):
     label = "{} PENDING{}".format(source_label.upper(), " UPDATED" if updated else "")
-    clean_body = strip_duplicate_news_title(title, body)
-    return "<b>[{}]</b> <b>{}</b>\n\n{}\n\n{}\n\n{}".format(
+    content = (body or "").strip() or (title or "Новина Scryde x1000")
+    return "<b>[{}]</b>\n\n{}\n\n{}\n\n{}".format(
         label,
-        title,
-        clean_body,
+        content,
         news_preview_footer(),
         url,
     )
@@ -733,9 +708,10 @@ def format_news_item_summary(state_key, item):
 
 
 def format_news_item_preview(state_key, item):
-    clean_body = strip_duplicate_news_title(item.get("title", "Новина"), item.get("text", ""))
+    content = (item.get("text", "") or "").strip() or item.get("title", "Новина")
     return (
-        "<b>[NEWS ITEM]</b> <b>{title}</b>\n"
+        "<b>[NEWS ITEM]</b>\n"
+        "title: <code>{title}</code>\n"
         "state: <code>{state_key}</code>\n"
         "post_id: <code>{post_id}</code>\n"
         "status: <code>{status}</code>\n\n"
@@ -747,7 +723,7 @@ def format_news_item_preview(state_key, item):
         state_key=state_key,
         post_id=item.get("post_id"),
         status=item.get("status", "unknown"),
-        text=clean_body,
+        text=content,
         commands=news_command_help(state_key, item.get("post_id")),
         url=item.get("url", ""),
     )
