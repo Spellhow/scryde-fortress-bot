@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "BLR",
+        "image": null
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1780727851,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1780724518,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "BLR",
+            "image": null
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1780727851,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1780724518,
         "notified_reminder": false
       }
     }
@@ -43,8 +53,8 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1780580416:FarPost": 1780577494,
-      "fortress:116:1780643478:KnightOfHonor": 1780640509
+      "fortress:116:1780643478:KnightOfHonor": 1780640509,
+      "fortress:116:1780727851:BLR": 1780724518
     },
     "tg_update_offset": 848301101
   },
