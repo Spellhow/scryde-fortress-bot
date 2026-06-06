@@ -56,7 +56,7 @@ FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "")
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 NEWS_PENDING_EXPIRE_HOURS = int(os.environ.get("NEWS_PENDING_EXPIRE_HOURS", "24"))
 NEWS_MAX_NEW_POSTS_PER_RUN = int(os.environ.get("NEWS_MAX_NEW_POSTS_PER_RUN", "5"))
-NEWS_DEBUG_PREVIEW_VERSION = 2
+NEWS_DEBUG_PREVIEW_VERSION = 3
 RUN_NEWS = os.environ.get("RUN_NEWS", "true").lower() == "true"
 RUN_SIEGES = os.environ.get("RUN_SIEGES", "true").lower() == "true"
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
@@ -204,8 +204,9 @@ def send_telegram_with_markup(text, reply_markup, retries=3, chat_id=None):
         "text": safe_text,
         "parse_mode": "HTML",
         "disable_web_page_preview": True,
-        "reply_markup": reply_markup,
     }
+    if reply_markup is not None:
+        payload["reply_markup"] = reply_markup
     for attempt in range(1, retries + 1):
         try:
             r = requests.post(url, json=payload, timeout=20)
@@ -652,9 +653,10 @@ def news_command_help(state_key=None, post_id=None):
 
 
 def news_preview_footer():
+    controls = "Відповісти на це повідомлення: <b>+</b> опублікувати, <b>-</b> скасувати, <b>delay 60</b> відкласти"
     if NEWS_TARGET_CHAT == "debug":
-        return "Автопублікація: <b>вимкнена (debug mode)</b>"
-    return "Автопублікація через <b>{} хв</b>".format(NEWS_APPROVE_DELAY_MIN)
+        return "Автопублікація: <b>вимкнена (debug mode)</b>\n{}".format(controls)
+    return "Автопублікація через <b>{} хв</b>\n{}".format(NEWS_APPROVE_DELAY_MIN, controls)
 
 
 def build_pending_preview(source_label, title, body, url, updated=False):
@@ -823,10 +825,8 @@ def process_feed_posts(state, posts, state_key, source_label):
                 target_item["source"] = source_label
                 target_item["debug_preview_version"] = NEWS_DEBUG_PREVIEW_VERSION
                 if target_item.get("debug_message_id") and TG_CHAT_DEBUG:
-                    edit_telegram_reply_markup(TG_CHAT_DEBUG, target_item["debug_message_id"])
-                    buttons = news_action_buttons(rewritten["target_state_key"], target_item["post_id"])
                     preview = build_pending_preview(source_label, display_title, body, post["url"], updated=True)
-                    target_item["debug_message_id"] = send_telegram_with_markup(preview, buttons, chat_id=TG_CHAT_DEBUG)
+                    target_item["debug_message_id"] = send_telegram_with_markup(preview, None, chat_id=TG_CHAT_DEBUG)
                 sent_ids.add(post["id"])
                 continue
 
@@ -848,9 +848,8 @@ def process_feed_posts(state, posts, state_key, source_label):
         }
 
         if TG_CHAT_DEBUG:
-            buttons = news_action_buttons(state_key, post["id"])
             preview = build_pending_preview(source_label, display_title, body, post["url"])
-            pending_item["debug_message_id"] = send_telegram_with_markup(preview, buttons, chat_id=TG_CHAT_DEBUG)
+            pending_item["debug_message_id"] = send_telegram_with_markup(preview, None, chat_id=TG_CHAT_DEBUG)
 
         news_state.setdefault("pending", []).append(pending_item)
         sent_ids.add(post["id"])
@@ -908,8 +907,7 @@ def refresh_pending_debug_previews(state):
                 item.get("text", ""),
                 item.get("url", ""),
             )
-            buttons = news_action_buttons(state_key, item.get("post_id"))
-            if edit_telegram_message_text(TG_CHAT_DEBUG, message_id, preview, reply_markup=buttons):
+            if edit_telegram_message_text(TG_CHAT_DEBUG, message_id, preview, reply_markup={"inline_keyboard": []}):
                 item["debug_preview_version"] = NEWS_DEBUG_PREVIEW_VERSION
                 log("{} pending post {} debug preview refreshed".format(state_key, item.get("post_id")))
 
@@ -1105,6 +1103,47 @@ def handle_news_command(state, message):
     )
 
 
+def find_pending_by_debug_message_id(state, message_id):
+    if not message_id:
+        return None, None
+    for state_key in ("news", "forum_news"):
+        news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
+        for item in news_state.get("pending", []):
+            if item.get("status") != "pending":
+                continue
+            if int(item.get("debug_message_id", 0) or 0) == int(message_id):
+                return state_key, item
+    return None, None
+
+
+def handle_news_reply_action(state, message):
+    text = (message.get("text") or "").strip().lower()
+    if not text:
+        return False
+    chat_id = str(message.get("chat", {}).get("id"))
+    if TG_CHAT_DEBUG and chat_id != str(TG_CHAT_DEBUG):
+        return False
+    reply_to = message.get("reply_to_message") or {}
+    replied_message_id = reply_to.get("message_id")
+    state_key, item = find_pending_by_debug_message_id(state, replied_message_id)
+    if not item:
+        return False
+
+    post_id = int(item.get("post_id"))
+    if text in {"+", "publish", "post", "публікуй", "опублікуй"}:
+        return execute_news_action(state, state_key, post_id, "publish", feedback_chat_id=chat_id)
+    if text in {"-", "cancel", "skip", "скасувати", "відміна"}:
+        return execute_news_action(state, state_key, post_id, "cancel", feedback_chat_id=chat_id)
+    if text in {"show", "покажи"}:
+        send_telegram(format_news_item_preview(state_key, item), chat_id=chat_id)
+        return True
+    m = re.match(r"^(?:delay|відкласти)\s+(\d{1,4})$", text)
+    if m:
+        return execute_news_delay(state, state_key, post_id, int(m.group(1)), feedback_chat_id=chat_id)
+    send_telegram("Не зрозумів дію. Відповідай на pending-пост: +, -, delay 60 або show", chat_id=chat_id)
+    return True
+
+
 def process_callback_updates(state):
     url = "https://api.telegram.org/bot{}/getUpdates".format(TG_TOKEN)
     meta = state.setdefault("meta", {})
@@ -1133,7 +1172,8 @@ def process_callback_updates(state):
             handle_news_callback(state, callback)
         message = update.get("message")
         if message:
-            handle_news_command(state, message)
+            if not handle_news_reply_action(state, message):
+                handle_news_command(state, message)
 
     if max_update_id is not None:
         meta["tg_update_offset"] = max_update_id + 1
