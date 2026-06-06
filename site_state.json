@@ -426,11 +426,12 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2662386,
+    "last_seen_id": 2662935,
     "sent_ids": [
       2641914,
       2642269,
-      2662386
+      2662386,
+      2662935
     ],
     "pending": [
       {
@@ -464,6 +465,17 @@
         "publish_after": 1780678207,
         "status": "published",
         "debug_message_id": 137,
+        "source": "forum"
+      },
+      {
+        "post_id": 2662935,
+        "title": "⚙️ HOT-RELEASE від 06.06.26",
+        "text": "🔥 <b>HOT-RELEASE від 06.06.26</b>\n\n• Виправлено помилку, через яку пасивний ефект рун олімпіади працював на самій олімпіаді ⚔️",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2662935",
+        "created_at": 1780733436,
+        "publish_after": 1780734936,
+        "status": "pending",
+        "debug_message_id": 139,
         "source": "forum"
       }
     ]
