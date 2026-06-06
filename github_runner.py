@@ -5,6 +5,7 @@ import os
 import random
 import re
 import time
+import unicodedata
 import html as html_lib
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -56,7 +57,7 @@ FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "")
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 NEWS_PENDING_EXPIRE_HOURS = int(os.environ.get("NEWS_PENDING_EXPIRE_HOURS", "24"))
 NEWS_MAX_NEW_POSTS_PER_RUN = int(os.environ.get("NEWS_MAX_NEW_POSTS_PER_RUN", "5"))
-NEWS_DEBUG_PREVIEW_VERSION = 3
+NEWS_DEBUG_PREVIEW_VERSION = 4
 RUN_NEWS = os.environ.get("RUN_NEWS", "true").lower() == "true"
 RUN_SIEGES = os.environ.get("RUN_SIEGES", "true").lower() == "true"
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
@@ -100,6 +101,34 @@ def compact_text(value, limit=500):
     if len(value) > limit:
         return value[:limit] + "..."
     return value
+
+
+def normalize_news_heading(value):
+    text = BeautifulSoup(value or "", "html.parser").get_text(" ", strip=True)
+    text = html_lib.unescape(text).casefold()
+    text = "".join(ch if unicodedata.category(ch)[0] not in {"P", "S"} else " " for ch in text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def strip_duplicate_news_title(title, body):
+    body = (body or "").strip()
+    if not body:
+        return body
+    lines = body.splitlines()
+    first_idx = next((idx for idx, line in enumerate(lines) if line.strip()), None)
+    if first_idx is None:
+        return ""
+    title_norm = normalize_news_heading(title)
+    first_norm = normalize_news_heading(lines[first_idx])
+    if title_norm and first_norm and (first_norm == title_norm or first_norm in title_norm or title_norm in first_norm):
+        remaining = lines[:first_idx] + lines[first_idx + 1:]
+        return "\n".join(remaining).strip()
+    return body
+
+
+def build_news_post_message(title, body, url):
+    clean_body = strip_duplicate_news_title(title, body)
+    return "<b>{}</b>\n\n{}\n\n{}".format(title or "Новина Scryde x1000", clean_body, url or "")
 
 
 def truncate_telegram_text(text, limit=TELEGRAM_SAFE_LIMIT):
@@ -661,10 +690,11 @@ def news_preview_footer():
 
 def build_pending_preview(source_label, title, body, url, updated=False):
     label = "{} PENDING{}".format(source_label.upper(), " UPDATED" if updated else "")
+    clean_body = strip_duplicate_news_title(title, body)
     return "<b>[{}]</b> <b>{}</b>\n\n{}\n\n{}\n\n{}".format(
         label,
         title,
-        body,
+        clean_body,
         news_preview_footer(),
         url,
     )
@@ -703,6 +733,7 @@ def format_news_item_summary(state_key, item):
 
 
 def format_news_item_preview(state_key, item):
+    clean_body = strip_duplicate_news_title(item.get("title", "Новина"), item.get("text", ""))
     return (
         "<b>[NEWS ITEM]</b> <b>{title}</b>\n"
         "state: <code>{state_key}</code>\n"
@@ -716,7 +747,7 @@ def format_news_item_preview(state_key, item):
         state_key=state_key,
         post_id=item.get("post_id"),
         status=item.get("status", "unknown"),
-        text=item.get("text", ""),
+        text=clean_body,
         commands=news_command_help(state_key, item.get("post_id")),
         url=item.get("url", ""),
     )
@@ -877,7 +908,7 @@ def process_pending_news_queue(state):
             if now < int(item.get("publish_after", 0) or 0):
                 continue
 
-            message = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
+            message = build_news_post_message(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
             sent_ok = send_telegram(message, chat_id=TG_CHAT)
             if sent_ok:
                 item["status"] = "published"
@@ -933,7 +964,7 @@ def execute_news_action(state, state_key, post_id, action, feedback_chat_id=None
         return True
 
     if action == "publish":
-        outgoing = "<b>{}</b>\n\n{}\n\n{}".format(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
+        outgoing = build_news_post_message(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
         if send_telegram(outgoing, chat_id=TG_CHAT):
             item["status"] = "published"
             log("{} pending post {} published manually".format(state_key, post_id))
