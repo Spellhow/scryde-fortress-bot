@@ -46,7 +46,7 @@
       "fortress:116:1780643478:KnightOfHonor": 1780640509,
       "fortress:116:1780727851:BLR": 1780724518
     },
-    "tg_update_offset": 848301101
+    "tg_update_offset": 848301102
   },
   "news": {
     "last_seen_id": 4652,
@@ -476,7 +476,8 @@
         "publish_after": 1780734936,
         "status": "pending",
         "debug_message_id": 139,
-        "source": "forum"
+        "source": "forum",
+        "debug_preview_version": 2
       }
     ]
   }
