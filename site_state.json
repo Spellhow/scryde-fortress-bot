@@ -427,12 +427,13 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2662935,
+    "last_seen_id": 2663350,
     "sent_ids": [
       2641914,
       2642269,
       2662386,
-      2662935
+      2662935,
+      2663350
     ],
     "pending": [
       {
@@ -479,6 +480,18 @@
         "debug_message_id": 139,
         "source": "forum",
         "debug_preview_version": 3
+      },
+      {
+        "post_id": 2663350,
+        "title": "⚙️ Оновлення івенту Deathmatch",
+        "text": "<b>HOT-RELEASE від 07.06.26</b><br/>\n<ul>\n<li>Прибрано поділ на мілі та рендж класи для івенту Deathmatch ⚔️</li>\n</ul>",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2663350",
+        "created_at": 1780820431,
+        "publish_after": 1780821931,
+        "status": "pending",
+        "debug_message_id": 142,
+        "debug_preview_version": 5,
+        "source": "forum"
       }
     ]
   }
