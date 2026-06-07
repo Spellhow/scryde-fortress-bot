@@ -50,7 +50,7 @@
     "tg_update_offset": 848301102
   },
   "news": {
-    "last_seen_id": 4660,
+    "last_seen_id": 4665,
     "sent_ids": [
       4465,
       4474,
@@ -93,7 +93,8 @@
       4649,
       4650,
       4658,
-      4660
+      4660,
+      4665
     ],
     "pending": [
       {
@@ -447,6 +448,18 @@
         "publish_after": 1780848347,
         "status": "published",
         "debug_message_id": 146,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4665,
+        "title": "Технічні роботи на форумі",
+        "text": "🚨 <b>Завтра з 09:00 до 11:00 (GMT+3)</b> на форумі проводитимуться технічні роботи, тому в цей час він буде недоступний. 📴\n\nЯкщо у вас там намічається якийсь гарячий біф або є термінові справи — доведеться кілька годин потерпіти. Перепрошуємо за тимчасові незручності! 🙏",
+        "url": "https://t.me/scryde/4665",
+        "created_at": 1780853431,
+        "publish_after": 1780854931,
+        "status": "pending",
+        "debug_message_id": 148,
         "debug_preview_version": 5,
         "source": "telegram"
       }
