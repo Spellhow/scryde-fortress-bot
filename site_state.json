@@ -50,7 +50,7 @@
     "tg_update_offset": 848301104
   },
   "news": {
-    "last_seen_id": 4671,
+    "last_seen_id": 4672,
     "sent_ids": [
       4465,
       4474,
@@ -592,7 +592,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2664756",
         "created_at": 1781079642,
         "publish_after": 1781081142,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 161,
         "debug_preview_version": 5,
         "source": "forum"
