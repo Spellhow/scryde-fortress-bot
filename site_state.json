@@ -505,14 +505,15 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2664209,
+    "last_seen_id": 2664756,
     "sent_ids": [
       2641914,
       2642269,
       2662386,
       2662935,
       2663350,
-      2664209
+      2664209,
+      2664756
     ],
     "pending": [
       {
@@ -581,6 +582,18 @@
         "publish_after": 1780994742,
         "status": "published",
         "debug_message_id": 156,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2664756,
+        "title": "⚙️ HOT-RELEASE від 10.06.26",
+        "text": "🛠 <b>Чергове виправлення:</b>\n• Виправлено помилку, через яку спойл на дебаф не спрацьовував на деяких монстрах.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2664756",
+        "created_at": 1781079642,
+        "publish_after": 1781081142,
+        "status": "pending",
+        "debug_message_id": 161,
         "debug_preview_version": 5,
         "source": "forum"
       }
