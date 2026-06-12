@@ -517,7 +517,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2665173,
+    "last_seen_id": 2665577,
     "sent_ids": [
       2641914,
       2642269,
@@ -526,7 +526,8 @@
       2663350,
       2664209,
       2664756,
-      2665173
+      2665173,
+      2665577
     ],
     "pending": [
       {
@@ -619,6 +620,18 @@
         "publish_after": 1781166938,
         "status": "published",
         "debug_message_id": 163,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2665577,
+        "title": "⚙️ HOT-RELEASE від 12.06.26",
+        "text": "🛠 <b>Виправлено помилку</b>, через яку квест «Велика зачистка» можна було взяти до завершення всіх обов'язкових завдань.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2665577",
+        "created_at": 1781252437,
+        "publish_after": 1781253937,
+        "status": "pending",
+        "debug_message_id": 167,
         "debug_preview_version": 5,
         "source": "forum"
       }
