@@ -46,7 +46,7 @@
       "fortress:116:1781166103:PhantomFinale": 1781163118,
       "fortress:116:1781232186:FarPost": 1781229106
     },
-    "tg_update_offset": 848301104
+    "tg_update_offset": 848301105
   },
   "news": {
     "last_seen_id": 4677,
@@ -630,7 +630,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2665577",
         "created_at": 1781252437,
         "publish_after": 1781253937,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 167,
         "debug_preview_version": 5,
         "source": "forum"
