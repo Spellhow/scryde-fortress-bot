@@ -49,7 +49,7 @@
     "tg_update_offset": 848301105
   },
   "news": {
-    "last_seen_id": 4679,
+    "last_seen_id": 4680,
     "sent_ids": [
       4465,
       4474,
@@ -98,7 +98,8 @@
       4669,
       4670,
       4676,
-      4679
+      4679,
+      4680
     ],
     "pending": [
       {
@@ -524,6 +525,18 @@
         "publish_after": 1781280343,
         "status": "published",
         "debug_message_id": 171,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4680,
+        "title": "Технічні неполадки на серверах",
+        "text": "<b>🛠 Ми знаємо про неполадки!</b><br/><br/>Зараз на серверах спостерігаються мережеві проблеми, через які багатьох користувачів не пускає в гру. Ми все бачимо, причину шукаємо, заходи вживаємо — команда вже в справі.<br/><br/>Будемо тримати вас у курсі.",
+        "url": "https://t.me/scryde/4680",
+        "created_at": 1781431839,
+        "publish_after": 1781433339,
+        "status": "pending",
+        "debug_message_id": 175,
         "debug_preview_version": 5,
         "source": "telegram"
       }
