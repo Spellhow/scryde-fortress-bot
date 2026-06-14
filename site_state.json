@@ -46,7 +46,7 @@
       "fortress:116:1781290721:PhantomFinale": 1781287301,
       "fortress:116:1781343122:KnightOfHonor": 1781340108
     },
-    "tg_update_offset": 848301108
+    "tg_update_offset": 848301109
   },
   "news": {
     "last_seen_id": 4683,
@@ -573,7 +573,7 @@
         "url": "https://t.me/scryde/4683",
         "created_at": 1781449842,
         "publish_after": 1781451342,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 186,
         "debug_preview_version": 5,
         "source": "telegram"
