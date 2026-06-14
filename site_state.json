@@ -49,9 +49,8 @@
     "tg_update_offset": 848301107
   },
   "news": {
-    "last_seen_id": 4681,
+    "last_seen_id": 4682,
     "sent_ids": [
-      4465,
       4474,
       4484,
       4487,
@@ -100,7 +99,8 @@
       4676,
       4679,
       4680,
-      4681
+      4681,
+      4682
     ],
     "pending": [
       {
@@ -553,6 +553,18 @@
         "debug_preview_version": 5,
         "source": "telegram",
         "approved_at": 1781442024
+      },
+      {
+        "post_id": 4682,
+        "title": "Технічні роботи: логін недоступний",
+        "text": "<b>Тимчасові технічні роботи</b> 🛠️\n\nПротягом ~30 хвилин буде <b>недоступний вхід до гри</b> у зв'язку з технічними роботами. З гри краще поки що не виходити.\n\n<i>Дякуємо за розуміння! 🧘</i>",
+        "url": "https://t.me/scryde/4682",
+        "created_at": 1781444427,
+        "publish_after": 1781445927,
+        "status": "pending",
+        "debug_message_id": 183,
+        "debug_preview_version": 5,
+        "source": "telegram"
       }
     ]
   },
