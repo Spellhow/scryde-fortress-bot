@@ -46,7 +46,7 @@
       "fortress:116:1781290721:PhantomFinale": 1781287301,
       "fortress:116:1781343122:KnightOfHonor": 1781340108
     },
-    "tg_update_offset": 848301106
+    "tg_update_offset": 848301107
   },
   "news": {
     "last_seen_id": 4681,
@@ -547,11 +547,12 @@
         "text": "<b>🎁 Безкоштовні плюшки за промокодом!</b><br/><br/>Для всіх серверів став доступний промокод <code>LOGIN1406</code>. Активувати його можна до 16 червня 23:59 (GMT+3) на персонажах 60+ рівня, які мають від 10 годин у грі.<br/><br/><b>Нагороди на x1000:</b><br/>🐟 Seahorse's Blessed Scroll: Enchant Weapon Event (30 шт.)<br/>🐟 Seahorse's Ancient Scroll: Enchant Weapon Event (1 шт.)<br/>🏋️ Scroll: Olf's T-shirt Enchant Scroll of Destruction (1 шт.)<br/>🪪 Сертифікат Слави (30 шт.)<br/>🔥 Top-Grade Life Stone - Level 86 (Івент) (5 шт.)<br/><br/><i>Приємної гри! 🌟</i>",
         "url": "https://t.me/scryde/4681",
         "created_at": 1781440836,
-        "publish_after": 1781442336,
-        "status": "pending",
+        "publish_after": 1781442024,
+        "status": "approved",
         "debug_message_id": 179,
         "debug_preview_version": 5,
-        "source": "telegram"
+        "source": "telegram",
+        "approved_at": 1781442024
       }
     ]
   },
