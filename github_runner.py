@@ -622,7 +622,7 @@ def build_pending_context(state):
     for state_key in ("news", "forum_news"):
         news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
         for item in news_state.get("pending", []):
-            if item.get("status") != "pending":
+            if item.get("status") not in {"pending", "approved"}:
                 continue
             pending_items.append({
                 "state_key": state_key,
@@ -695,6 +695,16 @@ def find_news_item(state, state_key, post_id, only_pending=False):
         if only_pending and item.get("status") != "pending":
             continue
         return item
+    return None
+
+
+def find_moderatable_news_item(state, state_key, post_id):
+    news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
+    for item in news_state.get("pending", []):
+        if int(item.get("post_id", 0) or 0) != int(post_id):
+            continue
+        if item.get("status") in {"pending", "approved"}:
+            return item
     return None
 
 
@@ -824,7 +834,7 @@ def process_feed_posts(state, posts, state_key, source_label):
 
         if rewritten.get("action") == "replace" and rewritten.get("target_state_key") in {"news", "forum_news"} and rewritten.get("target_post_id"):
             target_state = state.setdefault(rewritten["target_state_key"], {"last_seen_id": 0, "sent_ids": [], "pending": []})
-            target_item = next((x for x in target_state.get("pending", []) if int(x.get("post_id", 0)) == int(rewritten.get("target_post_id")) and x.get("status") == "pending"), None)
+            target_item = next((x for x in target_state.get("pending", []) if int(x.get("post_id", 0)) == int(rewritten.get("target_post_id")) and x.get("status") in {"pending", "approved"}), None)
             if target_item:
                 target_item["title"] = display_title
                 target_item["text"] = body
@@ -873,9 +883,10 @@ def process_pending_news_queue(state):
         pending_items = news_state.get("pending", [])
 
         for item in pending_items:
-            if item.get("status") != "pending":
+            status = item.get("status")
+            if status not in {"pending", "approved"}:
                 continue
-            if int(item.get("created_at", 0) or 0) < expire_before:
+            if status == "pending" and int(item.get("created_at", 0) or 0) < expire_before:
                 item["status"] = "expired"
                 log("{} pending post {} expired without publishing".format(state_key, item.get("post_id")))
                 continue
@@ -900,7 +911,7 @@ def refresh_pending_debug_previews(state):
     for state_key in ("news", "forum_news"):
         news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
         for item in news_state.get("pending", []):
-            if item.get("status") != "pending":
+            if item.get("status") not in {"pending", "approved"}:
                 continue
             message_id = item.get("debug_message_id")
             if not message_id:
@@ -920,8 +931,7 @@ def refresh_pending_debug_previews(state):
 
 
 def execute_news_action(state, state_key, post_id, action, feedback_chat_id=None, feedback_message_id=None, callback_query_id=None):
-    news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
-    item = next((x for x in news_state.get("pending", []) if int(x.get("post_id", 0)) == post_id and x.get("status") == "pending"), None)
+    item = find_moderatable_news_item(state, state_key, post_id)
     if not item:
         if callback_query_id:
             answer_callback_query(callback_query_id, "Пост уже оброблений")
@@ -940,21 +950,17 @@ def execute_news_action(state, state_key, post_id, action, feedback_chat_id=None
         return True
 
     if action == "publish":
-        outgoing = build_news_post_message(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
-        if send_telegram(outgoing, chat_id=TG_CHAT):
-            item["status"] = "published"
-            log("{} pending post {} published manually".format(state_key, post_id))
-            if feedback_chat_id and feedback_message_id:
-                edit_telegram_reply_markup(feedback_chat_id, feedback_message_id)
-            if callback_query_id:
-                answer_callback_query(callback_query_id, "Опубліковано")
-            elif feedback_chat_id:
-                send_telegram("Опубліковано", chat_id=str(feedback_chat_id))
-        else:
-            if callback_query_id:
-                answer_callback_query(callback_query_id, "Не вдалося опублікувати")
-            elif feedback_chat_id:
-                send_telegram("Не вдалося опублікувати", chat_id=str(feedback_chat_id))
+        now = int(time.time())
+        item["status"] = "approved"
+        item["approved_at"] = now
+        item["publish_after"] = now
+        log("{} pending post {} approved manually".format(state_key, post_id))
+        if feedback_chat_id and feedback_message_id:
+            edit_telegram_reply_markup(feedback_chat_id, feedback_message_id)
+        if callback_query_id:
+            answer_callback_query(callback_query_id, "Схвалено до публікації")
+        elif feedback_chat_id:
+            send_telegram("Схвалено до публікації", chat_id=str(feedback_chat_id))
         return True
 
     if callback_query_id:
@@ -965,7 +971,7 @@ def execute_news_action(state, state_key, post_id, action, feedback_chat_id=None
 
 
 def execute_news_delay(state, state_key, post_id, minutes, feedback_chat_id=None):
-    item = find_news_item(state, state_key, post_id, only_pending=True)
+    item = find_moderatable_news_item(state, state_key, post_id)
     if not item:
         if feedback_chat_id:
             send_telegram("Pending post не знайдено", chat_id=str(feedback_chat_id))
@@ -996,7 +1002,7 @@ def send_news_list(state, chat_id):
     for state_key in ("news", "forum_news"):
         news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
         for item in news_state.get("pending", []):
-            if item.get("status") != "pending":
+            if item.get("status") not in {"pending", "approved"}:
                 continue
             count += 1
             lines.append(format_news_item_summary(state_key, item))
@@ -1116,7 +1122,7 @@ def find_pending_by_debug_message_id(state, message_id):
     for state_key in ("news", "forum_news"):
         news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
         for item in news_state.get("pending", []):
-            if item.get("status") != "pending":
+            if item.get("status") not in {"pending", "approved"}:
                 continue
             if int(item.get("debug_message_id", 0) or 0) == int(message_id):
                 return state_key, item
@@ -1188,26 +1194,31 @@ def process_callback_updates(state):
         updates = response.json().get("result", [])
     except Exception as exc:
         log("getUpdates callback fetch failed: {}".format(exc))
-        return
+        return False
 
     if not updates:
-        return
+        return False
 
     max_update_id = max(int(update.get("update_id", 0) or 0) for update in updates)
     next_offset = max_update_id + 1
     if not acknowledge_telegram_updates(url, next_offset):
         log("Telegram updates not processed because acknowledgement failed")
-        return
+        return False
     meta["tg_update_offset"] = next_offset
 
+    handled_any = False
     for update in updates:
         callback = update.get("callback_query")
         if callback:
-            handle_news_callback(state, callback)
+            handled_any = handle_news_callback(state, callback) or handled_any
         message = update.get("message")
         if message:
-            if not handle_news_reply_action(state, message):
-                handle_news_command(state, message)
+            if handle_news_reply_action(state, message):
+                handled_any = True
+            elif handle_news_command(state, message):
+                handled_any = True
+
+    return handled_any
 
 def build_siege_alert_key(obj_key, obj_id, siege_at, attackers):
     attacker_names = sorted(
@@ -1852,14 +1863,17 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
 
 def main():
     state = load_state()
-    process_callback_updates(state)
+    moderation_updates_handled = process_callback_updates(state)
     state["fortress"]["_root_state"] = state
     state["castle"]["_root_state"] = state
     if RUN_NEWS:
         process_channel_news(state)
         process_forum_news(state)
         refresh_pending_debug_previews(state)
-        process_pending_news_queue(state)
+        if moderation_updates_handled:
+            log("news publish queue skipped after moderation update acknowledgement")
+        else:
+            process_pending_news_queue(state)
 
     if RUN_SIEGES:
         fortress_items = safe_fetch_page_data(FORTRESS_URL, "fortresses", state)
