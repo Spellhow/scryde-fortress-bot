@@ -49,9 +49,8 @@
     "tg_update_offset": 848301109
   },
   "news": {
-    "last_seen_id": 4683,
+    "last_seen_id": 4684,
     "sent_ids": [
-      4484,
       4487,
       4488,
       4489,
@@ -100,7 +99,8 @@
       4680,
       4681,
       4682,
-      4683
+      4683,
+      4684
     ],
     "pending": [
       {
@@ -575,6 +575,18 @@
         "publish_after": 1781451342,
         "status": "cancelled",
         "debug_message_id": 186,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4684,
+        "title": "Промокод LOGIN1406 для всіх серверів",
+        "text": "🎁 <b>Новий промокод для всіх серверів Scryde!</b>\n\nДля всіх серверів, включаючи х1000, доступний додатковий промокод — <code>LOGIN1406</code>.\n\n⏳ Встигни активувати його в Особистому Кабінеті <b>до 16 червня включно</b>!",
+        "url": "https://t.me/scryde/4684",
+        "created_at": 1781454636,
+        "publish_after": 1781456136,
+        "status": "pending",
+        "debug_message_id": 189,
         "debug_preview_version": 5,
         "source": "telegram"
       }
