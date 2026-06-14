@@ -950,17 +950,21 @@ def execute_news_action(state, state_key, post_id, action, feedback_chat_id=None
         return True
 
     if action == "publish":
-        now = int(time.time())
-        item["status"] = "approved"
-        item["approved_at"] = now
-        item["publish_after"] = now
-        log("{} pending post {} approved manually".format(state_key, post_id))
-        if feedback_chat_id and feedback_message_id:
-            edit_telegram_reply_markup(feedback_chat_id, feedback_message_id)
-        if callback_query_id:
-            answer_callback_query(callback_query_id, "Схвалено до публікації")
-        elif feedback_chat_id:
-            send_telegram("Схвалено до публікації", chat_id=str(feedback_chat_id))
+        outgoing = build_news_post_message(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
+        if send_telegram(outgoing, chat_id=TG_CHAT):
+            item["status"] = "published"
+            log("{} pending post {} published manually".format(state_key, post_id))
+            if feedback_chat_id and feedback_message_id:
+                edit_telegram_reply_markup(feedback_chat_id, feedback_message_id)
+            if callback_query_id:
+                answer_callback_query(callback_query_id, "Опубліковано")
+            elif feedback_chat_id:
+                send_telegram("Опубліковано", chat_id=str(feedback_chat_id))
+        else:
+            if callback_query_id:
+                answer_callback_query(callback_query_id, "Не вдалося опублікувати")
+            elif feedback_chat_id:
+                send_telegram("Не вдалося опублікувати", chat_id=str(feedback_chat_id))
         return True
 
     if callback_query_id:
@@ -1863,17 +1867,14 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
 
 def main():
     state = load_state()
-    moderation_updates_handled = process_callback_updates(state)
+    process_callback_updates(state)
     state["fortress"]["_root_state"] = state
     state["castle"]["_root_state"] = state
     if RUN_NEWS:
         process_channel_news(state)
         process_forum_news(state)
         refresh_pending_debug_previews(state)
-        if moderation_updates_handled:
-            log("news publish queue skipped after moderation update acknowledgement")
-        else:
-            process_pending_news_queue(state)
+        process_pending_news_queue(state)
 
     if RUN_SIEGES:
         fortress_items = safe_fetch_page_data(FORTRESS_URL, "fortresses", state)
