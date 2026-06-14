@@ -1151,6 +1151,25 @@ def handle_news_reply_action(state, message):
     return True
 
 
+def acknowledge_telegram_updates(url, next_offset):
+    try:
+        response = requests.get(
+            url,
+            params={
+                "offset": next_offset,
+                "limit": 1,
+                "timeout": 0,
+                "allowed_updates": json.dumps(["callback_query", "message"]),
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        return True
+    except Exception as exc:
+        log("getUpdates acknowledgement failed: {}".format(exc))
+        return False
+
+
 def process_callback_updates(state):
     url = "https://api.telegram.org/bot{}/getUpdates".format(TG_TOKEN)
     meta = state.setdefault("meta", {})
@@ -1171,9 +1190,17 @@ def process_callback_updates(state):
         log("getUpdates callback fetch failed: {}".format(exc))
         return
 
-    max_update_id = None
+    if not updates:
+        return
+
+    max_update_id = max(int(update.get("update_id", 0) or 0) for update in updates)
+    next_offset = max_update_id + 1
+    if not acknowledge_telegram_updates(url, next_offset):
+        log("Telegram updates not processed because acknowledgement failed")
+        return
+    meta["tg_update_offset"] = next_offset
+
     for update in updates:
-        max_update_id = update.get("update_id")
         callback = update.get("callback_query")
         if callback:
             handle_news_callback(state, callback)
@@ -1181,10 +1208,6 @@ def process_callback_updates(state):
         if message:
             if not handle_news_reply_action(state, message):
                 handle_news_command(state, message)
-
-    if max_update_id is not None:
-        meta["tg_update_offset"] = max_update_id + 1
-
 
 def build_siege_alert_key(obj_key, obj_id, siege_at, attackers):
     attacker_names = sorted(
