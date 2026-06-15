@@ -620,7 +620,7 @@
         "url": "https://t.me/scryde/4689",
         "created_at": 1781536840,
         "publish_after": 1781538340,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 200,
         "debug_preview_version": 5,
         "source": "telegram"
