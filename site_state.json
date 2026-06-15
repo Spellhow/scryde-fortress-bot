@@ -593,7 +593,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2665877,
+    "last_seen_id": 2666602,
     "sent_ids": [
       2641914,
       2642269,
@@ -604,7 +604,8 @@
       2664756,
       2665173,
       2665577,
-      2665877
+      2665877,
+      2666602
     ],
     "pending": [
       {
@@ -721,6 +722,18 @@
         "publish_after": 1781339734,
         "status": "published",
         "debug_message_id": 173,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2666602,
+        "title": "⚙️ HOT-RELEASE від 15.06.26",
+        "text": "🔥 <b>HOT-RELEASE від 15.06.26</b>\n\n• Монстри локації <b>Grimwood</b> додані до квесту <b>«Фінальна Зачистка»</b>",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2666602",
+        "created_at": 1781511043,
+        "publish_after": 1781512543,
+        "status": "pending",
+        "debug_message_id": 192,
         "debug_preview_version": 5,
         "source": "forum"
       }
