@@ -56,7 +56,7 @@
       "fortress:116:1781531601:ЗолотыеПлащи": 1781528520,
       "fortress:116:1781612603:FarPost": 1781609518
     },
-    "tg_update_offset": 848301112
+    "tg_update_offset": 848301113
   },
   "news": {
     "last_seen_id": 4691,
@@ -655,7 +655,7 @@
         "url": "https://t.me/scryde/4691",
         "created_at": 1781612436,
         "publish_after": 1781613936,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 206,
         "debug_preview_version": 5,
         "source": "telegram"
