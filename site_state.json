@@ -632,7 +632,7 @@
         "url": "https://t.me/scryde/4690",
         "created_at": 1781599841,
         "publish_after": 1781601341,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 204,
         "debug_preview_version": 5,
         "source": "telegram"
