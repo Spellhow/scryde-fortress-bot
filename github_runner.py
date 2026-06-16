@@ -85,10 +85,13 @@ USER_AGENTS = [
 _error_counts = {"fortresses": 0, "castles": 0}
 _challenge_counts = {"fortresses": 0, "castles": 0}
 
-TELEGRAM_ALLOWED_TAGS = {"b", "i", "code", "a"}
+TELEGRAM_ALLOWED_TAGS = {"b", "i", "code", "a", "tg-spoiler"}
 TELEGRAM_TAG_RENAMES = {"strong": "b", "em": "i"}
 TELEGRAM_MESSAGE_LIMIT = 4096
 TELEGRAM_SAFE_LIMIT = 3900
+TELEGRAM_SPOILER_MAX_CHARS = 120
+TELEGRAM_SPOILER_MAX_RATIO = 0.18
+TELEGRAM_SPOILER_RATIO_MIN_CHARS = 60
 
 
 def log(msg):
@@ -128,6 +131,14 @@ def sanitize_telegram_html(text, limit=TELEGRAM_SAFE_LIMIT):
 
     for br in soup.find_all("br"):
         br.replace_with("\n")
+
+    total_visible_len = len(re.sub(r"\s+", " ", soup.get_text(" ", strip=True)).strip())
+
+    for spoiler in soup.find_all("tg-spoiler"):
+        spoiler_len = len(re.sub(r"\s+", " ", spoiler.get_text(" ", strip=True)).strip())
+        spoiler_ratio = (spoiler_len / total_visible_len) if total_visible_len else 0
+        if spoiler_len > TELEGRAM_SPOILER_MAX_CHARS or (spoiler_len > TELEGRAM_SPOILER_RATIO_MIN_CHARS and spoiler_ratio > TELEGRAM_SPOILER_MAX_RATIO):
+            spoiler.unwrap()
 
     for tag in soup.find_all(True):
         name = (tag.name or "").lower()
@@ -551,12 +562,12 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
         "Прибери дубль заголовка в тілі тексту: якщо body починається тим самим заголовком, не повторюй його вдруге.\n"
         "Прибери зайве: інформацію про інші сервери, рекламні вставки, посилання на стріми, зайві CTA, фрази про підписку, другорядний шум.\n"
         "Переклади результат українською мовою і поверни вже ГОТОВИЙ HTML для Telegram.\n"
-        "Використовуй тільки сумісні з Telegram HTML теги: <b>, <i>, <code>, <a>.\n"
-        "Не використовуй <tg-spoiler> або будь-які spoiler-блоки ніколи: важливий текст має бути видимим, а другорядний краще скоротити або прибрати.\n"
+        "Використовуй тільки сумісні з Telegram HTML теги: <b>, <i>, <code>, <a>, <tg-spoiler>.\n"
+        "<tg-spoiler> використовуй рідко і тільки для коротких необов'язкових деталей/сюрпризів; не ховай під спойлером важливі умови, половину поста, патчноут або основний зміст.\n"
         "Якщо є промокод, обов'язково загорни його в <code>.\n"
         "Збережи красиве форматування по контексту: абзаци, списки, акценти. Не вигадуй інформацію, якої нема в оригіналі.\n"
         "Додай трохи доречних емодзі, але без спаму: зазвичай 2-5 на весь пост.\n"
-        "Якщо пост довгий і має другорядний блок, наприклад 'Новий клієнт', 'додатково', 'на інші сервери завтра', не ховай його під спойлер: або залиш стисло відкритим текстом, або прибери як шум.\n"
+        "Якщо пост довгий і має другорядний блок, наприклад 'Новий клієнт', 'додатково', 'на інші сервери завтра', зазвичай не ховай його під спойлер: або залиш стисло відкритим текстом, або прибери як шум.\n"
         "Якщо новина важлива і структурована, намагайся зберігати оригінальну логіку секцій: короткий вступ, основний патчноут, другорядні деталі нижче.\n"
         "Фінальний текст має виглядати живіше і ближче до стилю Telegram-каналу, але без рекламного хвоста.\n"
         "\n"
