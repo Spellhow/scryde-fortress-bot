@@ -56,7 +56,7 @@
       "fortress:116:1781531601:ЗолотыеПлащи": 1781528520,
       "fortress:116:1781612603:FarPost": 1781609518
     },
-    "tg_update_offset": 848301113
+    "tg_update_offset": 848301114
   },
   "news": {
     "last_seen_id": 4691,
@@ -828,7 +828,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2667298",
         "created_at": 1781616047,
         "publish_after": 1781617547,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 209,
         "debug_preview_version": 5,
         "source": "forum"
