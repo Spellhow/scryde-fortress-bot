@@ -653,7 +653,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2667298,
+    "last_seen_id": 2667609,
     "sent_ids": [
       2641914,
       2642269,
@@ -667,7 +667,8 @@
       2665877,
       2666602,
       2667153,
-      2667298
+      2667298,
+      2667609
     ],
     "pending": [
       {
@@ -820,6 +821,18 @@
         "publish_after": 1781617547,
         "status": "published",
         "debug_message_id": 209,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2667609,
+        "title": "⚙️ 🔥 HOT-RELEASE від 17.06",
+        "text": "• Фрукти та заточки морського коника тепер випадають безпосередньо з монстрів 🌊",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2667609",
+        "created_at": 1781685044,
+        "publish_after": 1781686544,
+        "status": "pending",
+        "debug_message_id": 212,
         "debug_preview_version": 5,
         "source": "forum"
       }
