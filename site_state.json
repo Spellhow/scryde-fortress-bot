@@ -48,9 +48,8 @@
     "tg_update_offset": 848301114
   },
   "news": {
-    "last_seen_id": 4693,
+    "last_seen_id": 4694,
     "sent_ids": [
-      4494,
       4495,
       4498,
       4499,
@@ -99,7 +98,8 @@
       4689,
       4690,
       4691,
-      4692
+      4692,
+      4694
     ],
     "pending": [
       {
@@ -658,6 +658,18 @@
         "publish_after": 1781687733,
         "status": "published",
         "debug_message_id": 213,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4694,
+        "title": "Технічні роботи на логін-сервері",
+        "text": "<b>Технічні роботи на логін-сервері</b> 🛠\n\nСьогодні об <b>11:00 (GMT+3)</b> відбудеться рестарт для проведення технічних робіт на логін-сервері.\n\nВхід у гру буде недоступний від <b>30 до 45 хвилин</b>. Про відновлення роботи серверів повідомимо додатково.\n\nДякуємо за розуміння! 🥰",
+        "url": "https://t.me/scryde/4694",
+        "created_at": 1781764833,
+        "publish_after": 1781766333,
+        "status": "pending",
+        "debug_message_id": 217,
         "debug_preview_version": 5,
         "source": "telegram"
       }
