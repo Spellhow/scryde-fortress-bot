@@ -45,7 +45,7 @@
     "last_alerts": {
       "fortress:116:1781699985:KnightOfHonor": 1781696510
     },
-    "tg_update_offset": 848301114
+    "tg_update_offset": 848301115
   },
   "news": {
     "last_seen_id": 4694,
@@ -668,7 +668,7 @@
         "url": "https://t.me/scryde/4694",
         "created_at": 1781764833,
         "publish_after": 1781766333,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 217,
         "debug_preview_version": 5,
         "source": "telegram"
