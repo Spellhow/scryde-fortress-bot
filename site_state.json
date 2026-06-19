@@ -57,7 +57,7 @@
       "fortress:116:1781855871:KnightOfHonor": 1781852504,
       "fortress:116:1781873871:МыПсихи": 1781865700
     },
-    "tg_update_offset": 848301115
+    "tg_update_offset": 848301116
   },
   "news": {
     "last_seen_id": 4698,
@@ -681,7 +681,7 @@
         "url": "https://t.me/scryde/4698",
         "created_at": 1781867435,
         "publish_after": 1781868935,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 220,
         "debug_preview_version": 5,
         "source": "telegram"
