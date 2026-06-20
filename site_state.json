@@ -47,7 +47,7 @@
       "fortress:116:1781873871:МыПсихи": 1781865700,
       "fortress:116:1781937096:KnightOfHonor": 1781934143
     },
-    "tg_update_offset": 848301116
+    "tg_update_offset": 848301117
   },
   "news": {
     "last_seen_id": 4699,
@@ -871,7 +871,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2668839",
         "created_at": 1781943634,
         "publish_after": 1781945134,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 223,
         "debug_preview_version": 5,
         "source": "forum"
