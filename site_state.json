@@ -679,7 +679,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2668580,
+    "last_seen_id": 2668839,
     "sent_ids": [
       2641914,
       2642269,
@@ -695,7 +695,8 @@
       2667153,
       2667298,
       2667609,
-      2667620
+      2667620,
+      2668839
     ],
     "pending": [
       {
@@ -860,6 +861,18 @@
         "publish_after": 1781686544,
         "status": "published",
         "debug_message_id": 214,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2668839,
+        "title": "⚙️ HOT-RELEASE від 20.06.26",
+        "text": "🔥 <b>HOT-RELEASE від 20.06.26</b>\n\n• Значно зменшено шанс випадіння івентових плащів 🧥",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2668839",
+        "created_at": 1781943634,
+        "publish_after": 1781945134,
+        "status": "pending",
+        "debug_message_id": 223,
         "debug_preview_version": 5,
         "source": "forum"
       }
