@@ -49,9 +49,8 @@
     "tg_update_offset": 848301118
   },
   "news": {
-    "last_seen_id": 4700,
+    "last_seen_id": 4701,
     "sent_ids": [
-      4499,
       4505,
       4509,
       4510,
@@ -100,20 +99,10 @@
       4692,
       4694,
       4698,
-      4700
+      4700,
+      4701
     ],
     "pending": [
-      {
-        "post_id": 4484,
-        "title": "Голосування відкрито! 🗳",
-        "text": "Тепер у <b>NPC Valeria</b> на всіх серверах можна залишити голос за улюблену команду та підняти чимало Золота. 🏆<br/><br/><b>Як це працює?</b><br/>Ви голосуєте за команди за допомогою 🐊 <b>Green Coins</b> у матчах турніру. Вгадали переможця — отримуєте 🐬 <b>Gold Coins</b> з множником на ігрову пошту. Монети можна відразу обміняти 1 до 1 на 💵 <b>Золото</b> або витратити в Турнірному Магазині на цінні предмети.<br/><br/><b>Скільки можна заробити?</b><br/><blockquote>Система працює на динамічних коефіцієнтах: чим менше гравців голосує за команду — тим вищий множитель. Ставка проти натовпу може принести десятки тисяч Золота! 💰</blockquote><br/><b>Склад Набору Вболівальника для x1000:</b><br/><blockquote>😎 Купон на костюм Асасина<br/>😎 Купон на Зброю Валакаса <br/>🐊 Green Coin (3,000 шт.)<br/>💵 Золота Монета (2,000 шт.)</blockquote><br/><tg-spoiler>📜 <a href=\"https://scrd.link/tournament?utm_source=social\"><b>Промо-сторінка турніру</b></a><br/>🛡️ <a href=\"https://scrd.link/fankit?utm_source=social\"><b>Замовити Набір Вболівальника</b></a><br/>🐊 <a href=\"https://scrd.link/howtovote-ru\"><b>Як голосувати</b></a></tg-spoiler>",
-        "url": "https://t.me/scryde/4515",
-        "created_at": 1778492448,
-        "publish_after": 1778493948,
-        "status": "expired",
-        "debug_message_id": null,
-        "source": "telegram"
-      },
       {
         "post_id": 4488,
         "title": "Оновлення Кота Оріона: Сповіщення в Telegram",
@@ -673,6 +662,18 @@
         "publish_after": 1782122132,
         "status": "cancelled",
         "debug_message_id": 228,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4701,
+        "title": "5 фішок для зручності гри на Скрайді",
+        "text": "<b>🔥 5 фішок для зручності гри на Скрайді, про які ви могли не знати</b>\n\n• <b>00:08</b> Додавання предметів у макрос\n• <b>00:27</b> Копіювання макросів\n• <b>01:00</b> Панелі (профілі) скілів\n• <b>01:21</b> Всесвітня торгівля\n• <b>01:58</b> Пошук предмета в сумці та швидкий продаж\n• <b>02:19</b> Зменшення ліміту відображуваних персонажів\n\n🌴 <a href=\"https://scrd.link/summer-promo?from=social\"><b>Подробиці про Пляжні Скарби</b></a>\n🎁 <a href=\"https://a.scrd.to/summer-kit-3?utm_source=social\"><b>Замовити новий Літній набір №3</b></a>",
+        "url": "https://t.me/scryde/4701",
+        "created_at": 1782127839,
+        "publish_after": 1782129339,
+        "status": "pending",
+        "debug_message_id": 231,
         "debug_preview_version": 5,
         "source": "telegram"
       }
