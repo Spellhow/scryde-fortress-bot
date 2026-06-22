@@ -46,7 +46,7 @@
       "fortress:116:1782005665:FarPost": 1782002505,
       "fortress:116:1782025735:JustForFUN": 1782022320
     },
-    "tg_update_offset": 848301118
+    "tg_update_offset": 848301119
   },
   "news": {
     "last_seen_id": 4701,
@@ -672,7 +672,7 @@
         "url": "https://t.me/scryde/4701",
         "created_at": 1782127839,
         "publish_after": 1782129339,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 231,
         "debug_preview_version": 5,
         "source": "telegram"
