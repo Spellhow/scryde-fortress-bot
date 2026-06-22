@@ -678,7 +678,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2668839,
+    "last_seen_id": 2669404,
     "sent_ids": [
       2641914,
       2642269,
@@ -695,7 +695,8 @@
       2667298,
       2667609,
       2667620,
-      2668839
+      2668839,
+      2669404
     ],
     "pending": [
       {
@@ -872,6 +873,18 @@
         "publish_after": 1781945134,
         "status": "published",
         "debug_message_id": 223,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2669404,
+        "title": "⚙️ 🔥 Оновлення клієнта Scryde",
+        "text": "<b>🔥 Гаряче оновлення клієнта від 22.06.26</b>\n\nЩо нового:\n• Додано відображення MP у монстрів 👾\n• Додано третій пресет талантів 📑\n• Додано підтримку преміум-чату 💬",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2669404",
+        "created_at": 1782115837,
+        "publish_after": 1782117337,
+        "status": "pending",
+        "debug_message_id": 226,
         "debug_preview_version": 5,
         "source": "forum"
       }
