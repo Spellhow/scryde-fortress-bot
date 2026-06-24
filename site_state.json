@@ -681,7 +681,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2669404,
+    "last_seen_id": 2670124,
     "sent_ids": [
       2641914,
       2642269,
@@ -699,7 +699,8 @@
       2667609,
       2667620,
       2668839,
-      2669404
+      2669404,
+      2670124
     ],
     "pending": [
       {
@@ -888,6 +889,18 @@
         "publish_after": 1782117337,
         "status": "published",
         "debug_message_id": 226,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2670124,
+        "title": "⚙️ HOT-RELEASE від 24.06.26",
+        "text": "<b>🔥 HOT-RELEASE від 24.06.26</b>\n\n• Змінено резисти до зброї у босів усіх дивізіонів (резисти підвищено) 🛡️",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2670124",
+        "created_at": 1782294042,
+        "publish_after": 1782295542,
+        "status": "pending",
+        "debug_message_id": 237,
         "debug_preview_version": 5,
         "source": "forum"
       }
