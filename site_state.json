@@ -48,9 +48,8 @@
     "tg_update_offset": 848301121
   },
   "news": {
-    "last_seen_id": 4704,
+    "last_seen_id": 4705,
     "sent_ids": [
-      4509,
       4510,
       4512,
       4513,
@@ -99,20 +98,10 @@
       4698,
       4700,
       4701,
-      4702
+      4702,
+      4705
     ],
     "pending": [
-      {
-        "post_id": 4489,
-        "title": "Оновлення Кота Оріона 🐈",
-        "text": "Спиш? А він працює! 🐈 Ми значно оновили функціонал <b>Кота Оріона</b> та додали йому круту фішку — сповіщення про ігрові події.<br/><br/>Тепер усі важливі повідомлення приходять прямо в Telegram: від проданих предметів на ринку до анонсів про завершення рестарту сервера. ⚔️<br/><br/><tg-spoiler>Налаштувати сповіщення можна в особистому кабінеті або безпосередньо через бота.</tg-spoiler>",
-        "url": "https://t.me/scryde/4489",
-        "created_at": 1778594782,
-        "publish_after": 1778596282,
-        "status": "expired",
-        "debug_message_id": null,
-        "source": "telegram"
-      },
       {
         "post_id": 4490,
         "title": "Подарунки для x1000 за ОБТ Scryde X",
@@ -674,6 +663,18 @@
         "publish_after": 1782141347,
         "status": "cancelled",
         "debug_message_id": 234,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4705,
+        "title": "Літній Набір #3 та міні-гра",
+        "text": "🍺 <b>От би зараз прохолодний келих пінного...</b>\n\nПоки чекаємо на прайм, можна розважитися та заробити на буст. У соцмережах Scryde запустили міні-гру: потрібно знайти 5 прихованих кухлів на картинці. 5 переможців отримають по <b>1000 Золотих монет</b> на будь-якому сервері!\n\nТакож стали доступні новинки літнього івенту:\n🎁 <a href=\"https://a.scrd.to/summer-kit-3?utm_source=social\"><b>Новий Літній Набір #3</b></a>\n🌴 <a href=\"https://scrd.link/summer-promo?from=social\"><b>Детальніше про Пляжні Скарби</b></a>\n🦈 <a href=\"https://scrd.link/summer-promo?from=social\"><b>Промо-сторінка івенту</b></a>",
+        "url": "https://t.me/scryde/4705",
+        "created_at": 1782403234,
+        "publish_after": 1782404734,
+        "status": "pending",
+        "debug_message_id": 240,
         "debug_preview_version": 5,
         "source": "telegram"
       }
