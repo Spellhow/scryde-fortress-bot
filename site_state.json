@@ -7,6 +7,10 @@
       {
         "name": "BloodyMoon",
         "image": "https://static-eu.scrydecdn.com/clan-images/66a553225c28e953ad56298e8cabcb74-full.jpg"
+      },
+      {
+        "name": "YourBannyWrot",
+        "image": "https://static-eu.scrydecdn.com/clan-images/63f9237ea8e3629acaaf00b47663d46d-full.jpg"
       }
     ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -24,6 +28,10 @@
           {
             "name": "BloodyMoon",
             "image": "https://static-eu.scrydecdn.com/clan-images/66a553225c28e953ad56298e8cabcb74-full.jpg"
+          },
+          {
+            "name": "YourBannyWrot",
+            "image": "https://static-eu.scrydecdn.com/clan-images/63f9237ea8e3629acaaf00b47663d46d-full.jpg"
           }
         ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -54,7 +62,8 @@
     "backoff_until": {},
     "last_alerts": {
       "fortress:116:1782463812:KnightOfHonor": 1782460911,
-      "fortress:116:1782481812:BloodyMoon": 1782472309
+      "fortress:116:1782481812:BloodyMoon": 1782472309,
+      "fortress:116:1782481812:BloodyMoon|YourBannyWrot": 1782478901
     },
     "tg_update_offset": 848301121
   },
