@@ -3,43 +3,25 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [
-      {
-        "name": "BloodyMoon",
-        "image": "https://static-eu.scrydecdn.com/clan-images/66a553225c28e953ad56298e8cabcb74-full.jpg"
-      },
-      {
-        "name": "YourBannyWrot",
-        "image": "https://static-eu.scrydecdn.com/clan-images/63f9237ea8e3629acaaf00b47663d46d-full.jpg"
-      }
-    ],
+    "last_attackers": [],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 1782481812,
-    "notified_siege": true,
+    "last_siege_at": 0,
+    "notified_siege": false,
     "notified_lost": false,
-    "siege_first_notify": 1782472309,
-    "notified_reminder": true,
+    "siege_first_notify": 0,
+    "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [
-          {
-            "name": "BloodyMoon",
-            "image": "https://static-eu.scrydecdn.com/clan-images/66a553225c28e953ad56298e8cabcb74-full.jpg"
-          },
-          {
-            "name": "YourBannyWrot",
-            "image": "https://static-eu.scrydecdn.com/clan-images/63f9237ea8e3629acaaf00b47663d46d-full.jpg"
-          }
-        ],
+        "last_attackers": [],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 1782481812,
-        "notified_siege": true,
+        "last_siege_at": 0,
+        "notified_siege": false,
         "notified_lost": false,
-        "siege_first_notify": 1782472309,
-        "notified_reminder": true
+        "siege_first_notify": 0,
+        "notified_reminder": false
       }
     }
   },
