@@ -47,7 +47,7 @@
       "fortress:116:1782481812:BloodyMoon": 1782472309,
       "fortress:116:1782481812:BloodyMoon|YourBannyWrot": 1782478901
     },
-    "tg_update_offset": 848301121
+    "tg_update_offset": 848301122
   },
   "news": {
     "last_seen_id": 4708,
@@ -676,7 +676,7 @@
         "url": "https://t.me/scryde/4708",
         "created_at": 1782491439,
         "publish_after": 1782492939,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 242,
         "debug_preview_version": 5,
         "source": "telegram"
