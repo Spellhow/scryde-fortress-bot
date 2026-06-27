@@ -59,9 +59,8 @@
     "tg_update_offset": 848301122
   },
   "news": {
-    "last_seen_id": 4714,
+    "last_seen_id": 4715,
     "sent_ids": [
-      4513,
       4514,
       4515,
       4527,
@@ -110,20 +109,10 @@
       4702,
       4705,
       4708,
-      4714
+      4714,
+      4715
     ],
     "pending": [
-      {
-        "post_id": 4493,
-        "title": "ОБТ Скрайд X100 стартує сьогодні!",
-        "text": "<b>ОБТ Скрайд X100 стартує вже сьогодні!</b> 👏\n\nСьогодні о 20:00 розпочинається Відкрите Тестування. Це чудова можливість отримати <b>бонуси для нашого сервера x1000</b>, просто виконуючи щоденні завдання на ОБТ-сервері. 🎁\n\n<blockquote>ОБОВ'ЯЗКОВО ОНОВІТЬ ГРУ ЛАУНЧЕРОМ ДО СТАРТУ ОБТ, ЩОБ УСЕ ПРАЦЮВАЛО КОРЕКТНО</blockquote>\n\n🕒 <b>Старт ОБТ:</b> о 20:00 за Києвом.\n\n⭐️ <b>Що можна отримати для x1000:</b>\nЗа виконання щоденних завдань (Daily Quests) на ОБТ ви отримаєте:\n<blockquote>📜 Destruction Olf Enchant Scroll (2 шт.)\n💳 Red Gem Ticket\n💳 Black Gem Ticket</blockquote>\n\n⚔️ <b>SCRYDE INTERNATIONAL II</b>\nНа ОБТ також стартує реєстрація на турнір із призовим фондом <b>$15,000</b>. Реєструйтеся у NPC Valeria до 17 травня (14:00). ⚔️\n\n<tg-spoiler>🛡️ <a href=\"https://scrd.link/fankit?utm_source=social\">Замовити Набір Вболівальника</a>\n🔗 <a href=\"https://scrd.link/forumtournament-ru\">Правила турніру на форумі</a></tg-spoiler>",
-        "url": "https://t.me/scryde/4498",
-        "created_at": 1778757631,
-        "publish_after": 1778759131,
-        "status": "published",
-        "debug_message_id": null,
-        "source": "telegram"
-      },
       {
         "post_id": 4495,
         "title": "Апдейт у Магазині Скрайда",
@@ -688,6 +677,18 @@
         "publish_after": 1782560742,
         "status": "published",
         "debug_message_id": 245,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4715,
+        "title": "Сповіщення від Кота Оріона",
+        "text": "⚔️ <b>Нагадуємо про корисну фічу</b>\n\nМи значно покращили функціонал Кота Оріона та додали йому круту фішку – сповіщення про ігрові події прямо в Telegram! 📲\n\nВід проданих предметів до анонсу про закінчення рестарту сервера – всі важливі повідомлення надходитимуть у месенджер. Ви дізнаєтеся про все, навіть якщо зайняті справами:\n• відкотився інстанс;\n• стартувала Олімпіада;\n• лот успішно продано на аукціоні.\n\n📜 <b>Як підключити?</b>\n1. Обов'язковою умовою є наявність Скрайд ID та акаунта в Telegram. Якщо у вас немає Скрайд ID, ось <a href=\"https://scrd.link/guide_id_ru\">детальна інструкція</a>.\n2. Для активації сповіщень перейдіть у грі: <code>ALT+B -> Оріон</code>.\n\nДетальний гайд доступний за посиланням: <a href=\"https://a.scrd.to/orion_mention-ru\">Сповіщення Оріона</a> 📑",
+        "url": "https://t.me/scryde/4715",
+        "created_at": 1782567639,
+        "publish_after": 1782569139,
+        "status": "pending",
+        "debug_message_id": 247,
         "debug_preview_version": 5,
         "source": "telegram"
       }
