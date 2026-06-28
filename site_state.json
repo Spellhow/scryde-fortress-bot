@@ -60,9 +60,8 @@
     "tg_update_offset": 848301122
   },
   "news": {
-    "last_seen_id": 4717,
+    "last_seen_id": 4718,
     "sent_ids": [
-      4514,
       4515,
       4527,
       4541,
@@ -111,20 +110,10 @@
       4705,
       4708,
       4714,
-      4715
+      4715,
+      4718
     ],
     "pending": [
-      {
-        "post_id": 4495,
-        "title": "Апдейт у Магазині Скрайда",
-        "text": "🧘 <b>Апдейт у Магазині Скрайда</b>\n\nТепер на сервері <b>x1000</b> Золоті монети продаватимуться наборами. Це дозволить зручніше купувати потрібну кількість валюти. 🪙\n\nКрім цього, ми замінили 🎱 Скарб Антараса на 🎁 <b>Скарб Адена</b> з актуальною та випадковою нагородою всередині.\n\n<i>Вміст кожного набору можна переглянути за посиланням нижче:</i>\n\n🛡️ <a href=\"https://scrd.link/shop?from=social\"><b>Замовити Набір із Золотом</b></a>",
-        "url": "https://t.me/scryde/4495",
-        "created_at": 1778776241,
-        "publish_after": 1778777741,
-        "status": "published",
-        "debug_message_id": 119,
-        "source": "telegram"
-      },
       {
         "post_id": 4499,
         "title": "Оновлення Лаунчера: Виправлення помилок",
@@ -690,6 +679,18 @@
         "publish_after": 1782569139,
         "status": "published",
         "debug_message_id": 247,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4718,
+        "title": "Великий Літній Марафон",
+        "text": "☀️ <b>Великий Літній Марафон на Scryde!</b><br/><br/>З 1 липня на всіх серверах запускається <b>Великий Літній Марафон</b>, у якому можна назбирати чимало цінних предметів та розбавити свій геймплей новим контентом.<br/><br/>📜 <a href=\"https://a.scrd.to/summer-marathon-ru\"><b>Великий Марафон на Скрайд</b></a><br/>🎁 <a href=\"https://a.scrd.to/summer-kit-3?utm_source=social\"><b>Новий Літній Набір #3</b></a><br/>🌴 <a href=\"https://a.scrd.to/depth-ru\"><b>Детальніше про Скарби Морських Глибин</b></a><br/>🌴 <a href=\"https://a.scrd.to/promo_summer?from=social\"><b>Пляжні Скарби</b></a>",
+        "url": "https://t.me/scryde/4718",
+        "created_at": 1782654034,
+        "publish_after": 1782655534,
+        "status": "pending",
+        "debug_message_id": 249,
         "debug_preview_version": 5,
         "source": "telegram"
       }
