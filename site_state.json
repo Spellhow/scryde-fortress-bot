@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "Ahnenerbe",
+        "image": "https://static-eu.scrydecdn.com/clan-images/617ce63a9948614ef24c752d356493f4-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1782641699,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1782638515,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "Ahnenerbe",
+            "image": "https://static-eu.scrydecdn.com/clan-images/617ce63a9948614ef24c752d356493f4-full.jpg"
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1782641699,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1782638515,
         "notified_reminder": false
       }
     }
@@ -43,8 +53,8 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1782536217:Radioclan": 1782532895,
-      "fortress:116:1782569151:FarPost": 1782565914
+      "fortress:116:1782569151:FarPost": 1782565914,
+      "fortress:116:1782641699:Ahnenerbe": 1782638515
     },
     "tg_update_offset": 848301122
   },
