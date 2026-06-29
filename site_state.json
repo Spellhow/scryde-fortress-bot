@@ -47,7 +47,7 @@
       "fortress:116:1782641699:Ahnenerbe": 1782638515,
       "fortress:116:1782659699:FarPost": 1782651133
     },
-    "tg_update_offset": 848301122
+    "tg_update_offset": 848301123
   },
   "news": {
     "last_seen_id": 4731,
@@ -680,7 +680,7 @@
         "url": "https://t.me/scryde/4731",
         "created_at": 1782725438,
         "publish_after": 1782726938,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 251,
         "debug_preview_version": 5,
         "source": "telegram"
