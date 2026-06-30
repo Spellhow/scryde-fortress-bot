@@ -56,7 +56,7 @@
       "fortress:116:1782806159:DominionThanoS": 1782802895,
       "fortress:116:1782824836:FarPost": 1782821508
     },
-    "tg_update_offset": 848301124
+    "tg_update_offset": 848301125
   },
   "news": {
     "last_seen_id": 4731,
@@ -941,7 +941,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2672321",
         "created_at": 1782821891,
         "publish_after": 1782823391,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 258,
         "debug_preview_version": 5,
         "source": "forum"
