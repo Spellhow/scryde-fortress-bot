@@ -696,7 +696,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2671431,
+    "last_seen_id": 2672124,
     "sent_ids": [
       2641914,
       2642269,
@@ -715,7 +715,8 @@
       2667620,
       2668839,
       2669404,
-      2670124
+      2670124,
+      2672124
     ],
     "pending": [
       {
@@ -916,6 +917,18 @@
         "publish_after": 1782295542,
         "status": "cancelled",
         "debug_message_id": 237,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2672124,
+        "title": "⚙️ 🔥 HOT-RELEASE: Іконка професії в таргеті",
+        "text": "<b>🔥 HOT-RELEASE (новий клієнт)</b>\n\nРеалізовано відображення іконки професії у вікні таргету! 🎯\n\nТепер визначати клас вашої цілі стало ще зручніше.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2672124",
+        "created_at": 1782807036,
+        "publish_after": 1782808536,
+        "status": "pending",
+        "debug_message_id": 254,
         "debug_preview_version": 5,
         "source": "forum"
       }
