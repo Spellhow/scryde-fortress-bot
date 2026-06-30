@@ -831,8 +831,11 @@ def process_feed_posts(state, posts, state_key, source_label):
             pending_context=build_pending_context(state),
             source_html=post.get("formatted_html", ""),
         )
+        if not rewritten:
+            log("{} post {} rewrite failed; keeping last_seen_id={} for retry".format(source_label, post.get("id"), news_state.get("last_seen_id", last_seen_id)))
+            break
         news_state["last_seen_id"] = max(news_state.get("last_seen_id", 0), post["id"])
-        if not rewritten or not rewritten.get("relevant"):
+        if not rewritten.get("relevant"):
             continue
         if post["id"] in sent_ids:
             continue
