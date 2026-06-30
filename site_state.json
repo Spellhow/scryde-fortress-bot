@@ -46,7 +46,7 @@
       "fortress:116:1782806159:DominionThanoS": 1782802895,
       "fortress:116:1782824836:FarPost": 1782821508
     },
-    "tg_update_offset": 848301126
+    "tg_update_offset": 848301127
   },
   "news": {
     "last_seen_id": 4735,
@@ -682,7 +682,7 @@
         "url": "https://t.me/scryde/4735",
         "created_at": 1782835248,
         "publish_after": 1782836748,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 266,
         "debug_preview_version": 5,
         "source": "telegram"
