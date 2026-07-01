@@ -46,7 +46,7 @@
       "fortress:116:1782890045:Cats": 1782886908,
       "fortress:116:1782911810:Batcave": 1782908502
     },
-    "tg_update_offset": 848301127
+    "tg_update_offset": 848301128
   },
   "news": {
     "last_seen_id": 4738,
@@ -683,7 +683,7 @@
         "url": "https://t.me/scryde/4738",
         "created_at": 1782916843,
         "publish_after": 1782918343,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 269,
         "debug_preview_version": 5,
         "source": "telegram"
