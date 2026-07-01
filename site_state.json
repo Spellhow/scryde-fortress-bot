@@ -5,6 +5,10 @@
     "id": 116,
     "last_attackers": [
       {
+        "name": "GoldParty",
+        "image": "https://static-eu.scrydecdn.com/clan-images/79bed2db9128f3702c2fd0fd31b4bae4-full.jpg"
+      },
+      {
         "name": "Batcave",
         "image": "https://static-eu.scrydecdn.com/clan-images/9891348fe045ab04ca27365f39a2ceb5-full.jpg"
       }
@@ -21,6 +25,10 @@
         "name": "Antharas Fortress",
         "id": 116,
         "last_attackers": [
+          {
+            "name": "GoldParty",
+            "image": "https://static-eu.scrydecdn.com/clan-images/79bed2db9128f3702c2fd0fd31b4bae4-full.jpg"
+          },
           {
             "name": "Batcave",
             "image": "https://static-eu.scrydecdn.com/clan-images/9891348fe045ab04ca27365f39a2ceb5-full.jpg"
@@ -55,7 +63,8 @@
     "last_alerts": {
       "fortress:116:1782890045:Cats": 1782886908,
       "fortress:116:1782911810:Batcave": 1782908502,
-      "fortress:116:1782935808:Batcave": 1782932491
+      "fortress:116:1782935808:Batcave": 1782932491,
+      "fortress:116:1782935808:Batcave|GoldParty": 1782934899
     },
     "tg_update_offset": 848301128
   },
