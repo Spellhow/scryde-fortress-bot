@@ -50,7 +50,7 @@
       "fortress:116:1782989230:Batcave|фармимЭпы": 1782985907,
       "fortress:116:1783007230:Batcave": 1782994315
     },
-    "tg_update_offset": 848301129
+    "tg_update_offset": 848301130
   },
   "news": {
     "last_seen_id": 4739,
@@ -688,7 +688,7 @@
         "url": "https://t.me/scryde/4739",
         "created_at": 1783014036,
         "publish_after": 1783015536,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 275,
         "debug_preview_version": 5,
         "source": "telegram"
