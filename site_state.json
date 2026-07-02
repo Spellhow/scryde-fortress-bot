@@ -49,7 +49,7 @@
       "fortress:116:1782935808:Batcave|GoldParty": 1782934899,
       "fortress:116:1782967135:iClan": 1782963697
     },
-    "tg_update_offset": 848301128
+    "tg_update_offset": 848301129
   },
   "news": {
     "last_seen_id": 4738,
@@ -951,7 +951,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2673302",
         "created_at": 1782983441,
         "publish_after": 1782984941,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 272,
         "debug_preview_version": 5,
         "source": "forum"
