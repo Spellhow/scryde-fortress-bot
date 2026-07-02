@@ -694,7 +694,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2672874,
+    "last_seen_id": 2673302,
     "sent_ids": [
       2641914,
       2642269,
@@ -715,7 +715,8 @@
       2669404,
       2670124,
       2672124,
-      2672321
+      2672321,
+      2673302
     ],
     "pending": [
       {
@@ -940,6 +941,18 @@
         "publish_after": 1782823391,
         "status": "published",
         "debug_message_id": 258,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2673302,
+        "title": "⚙️ 🔥 HOT-RELEASE від 02.07.26",
+        "text": "• Тепер для купівлі предмета <b>Monster Piece</b> (літній марафон) потрібно <b>5,000</b> Marathon Soul замість 20,000 (Scryde x1000) ☀️",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2673302",
+        "created_at": 1782983441,
+        "publish_after": 1782984941,
+        "status": "pending",
+        "debug_message_id": 272,
         "debug_preview_version": 5,
         "source": "forum"
       }
