@@ -705,7 +705,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2673302,
+    "last_seen_id": 2673642,
     "sent_ids": [
       2641914,
       2642269,
@@ -727,7 +727,8 @@
       2670124,
       2672124,
       2672321,
-      2673302
+      2673302,
+      2673642
     ],
     "pending": [
       {
@@ -964,6 +965,18 @@
         "publish_after": 1782984941,
         "status": "published",
         "debug_message_id": 272,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2673642,
+        "title": "⚙️ HOT-FIX від 03.07.26",
+        "text": "<b>HOT-FIX від 03.07.26</b>\n\n🛠 Виправлено помилку, через яку перестала працювати команда <code>.limits</code>",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2673642",
+        "created_at": 1783068031,
+        "publish_after": 1783069531,
+        "status": "pending",
+        "debug_message_id": 278,
         "debug_preview_version": 5,
         "source": "forum"
       }
