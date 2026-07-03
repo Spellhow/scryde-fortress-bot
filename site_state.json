@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "Batcave",
+        "image": "https://static-eu.scrydecdn.com/clan-images/9891348fe045ab04ca27365f39a2ceb5-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1783107377,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1783102301,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "Batcave",
+            "image": "https://static-eu.scrydecdn.com/clan-images/9891348fe045ab04ca27365f39a2ceb5-full.jpg"
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1783107377,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1783102301,
         "notified_reminder": false
       }
     }
@@ -43,11 +53,11 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1783007230:Batcave": 1782994315,
       "fortress:116:1783027085:Batcave": 1783023703,
       "fortress:116:1783053377:Radioclan": 1783050118,
       "fortress:116:1783071377:bysia": 1783060904,
-      "fortress:116:1783089377:h4rd": 1783079512
+      "fortress:116:1783089377:h4rd": 1783079512,
+      "fortress:116:1783107377:Batcave": 1783102301
     },
     "tg_update_offset": 848301132
   },
