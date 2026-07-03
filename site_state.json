@@ -59,7 +59,7 @@
       "fortress:116:1783071377:bysia": 1783060904,
       "fortress:116:1783089377:h4rd": 1783079512
     },
-    "tg_update_offset": 848301131
+    "tg_update_offset": 848301132
   },
   "news": {
     "last_seen_id": 4741,
@@ -698,7 +698,7 @@
         "url": "https://t.me/scryde/4741",
         "created_at": 1783087235,
         "publish_after": 1783088735,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 281,
         "debug_preview_version": 5,
         "source": "telegram"
