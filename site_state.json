@@ -59,7 +59,7 @@
       "fortress:116:1783053377:Radioclan": 1783050118,
       "fortress:116:1783071377:bysia": 1783060904
     },
-    "tg_update_offset": 848301130
+    "tg_update_offset": 848301131
   },
   "news": {
     "last_seen_id": 4740,
@@ -975,7 +975,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-21#post-2673642",
         "created_at": 1783068031,
         "publish_after": 1783069531,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 278,
         "debug_preview_version": 5,
         "source": "forum"
