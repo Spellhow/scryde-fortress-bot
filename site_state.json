@@ -7,6 +7,10 @@
       {
         "name": "FUCKALLCLANS",
         "image": null
+      },
+      {
+        "name": "WolfHounds",
+        "image": "https://static-eu.scrydecdn.com/clan-images/6298b247c4ef08807c31f9127be949d6-full.jpg"
       }
     ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -24,6 +28,10 @@
           {
             "name": "FUCKALLCLANS",
             "image": null
+          },
+          {
+            "name": "WolfHounds",
+            "image": "https://static-eu.scrydecdn.com/clan-images/6298b247c4ef08807c31f9127be949d6-full.jpg"
           }
         ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -56,7 +64,8 @@
       "fortress:116:1783143377:Radioclan": 1783137709,
       "fortress:116:1783161377:Radioclan": 1783157504,
       "fortress:116:1783179377:Radioclan": 1783169505,
-      "fortress:116:1783205036:FUCKALLCLANS": 1783201909
+      "fortress:116:1783205036:FUCKALLCLANS": 1783201909,
+      "fortress:116:1783205036:FUCKALLCLANS|WolfHounds": 1783204309
     },
     "tg_update_offset": 848301132
   },
