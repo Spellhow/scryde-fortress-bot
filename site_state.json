@@ -60,7 +60,7 @@
       "fortress:116:1783245909:KnightOfHonor": 1783242715,
       "fortress:116:1783263909:WolfHounds": 1783251702
     },
-    "tg_update_offset": 848301133
+    "tg_update_offset": 848301134
   },
   "news": {
     "last_seen_id": 4744,
@@ -701,7 +701,7 @@
         "url": "https://t.me/scryde/4744",
         "created_at": 1783264834,
         "publish_after": 1783266334,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 287,
         "debug_preview_version": 5,
         "source": "telegram"
