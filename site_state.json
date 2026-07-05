@@ -60,7 +60,7 @@
       "fortress:116:1783223969:iClan": 1783221103,
       "fortress:116:1783245909:KnightOfHonor": 1783242715
     },
-    "tg_update_offset": 848301132
+    "tg_update_offset": 848301133
   },
   "news": {
     "last_seen_id": 4743,
@@ -700,7 +700,7 @@
         "url": "https://t.me/scryde/4743",
         "created_at": 1783249231,
         "publish_after": 1783250731,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 284,
         "debug_preview_version": 5,
         "source": "telegram"
