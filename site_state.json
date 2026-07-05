@@ -63,9 +63,8 @@
     "tg_update_offset": 848301132
   },
   "news": {
-    "last_seen_id": 4742,
+    "last_seen_id": 4743,
     "sent_ids": [
-      4562,
       4588,
       4592,
       4610,
@@ -114,20 +113,10 @@
       4735,
       4738,
       4739,
-      4741
+      4741,
+      4743
     ],
     "pending": [
-      {
-        "post_id": 4546,
-        "title": "Оновлення РАР зброї ⚔️",
-        "text": "🔔 <b>Сьогодні з ранковим рестартом об 11:00 (GMT+3) на всі сервери додадуть оновлення РАР пушок.</b> Коротка вижимка щодо хай-лвл зброї 👇<br/><br/>🗡 <b>Icarus</b><br/><i>• Icarus Sawsword / Icarus Stinger — +54.4 шанс критичного удару<br/>• Icarus Hand — Atk. Speed 5%<br/>• Icarus Hall — Mag. Clarity 5% + HP 492<br/>• Icarus Spirit — MP Regeneration 5% + M. Atk 7%<br/>• Icarus Trident — Atk. Speed 5%<br/>• Icarus Dual — P. Atk 5%</i><br/><br/>🔥 <b>Vesper</b><br/><i>• Vesper Caster — Mag. Clarity 5% + дальність спрямованих магічних скілів 100<br/>• Vesper Booster — MP Regeneration 5% + дальність спрямованих магічних скілів 100<br/>• Vesper Singer — HP 511 + Healing Power 43<br/>• Vesper Avenger — 8% шанс застанити супротивника при атаці + Atk. Speed 5%<br/>• Vesper Stormer — +54.4 шанс критичного удару + 50 до радіусу AoE-скілів<br/>• Vesper Dual — P. Atk 5%</i><br/><br/><i>Повний список оновленої зброї можна прочитати за посиланням:</i><br/>📜 <a href=\"https://scrd.link/RareWeapon-ru\"><b>Оновлення РАР зброї</b></a>",
-        "url": "https://t.me/scryde/4546",
-        "created_at": 1779436842,
-        "publish_after": 1779438342,
-        "status": "expired",
-        "debug_message_id": null,
-        "source": "telegram"
-      },
       {
         "post_id": 4559,
         "title": "DDoS-атака на сервіси 🚨",
@@ -701,6 +690,18 @@
         "publish_after": 1783088735,
         "status": "cancelled",
         "debug_message_id": 281,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4743,
+        "title": "Неділя — час для облог замків",
+        "text": "<b>🏰 Неділя — час для облог замків!</b>\n\nСьогодні <u>о 20:00</u> на всіх серверах пройдуть <b>Осади замків</b>. Цікаво, чи зміняться їхні володарі цього разу? ⚔️\n\nТакож нагадуємо про корисні посилання та літні активності:\n📜 <a href=\"https://a.scrd.to/summer-marathon-ru\"><b>Великий Марафон на Скрайд</b></a>\n🎁 <a href=\"https://a.scrd.to/summer_kit?from=social\"><b>Замовити новий Літній набір #4</b></a>\n🌴 <a href=\"https://a.scrd.to/depth-ru\"><b>Детальніше про Скарби Морських Глибин</b></a>\n🌴 <a href=\"https://a.scrd.to/promo_summer?from=social\"><b>Пляжні Скарби</b></a>",
+        "url": "https://t.me/scryde/4743",
+        "created_at": 1783249231,
+        "publish_after": 1783250731,
+        "status": "pending",
+        "debug_message_id": 284,
         "debug_preview_version": 5,
         "source": "telegram"
       }
