@@ -1,6 +1,6 @@
 {
   "fortress": {
-    "had": true,
+    "had": false,
     "name": "Antharas Fortress",
     "id": 116,
     "last_attackers": [
@@ -17,20 +17,15 @@
     "notified_reminder": false,
     "objects": {
       "116": {
-        "had": true,
+        "had": false,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [
-          {
-            "name": "Cats",
-            "image": "https://static-eu.scrydecdn.com/clan-images/c0e84e7ffdd5edbd0d377692cce62fcb-full.jpg"
-          }
-        ],
+        "last_attackers": [],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 1783281909,
-        "notified_siege": true,
-        "notified_lost": false,
-        "siege_first_notify": 1783273909,
+        "last_siege_at": 0,
+        "notified_siege": false,
+        "notified_lost": true,
+        "siege_first_notify": 0,
         "notified_reminder": false
       }
     }
@@ -48,7 +43,14 @@
     "notified_reminder": false,
     "objects": {}
   },
-  "our_fortress_attacks": {},
+  "our_fortress_attacks": {
+    "116": {
+      "name": "Antharas Fortress",
+      "siege_at": 1783281909,
+      "notified": true,
+      "owner_icon": null
+    }
+  },
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {},
