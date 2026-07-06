@@ -698,7 +698,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2673722,
+    "last_seen_id": 2674966,
     "sent_ids": [
       2641914,
       2642269,
@@ -721,7 +721,8 @@
       2672124,
       2672321,
       2673302,
-      2673642
+      2673642,
+      2674966
     ],
     "pending": [
       {
@@ -970,6 +971,18 @@
         "publish_after": 1783069531,
         "status": "published",
         "debug_message_id": 278,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2674966,
+        "title": "⚙️ HOT-RELEASE від 06.07.26",
+        "text": "🔥 <b>Оновлення босів:</b>\n• Трохи знижено резисти боса <b>Хаотична Фрінтезза</b> (на всіх серверах).",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2674966",
+        "created_at": 1783326041,
+        "publish_after": 1783327541,
+        "status": "pending",
+        "debug_message_id": 290,
         "debug_preview_version": 5,
         "source": "forum"
       }
