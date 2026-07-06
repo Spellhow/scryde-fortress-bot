@@ -56,7 +56,7 @@
       "fortress:116:1783281909:Cats": 1783273909,
       "fortress:116:1783301912:iClan": 1783298501
     },
-    "tg_update_offset": 848301135
+    "tg_update_offset": 848301136
   },
   "news": {
     "last_seen_id": 4745,
@@ -698,7 +698,7 @@
         "url": "https://t.me/scryde/4745",
         "created_at": 1783332634,
         "publish_after": 1783334134,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 293,
         "debug_preview_version": 5,
         "source": "telegram"
