@@ -49,7 +49,7 @@
       "fortress:116:1783281909:Cats": 1783273909,
       "fortress:116:1783301912:iClan": 1783298501
     },
-    "tg_update_offset": 848301134
+    "tg_update_offset": 848301135
   },
   "news": {
     "last_seen_id": 4744,
@@ -981,7 +981,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2674966",
         "created_at": 1783326041,
         "publish_after": 1783327541,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 290,
         "debug_preview_version": 5,
         "source": "forum"
