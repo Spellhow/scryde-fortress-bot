@@ -50,9 +50,8 @@
     "tg_update_offset": 848301136
   },
   "news": {
-    "last_seen_id": 4745,
+    "last_seen_id": 4748,
     "sent_ids": [
-      4610,
       4612,
       4614,
       4616,
@@ -101,20 +100,10 @@
       4741,
       4743,
       4744,
-      4745
+      4745,
+      4748
     ],
     "pending": [
-      {
-        "post_id": 4562,
-        "title": "Промокод на подарунки 🛡️",
-        "text": "🛡️ Ловіть новий промокод <code>DDOS2205</code>!<br/>Він діє до 23.05 (23:59).<br/><br/><b>Подарунки для Scryde x1000:</b><br/>• 🥌 Sapphire ×15<br/>• 🎁 Gold Gem Ticket ×1<br/>• 👕 Olf’s T-Shirt of Destruction ×1<br/><br/><i>Активувати промокод можна в особистому кабінеті. Поспішайте забрати свій бонус!</i>",
-        "url": "https://t.me/scryde/4562",
-        "created_at": 1779472237,
-        "publish_after": 1779473737,
-        "status": "expired",
-        "debug_message_id": null,
-        "source": "telegram"
-      },
       {
         "post_id": 4588,
         "title": "Поради щодо підключення через проксі",
@@ -691,6 +680,18 @@
         "publish_after": 1783334134,
         "status": "cancelled",
         "debug_message_id": 293,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4748,
+        "title": "Амністія акаунтів на Scryde",
+        "text": "⛓️‍💥 <b>Амністія ігрових акаунтів!</b>\n\nЗ 10 по 30 липня включно на Scryde діятиме розблокування акаунтів, які отримали бан за ботоводство та RMT (для банів, виданих до 1 червня).\n\n<b>Умови розблокування:</b>\n• Штраф до 1000 монет — розблокування <b>безкоштовно</b>;\n• Штраф від 1000 монет — розблокування зі <b>знижкою 50%</b>.\n\n⚖️ Скористатися амністією можна в <a href=\"https://a.scrd.to/panel\">Особистому Кабінеті</a>.",
+        "url": "https://t.me/scryde/4748",
+        "created_at": 1783533036,
+        "publish_after": 1783534536,
+        "status": "pending",
+        "debug_message_id": 298,
         "debug_preview_version": 5,
         "source": "telegram"
       }
