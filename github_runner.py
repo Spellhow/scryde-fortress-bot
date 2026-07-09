@@ -306,6 +306,69 @@ def escape_debug(value):
     return html_lib.escape(str(value), quote=False)
 
 
+def extract_json_object(text):
+    text = (text or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.I).strip()
+        text = re.sub(r"\s*```$", "", text).strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start >= 0 and end > start:
+        return text[start : end + 1]
+    return text
+
+
+def normalize_gemini_news_json(parsed):
+    if not isinstance(parsed, dict):
+        return None
+    parsed["relevant"] = bool(parsed.get("relevant", False))
+    parsed["action"] = str(parsed.get("action", "new") or "new").strip().lower()
+    if parsed["action"] not in {"new", "replace", "ignore"}:
+        parsed["action"] = "new"
+    parsed["target_state_key"] = str(parsed.get("target_state_key", "") or "").strip()
+    if parsed["target_state_key"] not in {"news", "forum_news", ""}:
+        parsed["target_state_key"] = ""
+    try:
+        parsed["target_post_id"] = int(parsed.get("target_post_id", 0) or 0)
+    except Exception:
+        parsed["target_post_id"] = 0
+    parsed["title"] = str(parsed.get("title", "") or "").strip()
+    parsed["text"] = str(parsed.get("text", "") or "").strip()
+    return parsed
+
+
+def parse_gemini_news_response(text_out):
+    return normalize_gemini_news_json(json.loads(extract_json_object(text_out)))
+
+
+def repair_gemini_news_json(client, broken_json, parse_error):
+    broken_json = (broken_json or "").strip()
+    if not broken_json:
+        return None
+    repair_prompt = (
+        "Виправ цей невалідний JSON і поверни тільки валідний JSON-об'єкт без markdown та пояснень. "
+        "Не змінюй зміст полів, тільки екрануй лапки/переноси і додай пропущені коми. "
+        "Очікувані поля: relevant boolean, action new|replace|ignore, target_state_key news|forum_news|empty string, "
+        "target_post_id integer, title string, text string.\n"
+        "Помилка парсингу: {}\n\n{}"
+    ).format(parse_error, broken_json[:12000])
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=[types.Content(role="user", parts=[types.Part.from_text(text=repair_prompt)])],
+        config=types.GenerateContentConfig(
+            temperature=0,
+            response_mime_type="application/json",
+            safety_settings=[
+                types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
+            ],
+        ),
+    )
+    return parse_gemini_news_response(response.text)
+
+
 def send_telegram_photo(image_bytes, caption, chat_id=None):
     url = "https://api.telegram.org/bot{}/sendPhoto".format(TG_TOKEN)
     try:
@@ -582,6 +645,20 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
         "Оригінальна новина:\n{}"
     ).format(text, source_label=source_label or "unknown", pending_context_json=pending_context_json, source_html=source_html)
 
+    response_schema = types.Schema(
+        type=types.Type.OBJECT,
+        required=["relevant", "action", "target_state_key", "target_post_id", "title", "text"],
+        property_ordering=["relevant", "action", "target_state_key", "target_post_id", "title", "text"],
+        properties={
+            "relevant": types.Schema(type=types.Type.BOOLEAN),
+            "action": types.Schema(type=types.Type.STRING, enum=["new", "replace", "ignore"]),
+            "target_state_key": types.Schema(type=types.Type.STRING),
+            "target_post_id": types.Schema(type=types.Type.INTEGER),
+            "title": types.Schema(type=types.Type.STRING),
+            "text": types.Schema(type=types.Type.STRING),
+        },
+    )
+
     client = genai.Client(api_key=GEMINI_API_KEY)
     retries = 4
     for attempt in range(1, retries + 1):
@@ -597,6 +674,7 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
                 config=types.GenerateContentConfig(
                     temperature=0.2,
                     response_mime_type="application/json",
+                    response_schema=response_schema,
                     thinking_config=types.ThinkingConfig(thinking_level=GEMINI_THINKING_LEVEL),
                     safety_settings=[
                         types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_NONE"),
@@ -607,21 +685,23 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
                 ),
             )
             text_out = response.text
-            parsed = json.loads(text_out)
-            if not isinstance(parsed, dict):
-                return None
-            parsed["relevant"] = bool(parsed.get("relevant", False))
-            parsed["action"] = str(parsed.get("action", "new") or "new").strip().lower()
-            parsed["target_state_key"] = str(parsed.get("target_state_key", "") or "").strip()
-            parsed["target_post_id"] = int(parsed.get("target_post_id", 0) or 0)
-            parsed["title"] = str(parsed.get("title", "") or "").strip()
-            parsed["text"] = str(parsed.get("text", "") or "").strip()
-            return parsed
+            try:
+                return parse_gemini_news_response(text_out)
+            except json.JSONDecodeError as parse_exc:
+                log("gemini returned invalid json attempt {}/{}: {}; raw_prefix={!r}".format(attempt, retries, parse_exc, (text_out or "")[:300]))
+                try:
+                    repaired = repair_gemini_news_json(client, text_out, parse_exc)
+                    if repaired:
+                        log("gemini json repaired attempt {}/{}".format(attempt, retries))
+                        return repaired
+                except Exception as repair_exc:
+                    log("gemini json repair failed attempt {}/{}: {}".format(attempt, retries, repair_exc))
+                raise
         except Exception as exc:
             err = str(exc)
             transient = any(token in err for token in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "Timeout", "timed out"))
             log("gemini rewrite failed attempt {}/{}: {}".format(attempt, retries, err))
-            if transient and attempt < retries:
+            if attempt < retries:
                 time.sleep(min(20, attempt * 4))
                 continue
             if not transient:
