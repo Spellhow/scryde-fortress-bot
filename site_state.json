@@ -7,6 +7,10 @@
       {
         "name": "jj",
         "image": null
+      },
+      {
+        "name": "Doxsnn",
+        "image": null
       }
     ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -23,6 +27,10 @@
         "last_attackers": [
           {
             "name": "jj",
+            "image": null
+          },
+          {
+            "name": "Doxsnn",
             "image": null
           }
         ],
@@ -56,7 +64,8 @@
       "fortress:116:1783603259:FarPost": 1783601308,
       "fortress:116:1783628101:Doxsnn": 1783624905,
       "fortress:116:1783648010:ASALA": 1783644716,
-      "fortress:116:1783674905:jj": 1783671710
+      "fortress:116:1783674905:jj": 1783671710,
+      "fortress:116:1783674905:Doxsnn|jj": 1783674102
     },
     "tg_update_offset": 848301136
   },
