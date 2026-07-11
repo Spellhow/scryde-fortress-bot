@@ -5,6 +5,10 @@
     "id": 116,
     "last_attackers": [
       {
+        "name": "BloodyMoon",
+        "image": "https://static-eu.scrydecdn.com/clan-images/66a553225c28e953ad56298e8cabcb74-full.jpg"
+      },
+      {
         "name": "Таджикистан",
         "image": "https://static-eu.scrydecdn.com/clan-images/af087a630eec8acd3b48abf197ff4bb9-full.jpg"
       }
@@ -21,6 +25,10 @@
         "name": "Antharas Fortress",
         "id": 116,
         "last_attackers": [
+          {
+            "name": "BloodyMoon",
+            "image": "https://static-eu.scrydecdn.com/clan-images/66a553225c28e953ad56298e8cabcb74-full.jpg"
+          },
           {
             "name": "Таджикистан",
             "image": "https://static-eu.scrydecdn.com/clan-images/af087a630eec8acd3b48abf197ff4bb9-full.jpg"
@@ -54,7 +62,8 @@
     "backoff_until": {},
     "last_alerts": {
       "fortress:116:1783747542:Таджикистан": 1783744301,
-      "fortress:116:1783807965:Таджикистан": 1783804907
+      "fortress:116:1783807965:Таджикистан": 1783804907,
+      "fortress:116:1783807965:BloodyMoon|Таджикистан": 1783807300
     },
     "tg_update_offset": 848301138
   },
