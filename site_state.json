@@ -5,7 +5,7 @@
     "id": 116,
     "last_attackers": [
       {
-        "name": "saz",
+        "name": "Doxsnn",
         "image": null
       }
     ],
@@ -22,7 +22,7 @@
         "id": 116,
         "last_attackers": [
           {
-            "name": "saz",
+            "name": "Doxsnn",
             "image": null
           }
         ],
@@ -57,7 +57,8 @@
       "fortress:116:1783807965:BloodyMoon|Таджикистан": 1783807300,
       "fortress:116:1783829674:BloodyMoon": 1783826510,
       "fortress:116:1783850507:iClan": 1783847508,
-      "fortress:116:1783877886:saz": 1783874506
+      "fortress:116:1783877886:saz": 1783874506,
+      "fortress:116:1783877886:Doxsnn": 1783876910
     },
     "tg_update_offset": 848301140
   },
