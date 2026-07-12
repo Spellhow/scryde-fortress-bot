@@ -48,7 +48,7 @@
       "fortress:116:1783829674:BloodyMoon": 1783826510,
       "fortress:116:1783850507:iClan": 1783847508
     },
-    "tg_update_offset": 848301138
+    "tg_update_offset": 848301139
   },
   "news": {
     "last_seen_id": 4767,
@@ -694,7 +694,7 @@
         "url": "https://t.me/scryde/4767",
         "created_at": 1783861829,
         "publish_after": 1783863329,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 309,
         "debug_preview_version": 5,
         "source": "telegram"
