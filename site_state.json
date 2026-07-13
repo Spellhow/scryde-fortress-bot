@@ -48,7 +48,7 @@
       "fortress:116:1783877886:Doxsnn": 1783876910,
       "fortress:116:1783917494:Doxsnn": 1783914114
     },
-    "tg_update_offset": 848301140
+    "tg_update_offset": 848301141
   },
   "news": {
     "last_seen_id": 4770,
@@ -696,7 +696,7 @@
         "url": "https://t.me/scryde/4770",
         "created_at": 1783930251,
         "publish_after": 1783931751,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 315,
         "debug_preview_version": 5,
         "source": "telegram"
