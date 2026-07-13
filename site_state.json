@@ -5,6 +5,10 @@
     "id": 116,
     "last_attackers": [
       {
+        "name": "TheLegend",
+        "image": "https://static-eu.scrydecdn.com/clan-images/237308acf1d96a20d25d750a1589a217-full.jpg"
+      },
+      {
         "name": "Doxsnn",
         "image": null
       }
@@ -21,6 +25,10 @@
         "name": "Antharas Fortress",
         "id": 116,
         "last_attackers": [
+          {
+            "name": "TheLegend",
+            "image": "https://static-eu.scrydecdn.com/clan-images/237308acf1d96a20d25d750a1589a217-full.jpg"
+          },
           {
             "name": "Doxsnn",
             "image": null
@@ -58,7 +66,8 @@
       "fortress:116:1783917494:Doxsnn": 1783914114,
       "fortress:116:1783935494:TheLegend": 1783932100,
       "fortress:116:1783953684:saz": 1783950709,
-      "fortress:116:1783953684:Doxsnn": 1783953119
+      "fortress:116:1783953684:Doxsnn": 1783953119,
+      "fortress:116:1783953684:Doxsnn|TheLegend": 1783953720
     },
     "tg_update_offset": 848301141
   },
