@@ -52,7 +52,7 @@
       "fortress:116:1783953684:Doxsnn|TheLegend": 1783953720,
       "fortress:116:1783971684:YourBannyWrot": 1783959702
     },
-    "tg_update_offset": 848301145
+    "tg_update_offset": 848301146
   },
   "news": {
     "last_seen_id": 4775,
@@ -704,7 +704,7 @@
         "url": "https://telegram.me/scryde/4775",
         "created_at": 1784034064,
         "publish_after": 1784035564,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 330,
         "debug_preview_version": 5,
         "source": "telegram"
