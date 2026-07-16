@@ -105,6 +105,11 @@ def compact_text(value, limit=500):
     return value
 
 
+def normalize_visible_newline_escapes(text):
+    """Turn model-produced visible ``\\n`` sequences into real line breaks."""
+    return re.sub(r"\\+(?:r\\n|n|r)", "\n", str(text or ""))
+
+
 def build_news_post_message(title, body, url):
     content = (body or "").strip() or (title or "Новина Scryde x1000")
     return "{}\n\n{}".format(content, url or "")
@@ -127,7 +132,9 @@ def html_to_plain_text(text, limit=TELEGRAM_SAFE_LIMIT):
 
 
 def sanitize_telegram_html(text, limit=TELEGRAM_SAFE_LIMIT):
-    soup = BeautifulSoup(text or "", "html.parser")
+    # Gemini can occasionally double-escape JSON newlines. Normalize here as a
+    # final guard too, so saved pending messages from older runs are safe.
+    soup = BeautifulSoup(normalize_visible_newline_escapes(text), "html.parser")
 
     for br in soup.find_all("br"):
         br.replace_with("\n")
@@ -333,7 +340,7 @@ def normalize_gemini_news_json(parsed):
     except Exception:
         parsed["target_post_id"] = 0
     parsed["title"] = str(parsed.get("title", "") or "").strip()
-    parsed["text"] = str(parsed.get("text", "") or "").strip()
+    parsed["text"] = normalize_visible_newline_escapes(parsed.get("text", "")).strip()
     return parsed
 
 
