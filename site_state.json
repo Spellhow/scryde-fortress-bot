@@ -7,10 +7,6 @@
       {
         "name": "Doxsnn",
         "image": null
-      },
-      {
-        "name": "saz",
-        "image": null
       }
     ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -27,10 +23,6 @@
         "last_attackers": [
           {
             "name": "Doxsnn",
-            "image": null
-          },
-          {
-            "name": "saz",
             "image": null
           }
         ],
@@ -62,7 +54,8 @@
     "backoff_until": {},
     "last_alerts": {
       "fortress:116:1784310246:saz": 1784307113,
-      "fortress:116:1784310246:Doxsnn|saz": 1784309508
+      "fortress:116:1784310246:Doxsnn|saz": 1784309508,
+      "fortress:116:1784310246:Doxsnn": 1784310111
     },
     "tg_update_offset": 848301149
   },
