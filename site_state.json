@@ -5,6 +5,10 @@
     "id": 116,
     "last_attackers": [
       {
+        "name": "Doxsnn",
+        "image": null
+      },
+      {
         "name": "saz",
         "image": null
       }
@@ -21,6 +25,10 @@
         "name": "Antharas Fortress",
         "id": 116,
         "last_attackers": [
+          {
+            "name": "Doxsnn",
+            "image": null
+          },
           {
             "name": "saz",
             "image": null
@@ -53,7 +61,8 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1784310246:saz": 1784307113
+      "fortress:116:1784310246:saz": 1784307113,
+      "fortress:116:1784310246:Doxsnn|saz": 1784309508
     },
     "tg_update_offset": 848301149
   },
