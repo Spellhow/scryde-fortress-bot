@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "saz",
+        "image": null
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1784405332,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1784401900,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "saz",
+            "image": null
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1784405332,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1784401900,
         "notified_reminder": false
       }
     }
@@ -43,12 +53,9 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1784310246:saz": 1784307113,
-      "fortress:116:1784310246:Doxsnn|saz": 1784309508,
-      "fortress:116:1784310246:Doxsnn": 1784310111,
-      "fortress:116:1784328246:WolfHounds": 1784314322,
       "fortress:116:1784346246:DanDaDan": 1784335909,
-      "fortress:116:1784368252:Cats": 1784365310
+      "fortress:116:1784368252:Cats": 1784365310,
+      "fortress:116:1784405332:saz": 1784401900
     },
     "tg_update_offset": 848301150
   },
