@@ -60,7 +60,7 @@
       "fortress:116:1784346246:DanDaDan": 1784335909,
       "fortress:116:1784368252:Cats": 1784365310
     },
-    "tg_update_offset": 848301149
+    "tg_update_offset": 848301150
   },
   "news": {
     "last_seen_id": 4797,
@@ -713,7 +713,7 @@
         "url": "https://t.me/scryde/4797",
         "created_at": 1784365836,
         "publish_after": 1784367336,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 342,
         "debug_preview_version": 5,
         "source": "telegram"
