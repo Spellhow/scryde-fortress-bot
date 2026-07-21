@@ -710,7 +710,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2677961,
+    "last_seen_id": 2681202,
     "sent_ids": [
       2641914,
       2642269,
@@ -736,7 +736,8 @@
       2673642,
       2674966,
       2675272,
-      2677961
+      2677961,
+      2681202
     ],
     "pending": [
       {
@@ -1021,6 +1022,18 @@
         "publish_after": 1784021144,
         "status": "published",
         "debug_message_id": 321,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2681202,
+        "title": "⚙️ HOT-RELEASE від 21.07.26",
+        "text": "🔥 <b>Свіжі виправлення на Scryde x1000:</b><br/><br/>• Відновлено коректне підвищення рівня ЛСів відповідно до рівня персонажа;<br/>• Скинуто ТВ-прапори 🚩;<br/>• Виправлено помилку, через яку Олімпіада 1х1 по четвергах не запускалася ⚔️.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2681202",
+        "created_at": 1784637644,
+        "publish_after": 1784639144,
+        "status": "pending",
+        "debug_message_id": 350,
         "debug_preview_version": 5,
         "source": "forum"
       }
