@@ -5,7 +5,7 @@
     "id": 116,
     "last_attackers": [
       {
-        "name": "saz",
+        "name": "Doxsnn",
         "image": null
       }
     ],
@@ -22,7 +22,7 @@
         "id": 116,
         "last_attackers": [
           {
-            "name": "saz",
+            "name": "Doxsnn",
             "image": null
           }
         ],
@@ -56,7 +56,8 @@
       "fortress:116:1784564122:iClan": 1784560921,
       "fortress:116:1784597863:DanDaDan": 1784594495,
       "fortress:116:1784626200:saz": 1784622706,
-      "fortress:116:1784628238:saz": 1784625098
+      "fortress:116:1784628238:saz": 1784625098,
+      "fortress:116:1784628238:Doxsnn": 1784626900
     },
     "tg_update_offset": 848301151
   },
