@@ -712,7 +712,7 @@
         "url": "https://t.me/scryde/4809",
         "created_at": 1784654436,
         "publish_after": 1784655936,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 352,
         "debug_preview_version": 5,
         "source": "telegram"
