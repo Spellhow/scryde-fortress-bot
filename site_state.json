@@ -49,7 +49,7 @@
       "fortress:116:1784628238:Doxsnn": 1784626900,
       "fortress:116:1784652437:iClan": 1784649104
     },
-    "tg_update_offset": 848301151
+    "tg_update_offset": 848301152
   },
   "news": {
     "last_seen_id": 4812,
@@ -702,7 +702,7 @@
         "url": "https://t.me/scryde/4812",
         "created_at": 1784738435,
         "publish_after": 1784739935,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 354,
         "debug_preview_version": 5,
         "source": "telegram"
