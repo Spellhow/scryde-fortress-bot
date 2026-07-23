@@ -709,7 +709,7 @@
         "url": "https://t.me/scryde/4823",
         "created_at": 1784823634,
         "publish_after": 1784825134,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 357,
         "debug_preview_version": 5,
         "source": "telegram"
