@@ -708,7 +708,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2681202,
+    "last_seen_id": 2682442,
     "sent_ids": [
       2641914,
       2642269,
@@ -735,7 +735,8 @@
       2674966,
       2675272,
       2677961,
-      2681202
+      2681202,
+      2682442
     ],
     "pending": [
       {
@@ -1032,6 +1033,18 @@
         "publish_after": 1784639144,
         "status": "published",
         "debug_message_id": 350,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2682442,
+        "title": "⚙️ HOT-RELEASE від 24.07",
+        "text": "⚔️ <b>Оновлення заточки умінь від 24.07</b>\n\n• <b>Відредаговано старі гілки заточки:</b> змінено значення посилення та типи бонусів для вмінь: <i>Aggression, Heavy Armor Mastery, Bravehearth, Robe Mastery, Boost HP, Fast HP Recovery, Boost Mana, Fast Mana Recovery, M.Def, Anti Magic, Master of Combat, Final Fortress, Focus Mind</i>.\n\n• <b>Додано нові гілки заточки:</b> <i>Hawk Eye, Blessing of Saggitarius, Resurrection, Salvation, Turn to Stone, Sword Symphony, Thorn Root, Parry Stance, Riposte Stance, Knighthood</i>.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2682442",
+        "created_at": 1784880636,
+        "publish_after": 1784882136,
+        "status": "pending",
+        "debug_message_id": 359,
         "debug_preview_version": 5,
         "source": "forum"
       }
