@@ -700,7 +700,7 @@
         "url": "https://t.me/scryde/4827",
         "created_at": 1784897433,
         "publish_after": 1784898933,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 363,
         "debug_preview_version": 5,
         "source": "telegram"
