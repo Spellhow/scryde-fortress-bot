@@ -51,9 +51,8 @@
     "tg_update_offset": 848301153
   },
   "news": {
-    "last_seen_id": 4830,
+    "last_seen_id": 4831,
     "sent_ids": [
-      4684,
       4687,
       4688,
       4689,
@@ -102,21 +101,10 @@
       4826,
       4827,
       4828,
-      4830
+      4830,
+      4831
     ],
     "pending": [
-      {
-        "post_id": 4684,
-        "title": "Промокод LOGIN1406 для всіх серверів",
-        "text": "🎁 <b>Новий промокод для всіх серверів Scryde!</b>\n\nДля всіх серверів, включаючи х1000, доступний додатковий промокод — <code>LOGIN1406</code>.\n\n⏳ Встигни активувати його в Особистому Кабінеті <b>до 16 червня включно</b>!",
-        "url": "https://t.me/scryde/4684",
-        "created_at": 1781454636,
-        "publish_after": 1781456136,
-        "status": "cancelled",
-        "debug_message_id": 189,
-        "debug_preview_version": 5,
-        "source": "telegram"
-      },
       {
         "post_id": 4687,
         "title": "Літній Набір №2",
@@ -702,6 +690,18 @@
         "publish_after": 1784913931,
         "status": "published",
         "debug_message_id": 368,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4831,
+        "title": "Турнір Scryde x1000",
+        "text": "Терміново реєструйтесь, часу обмаль! ⏰\n\nЗавтра о 17:00 (GMT+3) розпочнеться новий <b>Турнір Scryde x1000</b>.\n\n<b>Щоб взяти участь, вам потрібно:</b>\n• Підійти до NPC Valeria у будь-якому місті для реєстрації;\n• Вказати назву команди (від 1 до 16 символів).",
+        "url": "https://t.me/scryde/4831",
+        "created_at": 1784967630,
+        "publish_after": 1784969130,
+        "status": "pending",
+        "debug_message_id": 370,
         "debug_preview_version": 5,
         "source": "telegram"
       }
