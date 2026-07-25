@@ -47,7 +47,7 @@
       "fortress:116:1784910369:Doxsnn": 1784907106,
       "fortress:116:1784973187:WolfHounds": 1784970112
     },
-    "tg_update_offset": 848301154
+    "tg_update_offset": 848301155
   },
   "news": {
     "last_seen_id": 4838,
@@ -699,7 +699,7 @@
         "url": "https://t.me/scryde/4838",
         "created_at": 1785012638,
         "publish_after": 1785014138,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 373,
         "debug_preview_version": 5,
         "source": "telegram"
