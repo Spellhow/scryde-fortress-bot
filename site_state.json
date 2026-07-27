@@ -5,7 +5,7 @@
     "id": 116,
     "last_attackers": [
       {
-        "name": "saz",
+        "name": "Doxsnn",
         "image": null
       }
     ],
@@ -22,7 +22,7 @@
         "id": 116,
         "last_attackers": [
           {
-            "name": "saz",
+            "name": "Doxsnn",
             "image": null
           }
         ],
@@ -53,7 +53,8 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1785140048:saz": 1785136910
+      "fortress:116:1785140048:saz": 1785136910,
+      "fortress:116:1785140048:Doxsnn": 1785139314
     },
     "tg_update_offset": 848301155
   },
