@@ -47,7 +47,7 @@
       "fortress:116:1785140048:Doxsnn": 1785139314,
       "fortress:116:1785158048:EXSTYLES": 1785144702
     },
-    "tg_update_offset": 848301156
+    "tg_update_offset": 848301157
   },
   "news": {
     "last_seen_id": 4844,
@@ -1055,7 +1055,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2684626",
         "created_at": 1785225649,
         "publish_after": 1785227149,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 379,
         "debug_preview_version": 5,
         "source": "forum"
