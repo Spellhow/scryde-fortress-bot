@@ -55,7 +55,7 @@
     "last_alerts": {
       "fortress:116:1785352749:iClan": 1785349314
     },
-    "tg_update_offset": 848301157
+    "tg_update_offset": 848301158
   },
   "news": {
     "last_seen_id": 4848,
@@ -707,7 +707,7 @@
         "url": "https://t.me/scryde/4848",
         "created_at": 1785350435,
         "publish_after": 1785351935,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 384,
         "debug_preview_version": 5,
         "source": "telegram"
