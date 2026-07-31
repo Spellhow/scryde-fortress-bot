@@ -706,7 +706,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2685843,
+    "last_seen_id": 2686449,
     "sent_ids": [
       2641914,
       2642269,
@@ -735,7 +735,8 @@
       2677961,
       2681202,
       2682442,
-      2684626
+      2684626,
+      2686449
     ],
     "pending": [
       {
@@ -1056,6 +1057,18 @@
         "publish_after": 1785227149,
         "status": "published",
         "debug_message_id": 379,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2686449,
+        "title": "⚙️ HOT-RELEASE від 31.07",
+        "text": "🔥 <b>Подвійні нагороди в івенті «Літній марафон»:</b><br/><br/>• Удвічі збільшено кількість нагород <b>Olympiad Blood Coin</b> за перемогу на Олімпіаді.<br/>• Удвічі збільшено кількість нагород <b>Event Immortal Orb</b> за участь в автоівентах.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2686449",
+        "created_at": 1785489036,
+        "publish_after": 1785490536,
+        "status": "pending",
+        "debug_message_id": 387,
         "debug_preview_version": 5,
         "source": "forum"
       }
