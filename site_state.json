@@ -18,7 +18,7 @@
     "notified_siege": true,
     "notified_lost": false,
     "siege_first_notify": 1785673914,
-    "notified_reminder": false,
+    "notified_reminder": true,
     "objects": {
       "116": {
         "had": true,
@@ -39,7 +39,7 @@
         "notified_siege": true,
         "notified_lost": false,
         "siege_first_notify": 1785673914,
-        "notified_reminder": false
+        "notified_reminder": true
       }
     }
   },
