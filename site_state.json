@@ -7,6 +7,10 @@
       {
         "name": "ВЛАСТЬШИЗАМ",
         "image": "https://static-eu.scrydecdn.com/clan-images/fd97c7592f579dc468fbfdc8e5ac1d95-full.jpg"
+      },
+      {
+        "name": "iClan",
+        "image": null
       }
     ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -24,6 +28,10 @@
           {
             "name": "ВЛАСТЬШИЗАМ",
             "image": "https://static-eu.scrydecdn.com/clan-images/fd97c7592f579dc468fbfdc8e5ac1d95-full.jpg"
+          },
+          {
+            "name": "iClan",
+            "image": null
           }
         ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
@@ -56,7 +64,8 @@
       "fortress:116:1785615646:iClan": 1785612717,
       "fortress:116:1785647677:Спушня": 1785644510,
       "fortress:116:1785669380:iClan": 1785666123,
-      "fortress:116:1785687380:ВЛАСТЬШИЗАМ": 1785673914
+      "fortress:116:1785687380:ВЛАСТЬШИЗАМ": 1785673914,
+      "fortress:116:1785687380:iClan|ВЛАСТЬШИЗАМ": 1785684108
     },
     "tg_update_offset": 848301159
   },
