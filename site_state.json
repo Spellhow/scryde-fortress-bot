@@ -3,43 +3,25 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [
-      {
-        "name": "ВЛАСТЬШИЗАМ",
-        "image": "https://static-eu.scrydecdn.com/clan-images/fd97c7592f579dc468fbfdc8e5ac1d95-full.jpg"
-      },
-      {
-        "name": "iClan",
-        "image": null
-      }
-    ],
+    "last_attackers": [],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 1785687380,
-    "notified_siege": true,
+    "last_siege_at": 0,
+    "notified_siege": false,
     "notified_lost": false,
-    "siege_first_notify": 1785673914,
-    "notified_reminder": true,
+    "siege_first_notify": 0,
+    "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [
-          {
-            "name": "ВЛАСТЬШИЗАМ",
-            "image": "https://static-eu.scrydecdn.com/clan-images/fd97c7592f579dc468fbfdc8e5ac1d95-full.jpg"
-          },
-          {
-            "name": "iClan",
-            "image": null
-          }
-        ],
+        "last_attackers": [],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 1785687380,
-        "notified_siege": true,
+        "last_siege_at": 0,
+        "notified_siege": false,
         "notified_lost": false,
-        "siege_first_notify": 1785673914,
-        "notified_reminder": true
+        "siege_first_notify": 0,
+        "notified_reminder": false
       }
     }
   },
