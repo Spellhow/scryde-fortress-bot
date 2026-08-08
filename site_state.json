@@ -5,6 +5,10 @@
     "id": 116,
     "last_attackers": [
       {
+        "name": "DeathSpell",
+        "image": "https://static-eu.scrydecdn.com/clan-images/08e43a75eec64d905847cefc6f360b1d-full.jpg"
+      },
+      {
         "name": "SepulturaRoja",
         "image": "https://static-eu.scrydecdn.com/clan-images/6b022a4e42cdd78253269913cfb41551-full.jpg"
       }
@@ -21,6 +25,10 @@
         "name": "Antharas Fortress",
         "id": 116,
         "last_attackers": [
+          {
+            "name": "DeathSpell",
+            "image": "https://static-eu.scrydecdn.com/clan-images/08e43a75eec64d905847cefc6f360b1d-full.jpg"
+          },
           {
             "name": "SepulturaRoja",
             "image": "https://static-eu.scrydecdn.com/clan-images/6b022a4e42cdd78253269913cfb41551-full.jpg"
@@ -55,7 +63,8 @@
     "last_alerts": {
       "fortress:116:1786126437:MuertePorKiki": 1786123313,
       "fortress:116:1786144437:Excaliburre": 1786132298,
-      "fortress:116:1786173341:SepulturaRoja": 1786170106
+      "fortress:116:1786173341:SepulturaRoja": 1786170106,
+      "fortress:116:1786173341:DeathSpell|SepulturaRoja": 1786170694
     },
     "tg_update_offset": 848301163
   },
