@@ -43,7 +43,14 @@
     "notified_reminder": false,
     "objects": {}
   },
-  "our_fortress_attacks": {},
+  "our_fortress_attacks": {
+    "116": {
+      "name": "Antharas Fortress",
+      "siege_at": 1786260572,
+      "notified": true,
+      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/08f8ba604cae23e119aaaa36e3dbe87e-full.jpg"
+    }
+  },
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {},
