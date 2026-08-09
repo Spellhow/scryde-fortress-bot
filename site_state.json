@@ -57,9 +57,8 @@
     "tg_update_offset": 848301163
   },
   "news": {
-    "last_seen_id": 4879,
+    "last_seen_id": 4881,
     "sent_ids": [
-      4700,
       4701,
       4702,
       4705,
@@ -108,7 +107,8 @@
       4870,
       4871,
       4875,
-      4876
+      4876,
+      4881
     ],
     "pending": [
       {
@@ -684,6 +684,18 @@
         "publish_after": 1786110335,
         "status": "published",
         "debug_message_id": 398,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4881,
+        "title": "Оновлений розклад КМів",
+        "text": "Внесено зміни до розкладу КМів та приведено їх до єдиного стандарту. Тепер п'ятниця — вихідний від фарму босів та інших активностей! 😎\n\n🕗 <b>Розклад кланових івентів (GMT+3):</b>\n\n🔹 <b>Щопонеділка:</b>\n🐜 Queen Ant — 20:30 (+15 хв)\n🐉 Antharas — 21:30 (+15 хв)\n\n🔹 <b>Щовівторка:</b>\n🧶 Baium — 20:30 (+15 хв)\n🧟‍♀️ Orfen — 21:30 (+15 хв)\n\n🔹 <b>Щосереди:</b>\n💍 Beleth — 20:30 (+15 хв)\n💍 Core — 21:30 (+15 хв)\n\n🔹 <b>Щочетверга:</b>\n🐜 Queen Ant — 20:30 (+15 хв)\n🐉 Valakas — 21:30 (+15 хв)",
+        "url": "https://t.me/scryde/4881",
+        "created_at": 1786270235,
+        "publish_after": 1786271735,
+        "status": "pending",
+        "debug_message_id": 400,
         "debug_preview_version": 5,
         "source": "telegram"
       }
