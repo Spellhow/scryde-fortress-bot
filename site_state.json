@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "Mj10",
+        "image": "https://static-eu.scrydecdn.com/clan-images/08f8ba604cae23e119aaaa36e3dbe87e-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1786242572,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1786239113,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "Mj10",
+            "image": "https://static-eu.scrydecdn.com/clan-images/08f8ba604cae23e119aaaa36e3dbe87e-full.jpg"
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1786242572,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1786239113,
         "notified_reminder": false
       }
     }
@@ -43,11 +53,11 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1786144437:Excaliburre": 1786132298,
       "fortress:116:1786173341:SepulturaRoja": 1786170106,
       "fortress:116:1786173341:DeathSpell|SepulturaRoja": 1786170694,
       "fortress:116:1786191341:SepulturaRoja": 1786177316,
-      "fortress:116:1786213347:MuertePorKiki": 1786210313
+      "fortress:116:1786213347:MuertePorKiki": 1786210313,
+      "fortress:116:1786242572:Mj10": 1786239113
     },
     "tg_update_offset": 848301163
   },
