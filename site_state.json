@@ -694,7 +694,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2693817,
+    "last_seen_id": 2694602,
     "sent_ids": [
       2641914,
       2642269,
@@ -726,7 +726,8 @@
       2684626,
       2686449,
       2690427,
-      2693817
+      2693817,
+      2694602
     ],
     "pending": [
       {
@@ -1073,6 +1074,18 @@
         "debug_message_id": 403,
         "debug_preview_version": 5,
         "source": "telegram"
+      },
+      {
+        "post_id": 2694602,
+        "title": "⚙️ HOT-RELEASE від 12.08.26",
+        "text": "🔥 <b>Свіжі зміни та виправлення для x1000:</b><br/><br/>• У клан-холах до вкладки телепортів додано телепорт до Hunter Village (за наявності вивченого сервісу на отримання слави).<br/>• Trovo Coin та Trovo Chest було конвертовано в Gold Coin за курсом 20:1 та 1:10 відповідно.<br/>• 🛠 Виправлено помилку, через яку з преміум-бафера зник баф <i>Chant of Victory</i>.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2694602",
+        "created_at": 1786522255,
+        "publish_after": 1786523755,
+        "status": "pending",
+        "debug_message_id": 405,
+        "debug_preview_version": 5,
+        "source": "forum"
       }
     ]
   }
