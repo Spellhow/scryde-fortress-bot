@@ -46,7 +46,7 @@
       "fortress:116:1786347739:KnightOfHonor": 1786344714,
       "fortress:116:1786379614:iClan": 1786376520
     },
-    "tg_update_offset": 848301163
+    "tg_update_offset": 848301164
   },
   "news": {
     "last_seen_id": 4898,
@@ -1082,7 +1082,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2694602",
         "created_at": 1786522255,
         "publish_after": 1786523755,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 405,
         "debug_preview_version": 5,
         "source": "forum"
