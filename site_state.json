@@ -48,9 +48,8 @@
     "tg_update_offset": 848301164
   },
   "news": {
-    "last_seen_id": 4905,
+    "last_seen_id": 4906,
     "sent_ids": [
-      4705,
       4708,
       4714,
       4715,
@@ -99,21 +98,10 @@
       4876,
       4881,
       4895,
-      4899
+      4899,
+      4906
     ],
     "pending": [
-      {
-        "post_id": 4698,
-        "title": "Ексклюзивний набір — Спадщина Лицаря",
-        "text": "Тільки <b>до 22 червня 23:59 (GMT+3)</b> на всіх серверах Скрайд є можливість замовити набір з новими костюмами!\n\n<b>Всередині набору:</b>\n• Купон на новий костюм 😍\n• Золота Монета (2 000 шт.) 💵\n• Стародавня Точка Морського Конька (5 шт.) 🌴\n• Басейн (50 шт.) 🌴\n\n<b>У купоні ви знайдете 3 костюми на вибір:</b>\n• Смарагдового Лицаря\n• Темного Морського Лицаря\n• Сяючого Морського Лицаря\n\n<i>Усі костюми представлені з плащем та без плаща (на вибір)</i>\n\n🔥 <a href=\"https://a.scrd.to/knight-legacy?utm_source=social\"><b>Замовити Набір «Спадщина Лицаря»</b></a>",
-        "url": "https://t.me/scryde/4698",
-        "created_at": 1781867435,
-        "publish_after": 1781868935,
-        "status": "cancelled",
-        "debug_message_id": 220,
-        "debug_preview_version": 5,
-        "source": "telegram"
-      },
       {
         "post_id": 4700,
         "title": "Літній Набір №3 з новим предметом колекції",
@@ -699,6 +687,18 @@
         "publish_after": 1786530365,
         "status": "published",
         "debug_message_id": 408,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4906,
+        "title": "Видалення предметів Літнього Марафону",
+        "text": "🚨 <b>17 серпня разом із ранковим рестартом видалять предмети Літнього Марафону.</b>\n\nЯкщо ви раптом забули їх використати — саме час це зробити!\n\n<b>Список предметів:</b>\n• Купон Марафону\n• Marathon Soul\n• Marathon Piece\n• Halisha Talisman\n• Arena Talisman\n• Olympiad Blood Coin\n• Event Immortal Orb\n• Monster Piece\n• Fortress Piece\n• Chaotic Piece\n• Arena Piece\n• Olympiad Piece\n• Event Piece\n• Marathon Coin",
+        "url": "https://t.me/scryde/4906",
+        "created_at": 1786726866,
+        "publish_after": 1786728366,
+        "status": "pending",
+        "debug_message_id": 410,
         "debug_preview_version": 5,
         "source": "telegram"
       }
