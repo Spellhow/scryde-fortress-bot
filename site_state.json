@@ -47,7 +47,7 @@
       "fortress:116:1786827826:BARS": 1786825554,
       "fortress:116:1786861711:ValorS": 1786858800
     },
-    "tg_update_offset": 848301166
+    "tg_update_offset": 848301167
   },
   "news": {
     "last_seen_id": 4914,
@@ -1108,7 +1108,7 @@
         "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2698445",
         "created_at": 1786959241,
         "publish_after": 1786960741,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 418,
         "debug_preview_version": 5,
         "source": "forum"
