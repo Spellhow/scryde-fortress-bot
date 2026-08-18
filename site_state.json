@@ -48,9 +48,8 @@
     "tg_update_offset": 848301167
   },
   "news": {
-    "last_seen_id": 4918,
+    "last_seen_id": 4919,
     "sent_ids": [
-      4718,
       4731,
       4733,
       4734,
@@ -99,21 +98,10 @@
       4906,
       4907,
       4914,
-      4917
+      4917,
+      4919
     ],
     "pending": [
-      {
-        "post_id": 4705,
-        "title": "Літній Набір #3 та міні-гра",
-        "text": "🍺 <b>От би зараз прохолодний келих пінного...</b>\n\nПоки чекаємо на прайм, можна розважитися та заробити на буст. У соцмережах Scryde запустили міні-гру: потрібно знайти 5 прихованих кухлів на картинці. 5 переможців отримають по <b>1000 Золотих монет</b> на будь-якому сервері!\n\nТакож стали доступні новинки літнього івенту:\n🎁 <a href=\"https://a.scrd.to/summer-kit-3?utm_source=social\"><b>Новий Літній Набір #3</b></a>\n🌴 <a href=\"https://scrd.link/summer-promo?from=social\"><b>Детальніше про Пляжні Скарби</b></a>\n🦈 <a href=\"https://scrd.link/summer-promo?from=social\"><b>Промо-сторінка івенту</b></a>",
-        "url": "https://t.me/scryde/4705",
-        "created_at": 1782403234,
-        "publish_after": 1782404734,
-        "status": "published",
-        "debug_message_id": 240,
-        "debug_preview_version": 5,
-        "source": "telegram"
-      },
       {
         "post_id": 4708,
         "title": "Гайд на Берсерка від SLOTT",
@@ -699,6 +687,18 @@
         "publish_after": 1787068792,
         "status": "published",
         "debug_message_id": 421,
+        "debug_preview_version": 5,
+        "source": "telegram"
+      },
+      {
+        "post_id": 4919,
+        "title": "Проблеми з підключенням до серверів",
+        "text": "⚠️ <b>Спостерігаються проблеми з підключенням у гравців із РФ</b>\n\nПроблема виникла не на боці серверів, а в роботі мережі інтернет загалом.\n\n<i>Як тільки ситуація покращиться — повідомимо!</i>",
+        "url": "https://t.me/scryde/4919",
+        "created_at": 1787083197,
+        "publish_after": 1787084697,
+        "status": "pending",
+        "debug_message_id": 423,
         "debug_preview_version": 5,
         "source": "telegram"
       }
