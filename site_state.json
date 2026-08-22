@@ -706,7 +706,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2702351,
+    "last_seen_id": 2702859,
     "sent_ids": [
       2641914,
       2642269,
@@ -740,7 +740,8 @@
       2690427,
       2693817,
       2694602,
-      2698445
+      2698445,
+      2702859
     ],
     "pending": [
       {
@@ -1109,6 +1110,18 @@
         "publish_after": 1786960741,
         "status": "published",
         "debug_message_id": 418,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2702859,
+        "title": "⚙️ 🔥 Хотфікс: механіка облог замків",
+        "text": "⚔️ <b>Оновлення механіки облог:</b>\n\n• Прибрано механіку, за якої автоматично створювався альянс між усіма атакуючими кланами під час облоги замку без власника.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2702859",
+        "created_at": 1787388168,
+        "publish_after": 1787389668,
+        "status": "pending",
+        "debug_message_id": 427,
         "debug_preview_version": 5,
         "source": "forum"
       }
