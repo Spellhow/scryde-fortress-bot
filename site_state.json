@@ -705,7 +705,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 2702859,
+    "last_seen_id": 2705324,
     "sent_ids": [
       2641914,
       2642269,
@@ -740,7 +740,8 @@
       2693817,
       2694602,
       2698445,
-      2702859
+      2702859,
+      2705324
     ],
     "pending": [
       {
@@ -1121,6 +1122,18 @@
         "publish_after": 1787389668,
         "status": "published",
         "debug_message_id": 427,
+        "debug_preview_version": 5,
+        "source": "forum"
+      },
+      {
+        "post_id": 2705324,
+        "title": "⚙️ Оновлення та переїзд патчноутів у Scryde Wiki",
+        "text": "📢 <b>Зміни у публікації оновлень</b>\n\nПатчноут опубліковано в <a href=\"https://ru.scryde.game/wiki/articles/patch-notes/updates\">Scryde Wiki</a>. Відтепер усі оновлення публікуватимуться саме там.",
+        "url": "https://board.scryde.net/threads/obnovlenija.30694/page-22#post-2705324",
+        "created_at": 1787650135,
+        "publish_after": 1787651635,
+        "status": "pending",
+        "debug_message_id": 429,
         "debug_preview_version": 5,
         "source": "forum"
       }
