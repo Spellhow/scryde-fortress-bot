@@ -48,7 +48,16 @@ TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT = os.environ["TG_CHAT"]
 TG_CHAT_DEBUG = os.environ.get("TG_CHAT_DEBUG", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
+# Fail-closed model policy: these exact stable model IDs are explicitly listed
+# by Google with free input/output on the Gemini API Free Tier (2026-08-25).
+FREE_TIER_GEMINI_MODELS = {
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+}
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
+_requested_gemini_model = os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL).strip()
+GEMINI_MODEL = _requested_gemini_model if _requested_gemini_model in FREE_TIER_GEMINI_MODELS else DEFAULT_GEMINI_MODEL
+GEMINI_MODEL_POLICY_REJECTED = _requested_gemini_model if _requested_gemini_model not in FREE_TIER_GEMINI_MODELS else ""
 GEMINI_THINKING_LEVEL = "HIGH"
 NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
@@ -341,7 +350,7 @@ def parse_gemini_news_response(text_out):
     return normalize_gemini_news_json(json.loads(extract_json_object(text_out)))
 
 
-def repair_gemini_news_json(client, broken_json, parse_error):
+def repair_gemini_news_json(client, broken_json, parse_error, model_name=None):
     broken_json = (broken_json or "").strip()
     if not broken_json:
         return None
@@ -353,7 +362,7 @@ def repair_gemini_news_json(client, broken_json, parse_error):
         "Помилка парсингу: {}\n\n{}"
     ).format(parse_error, broken_json[:12000])
     response = client.models.generate_content(
-        model=GEMINI_MODEL,
+        model=model_name or GEMINI_MODEL,
         contents=[types.Content(role="user", parts=[types.Part.from_text(text=repair_prompt)])],
         config=types.GenerateContentConfig(
             temperature=0,
@@ -604,8 +613,14 @@ def fetch_forum_posts(forum_url):
     return posts
 
 
-def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, source_html=None):
+def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, source_html=None, model_override=None, retries_override=None):
     if not GEMINI_API_KEY:
+        return None
+
+    model_name = (model_override or GEMINI_MODEL).strip()
+    if model_name not in FREE_TIER_GEMINI_MODELS:
+        log("blocked non-free-tier Gemini model: {}".format(model_name))
+        send_debug(DEBUG_CYCLE_ERROR.format(error="blocked non-free-tier Gemini model: {}".format(model_name)))
         return None
 
     pending_context_json = json.dumps(pending_context or [], ensure_ascii=False)
@@ -660,11 +675,11 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
     )
 
     client = genai.Client(api_key=GEMINI_API_KEY)
-    retries = 4
+    retries = int(retries_override or 4)
     for attempt in range(1, retries + 1):
         try:
             response = client.models.generate_content(
-                model=GEMINI_MODEL,
+                model=model_name,
                 contents=[
                     types.Content(
                         role="user",
@@ -690,7 +705,7 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
             except json.JSONDecodeError as parse_exc:
                 log("gemini returned invalid json attempt {}/{}: {}; raw_prefix={!r}".format(attempt, retries, parse_exc, (text_out or "")[:300]))
                 try:
-                    repaired = repair_gemini_news_json(client, text_out, parse_exc)
+                    repaired = repair_gemini_news_json(client, text_out, parse_exc, model_name=model_name)
                     if repaired:
                         log("gemini json repaired attempt {}/{}".format(attempt, retries))
                         return repaired
@@ -700,7 +715,7 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
         except Exception as exc:
             err = str(exc)
             transient = any(token in err for token in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "Timeout", "timed out"))
-            log("gemini rewrite failed attempt {}/{}: {}".format(attempt, retries, err))
+            log("gemini rewrite failed model={} attempt {}/{}: {}".format(model_name, attempt, retries, err))
             if attempt < retries:
                 time.sleep(min(20, attempt * 4))
                 continue
@@ -1962,6 +1977,13 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
 
 def main():
     state = load_state()
+    if GEMINI_MODEL_POLICY_REJECTED:
+        log(
+            "ignored disallowed GEMINI_MODEL={} and forced free-tier model {}".format(
+                GEMINI_MODEL_POLICY_REJECTED,
+                GEMINI_MODEL,
+            )
+        )
     process_callback_updates(state)
     state["fortress"]["_root_state"] = state
     state["castle"]["_root_state"] = state

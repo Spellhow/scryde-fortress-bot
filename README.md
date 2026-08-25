@@ -22,7 +22,7 @@ Configure these repository secrets before enabling the workflow:
 - `TG_CHAT`
 - `TG_CHAT_DEBUG`
 - `GEMINI_API_KEY`
-- optional: `GEMINI_MODEL` (default `gemini-flash-latest`)
+- optional: `GEMINI_MODEL` (default `gemini-3.5-flash-lite`; only the hardcoded Free-Tier allowlist is accepted)
 
 ## Workflow behavior
 
@@ -34,6 +34,8 @@ Configure these repository secrets before enabling the workflow:
 - Fetches `https://ru.scryde.game/wiki/articles/patch-notes/updates` through the stable page HTML and parses `__NEXT_DATA__` (no hardcoded Next.js build id)
 - Reuses the existing `forum_news` moderation queue for Wiki patch notes so old pending/state stays compatible
 - Deduplicates the reused Wiki URL by title + normalized content fingerprint; same-title edits refresh a pending item but do not create a second post after the update is already final
+- Gemini calls are fail-closed to stable Free-Tier model IDs only: `gemini-3.5-flash-lite` (primary) and `gemini-3.1-flash-lite` (Wiki fallback); any other `GEMINI_MODEL` value is ignored/blocked
+- To guarantee zero billing, `GEMINI_API_KEY` must belong to a Gemini API **Free Tier** project with billing disabled; model selection alone cannot turn a Paid Tier project into free usage
 - Blocks heavy asset types like images, fonts, media, and stylesheets
 - Stores bot state in `site_state.json`
 - Commits updated `site_state.json` back to the repository automatically

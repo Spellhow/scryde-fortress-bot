@@ -19,6 +19,10 @@ WIKI_URL = os.environ.get(
 )
 STATE_KEY = "forum_news"
 SOURCE_MODE = "wiki_patch_notes"
+WIKI_GEMINI_FALLBACK_MODEL = os.environ.get(
+    "SCRYDE_WIKI_GEMINI_FALLBACK_MODEL",
+    "gemini-3.1-flash-lite",
+).strip()
 
 
 def _visible_text(content_html):
@@ -141,11 +145,29 @@ def _replacement_target(state, rewritten):
 
 
 def _rewrite(article, state):
+    kwargs = {
+        "source_label": "wiki",
+        "pending_context": bot.build_pending_context(state),
+        "source_html": article["formatted_html"],
+    }
+    rewritten = bot.gemini_rewrite_x1000_news(
+        article["text"],
+        retries_override=2,
+        **kwargs,
+    )
+    if rewritten or not WIKI_GEMINI_FALLBACK_MODEL or WIKI_GEMINI_FALLBACK_MODEL == bot.GEMINI_MODEL:
+        return rewritten
+
+    bot.log(
+        "wiki primary Gemini unavailable; retrying with fallback model {}".format(
+            WIKI_GEMINI_FALLBACK_MODEL
+        )
+    )
     return bot.gemini_rewrite_x1000_news(
         article["text"],
-        source_label="wiki",
-        pending_context=bot.build_pending_context(state),
-        source_html=article["formatted_html"],
+        model_override=WIKI_GEMINI_FALLBACK_MODEL,
+        retries_override=2,
+        **kwargs,
     )
 
 
