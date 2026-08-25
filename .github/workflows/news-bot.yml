@@ -75,10 +75,13 @@ jobs:
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
           CASTLE_URL: https://ua.scryde.game/rankings/1000/castles
           SCRYDE_CHANNEL_URL: https://t.me/s/scryde
+          SCRYDE_WIKI_UPDATES_URL: https://ru.scryde.game/wiki/articles/patch-notes/updates
           SCRYDE_FORUM_UPDATES_URL: https://board.scryde.net/threads/obnovlenija.30694/latest
           STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 60
-        run: python github_runner.py
+        run: |
+          python wiki_patch_notes.py
+          python github_runner.py
 
       - name: Commit updated state
         shell: bash

@@ -26,11 +26,14 @@ Configure these repository secrets before enabling the workflow:
 
 ## Workflow behavior
 
-- Runs every 15 minutes
+- News workflow runs every 10 minutes; siege monitoring has its own workflow
 - Uses Playwright Chromium to load:
   - `https://ua.scryde.game/rankings/1000/fortresses`
   - `https://ua.scryde.game/rankings/1000/castles`
 - Fetches `https://t.me/s/scryde` and rewrites only `x1000`-relevant news through Gemini
+- Fetches `https://ru.scryde.game/wiki/articles/patch-notes/updates` through the stable page HTML and parses `__NEXT_DATA__` (no hardcoded Next.js build id)
+- Reuses the existing `forum_news` moderation queue for Wiki patch notes so old pending/state stays compatible
+- Deduplicates the reused Wiki URL by title + normalized content fingerprint; same-title edits refresh a pending item but do not create a second post after the update is already final
 - Blocks heavy asset types like images, fonts, media, and stylesheets
 - Stores bot state in `site_state.json`
 - Commits updated `site_state.json` back to the repository automatically
@@ -39,7 +42,8 @@ Configure these repository secrets before enabling the workflow:
 ## Main files
 
 - `.github/workflows/fortress-bot.yml` — scheduled GitHub Actions workflow
-- `github_runner.py` — Playwright-based runner for GitHub Actions
+- `github_runner.py` — main GitHub Actions runner and Telegram/Gemini moderation pipeline
+- `wiki_patch_notes.py` — adapter for the new Scryde Wiki patch-note page
 - `messages.py` — notification templates
 - `card_builder.py` — optional Telegram image card generator
 - `site_state.json` — persisted state between workflow runs
