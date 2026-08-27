@@ -51,14 +51,22 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 # Fail-closed model policy: these exact stable model IDs are explicitly listed
 # by Google with free input/output on the Gemini API Free Tier (2026-08-25).
 FREE_TIER_GEMINI_MODELS = {
-    "gemini-3.5-flash-lite",
+    "gemini-2.5-flash-lite",
     "gemini-3.1-flash-lite",
 }
-DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite"
 _requested_gemini_model = os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL).strip()
 GEMINI_MODEL = _requested_gemini_model if _requested_gemini_model in FREE_TIER_GEMINI_MODELS else DEFAULT_GEMINI_MODEL
 GEMINI_MODEL_POLICY_REJECTED = _requested_gemini_model if _requested_gemini_model not in FREE_TIER_GEMINI_MODELS else ""
 GEMINI_THINKING_LEVEL = "HIGH"
+
+
+def gemini_thinking_config(model_name):
+    if str(model_name or "").startswith("gemini-2.5-"):
+        return types.ThinkingConfig(thinking_budget=0)
+    return types.ThinkingConfig(thinking_level=GEMINI_THINKING_LEVEL)
+
+
 NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
@@ -690,7 +698,7 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
                     temperature=0.2,
                     response_mime_type="application/json",
                     response_schema=response_schema,
-                    thinking_config=types.ThinkingConfig(thinking_level=GEMINI_THINKING_LEVEL),
+                    thinking_config=gemini_thinking_config(model_name),
                     safety_settings=[
                         types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_NONE"),
                         types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
