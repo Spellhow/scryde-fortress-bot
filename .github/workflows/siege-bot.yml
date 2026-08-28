@@ -5,15 +5,16 @@ env:
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    # Stagger from News Bot so either workflow can provide a queue tick.
+    - cron: '8,18,28,38,48,58 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: siege-bot
-  cancel-in-progress: true
+  group: scryde-state
+  cancel-in-progress: false
 
 jobs:
   run-bot:
@@ -63,7 +64,10 @@ jobs:
           TG_CHAT: ${{ secrets.TG_CHAT }}
           TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NEWS_TARGET_CHAT: prod
+          NEWS_AUTO_PUBLISH_GRACE_MIN: 30
           RUN_NEWS: false
+          RUN_NEWS_QUEUE: true
           RUN_SIEGES: true
           OUR_CLAN: BSOE
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses

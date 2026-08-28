@@ -64,9 +64,11 @@ NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").s
 FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 NEWS_PENDING_EXPIRE_HOURS = int(os.environ.get("NEWS_PENDING_EXPIRE_HOURS", "24"))
+NEWS_AUTO_PUBLISH_GRACE_MIN = int(os.environ.get("NEWS_AUTO_PUBLISH_GRACE_MIN", "30"))
 NEWS_MAX_NEW_POSTS_PER_RUN = int(os.environ.get("NEWS_MAX_NEW_POSTS_PER_RUN", "5"))
 NEWS_DEBUG_PREVIEW_VERSION = 5
 RUN_NEWS = os.environ.get("RUN_NEWS", "true").lower() == "true"
+RUN_NEWS_QUEUE = os.environ.get("RUN_NEWS_QUEUE", "false").lower() == "true"
 RUN_SIEGES = os.environ.get("RUN_SIEGES", "true").lower() == "true"
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
@@ -1000,10 +1002,39 @@ def process_pending_news_queue(state):
                 item["status"] = "expired"
                 log("{} pending post {} expired without publishing".format(state_key, item.get("post_id")))
                 continue
+            publish_after = int(item.get("publish_after", 0) or 0)
+            if now < publish_after:
+                continue
+
             if NEWS_TARGET_CHAT == "debug":
                 continue
-            if now < int(item.get("publish_after", 0) or 0):
-                continue
+
+            # GitHub Actions schedules are best-effort. A missed scheduler run
+            # must not turn a 25-minute moderation delay into permission to
+            # publish stale, time-sensitive news hours later. Explicitly
+            # approved items are exempt because the owner chose to publish.
+            if status == "pending" and publish_after > 0:
+                latest_auto_publish_at = publish_after + max(0, NEWS_AUTO_PUBLISH_GRACE_MIN) * 60
+                if now > latest_auto_publish_at:
+                    late_minutes = max(0, (now - publish_after) // 60)
+                    item["status"] = "expired"
+                    log(
+                        "{} pending post {} expired: auto-publish window missed by {} min".format(
+                            state_key,
+                            item.get("post_id"),
+                            late_minutes,
+                        )
+                    )
+                    if item.get("debug_message_id") and TG_CHAT_DEBUG:
+                        edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
+                        send_telegram(
+                            "<b>[NEWS EXPIRED]</b> <b>{}</b>\n\n"
+                            "Автопублікацію пропущено: воркер запізнився на {} хв.\n{}".format(
+                                item.get("title", "Новина"), late_minutes, item.get("url", "")
+                            ),
+                            chat_id=TG_CHAT_DEBUG,
+                        )
+                    continue
 
             message = build_news_post_message(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
             sent_ok = send_telegram(message, chat_id=TG_CHAT)
@@ -1991,6 +2022,8 @@ def main():
         process_channel_news(state)
         process_forum_news(state)
         refresh_pending_debug_previews(state)
+
+    if RUN_NEWS or RUN_NEWS_QUEUE:
         process_pending_news_queue(state)
 
     if RUN_SIEGES:

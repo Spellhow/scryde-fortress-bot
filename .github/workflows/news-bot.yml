@@ -5,7 +5,8 @@ env:
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    # Keep the 10-minute cadence but avoid GitHub's top-of-hour scheduler hotspot.
+    - cron: '3,13,23,33,43,53 * * * *'
   workflow_dispatch:
     inputs:
       news_test_post_ids:
@@ -21,7 +22,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: news-bot
+  group: scryde-state
   cancel-in-progress: false
 
 jobs:
@@ -57,6 +58,12 @@ jobs:
             echo '{}' > site_state.json
           fi
 
+      - name: Run pending queue regression tests
+        env:
+          TG_TOKEN: test
+          TG_CHAT: test
+        run: python -m unittest -v test_pending_news_queue.py
+
       - name: Run news check
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
@@ -71,6 +78,7 @@ jobs:
           FORUM_TEST_POST_IDS: ${{ github.event.inputs.forum_test_post_ids }}
           NEWS_APPROVE_DELAY_MIN: 25
           NEWS_PENDING_EXPIRE_HOURS: 24
+          NEWS_AUTO_PUBLISH_GRACE_MIN: 30
           NEWS_MAX_NEW_POSTS_PER_RUN: 5
           RUN_NEWS: true
           RUN_SIEGES: false
