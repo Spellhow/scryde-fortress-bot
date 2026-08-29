@@ -1,0 +1,10 @@
+[Unit]
+Description=Dispatch Scryde News Bot GitHub workflow
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/scryde-fortress-bot-work
+Environment=GH_CONFIG_DIR=/opt/sentinelx-cloud-core/.config/gh
+ExecStart=/opt/scryde-fortress-bot-work/ops/dispatch_news_watchdog.sh
