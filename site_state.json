@@ -707,7 +707,7 @@
     ]
   },
   "forum_news": {
-    "last_seen_id": 1788386581,
+    "last_seen_id": 1788387121,
     "sent_ids": [
       2641914,
       2642269,
@@ -1161,6 +1161,6 @@
     "wiki_article_id": 86,
     "wiki_title": "Обновление от 25.08.26",
     "wiki_fingerprint": "7a0856b63568a938507c5de86f8788f4a8181bc6b806a15fc6b3e14620112baf",
-    "wiki_updated_at": 1788386581
+    "wiki_updated_at": 1788387121
   }
 }
