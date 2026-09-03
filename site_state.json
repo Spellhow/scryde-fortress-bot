@@ -1,6 +1,6 @@
 {
   "fortress": {
-    "had": false,
+    "had": true,
     "name": "Antharas Fortress",
     "id": 116,
     "last_attackers": [],
@@ -12,14 +12,14 @@
     "notified_reminder": false,
     "objects": {
       "116": {
-        "had": false,
+        "had": true,
         "name": "Antharas Fortress",
         "id": 116,
         "last_attackers": [],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
         "last_siege_at": 0,
         "notified_siege": false,
-        "notified_lost": true,
+        "notified_lost": false,
         "siege_first_notify": 0,
         "notified_reminder": false
       }
@@ -38,14 +38,7 @@
     "notified_reminder": false,
     "objects": {}
   },
-  "our_fortress_attacks": {
-    "116": {
-      "name": "Antharas Fortress",
-      "siege_at": 1788429619,
-      "notified": true,
-      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/9f401024905552163d2adc038c43d8e6-full.jpg"
-    }
-  },
+  "our_fortress_attacks": {},
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {},
