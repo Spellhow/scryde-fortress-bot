@@ -21,6 +21,7 @@ from messages import (
     SIEGE_CANCELLED,
     OBJECT_LOST,
     WE_ATTACK,
+    WE_ATTACK_REMINDER,
     WE_CANCELLED,
     DEBUG_CYCLE_ERROR,
     DEBUG_SITE_DOWN,
@@ -1946,6 +1947,7 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
     o = OBJ[obj_key]
     obj_type = o["acc"]
     current_ids = set()
+    now = int(time.time())
 
     for item in items:
         attackers = get_attackers(item)
@@ -1965,7 +1967,8 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
         current_ids.add(obj_id)
         prev = attack_state.get(obj_id, {})
 
-        if not prev.get("notified") or siege_at != prev.get("siege_at", 0):
+        is_new_siege = (not prev.get("notified")) or siege_at != prev.get("siege_at", 0)
+        if is_new_siege:
             msg = WE_ATTACK.format(acc=o["acc"], nom=o["nom"], name=obj_name, owner=owner_name, time=siege_time_str, url=page_url)
             image = build_event_card(
                 obj_type,
@@ -1983,11 +1986,47 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
                     "name": obj_name,
                     "siege_at": siege_at,
                     "notified": True,
+                    "notified_at": now,
+                    "notified_reminder": False,
                     "owner_icon": (item.get("owner") or {}).get("image"),
                 }
+                prev = attack_state[obj_id]
+        else:
+            secs_left = siege_at - now if siege_at else 0
+            mins_left = max(0, secs_left // 60)
+            notified_at = int(prev.get("notified_at", 0) or 0)
+            enough_gap = (not notified_at) or (now - notified_at >= 30 * 60)
+            should_remind = (
+                prev.get("notified")
+                and not prev.get("notified_reminder")
+                and 0 < secs_left <= 30 * 60
+                and enough_gap
+            )
+            if should_remind:
+                msg = WE_ATTACK_REMINDER.format(
+                    mins=max(1, mins_left),
+                    nom=o["nom"],
+                    name=obj_name,
+                    owner=owner_name,
+                    time=siege_time_str,
+                    url=page_url,
+                )
+                image = build_event_card(
+                    obj_type,
+                    obj_name,
+                    "Наша облога через {} хв!".format(max(1, mins_left)),
+                    C_GOLD,
+                    owner_name,
+                    (item.get("owner") or {}).get("image"),
+                    attacker_rows,
+                    siege_time_str,
+                    page_url,
+                )
+                if send_notification(msg, image):
+                    prev["notified_reminder"] = True
+                    attack_state[obj_id] = prev
 
     disappeared = set(attack_state.keys()) - current_ids
-    now = int(time.time())
     to_delete = []
     for obj_id in disappeared:
         prev = attack_state[obj_id]
