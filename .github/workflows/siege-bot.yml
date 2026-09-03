@@ -4,9 +4,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
-  schedule:
-    # Stagger from News Bot so either workflow can provide a queue tick.
-    - cron: '8,18,28,38,48,58 * * * *'
+  # VPS systemd timer dispatches this workflow every 10 minutes, staggered from News Bot.
+  # GitHub scheduled workflows are intentionally disabled because they can be delayed for hours.
   workflow_dispatch:
 
 permissions:
