@@ -3,34 +3,24 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [
-      {
-        "name": "Полем",
-        "image": "https://static-eu.scrydecdn.com/clan-images/0a1eac92ded2dd0b3e7e98825a1fe255-full.jpg"
-      }
-    ],
+    "last_attackers": [],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 1788447619,
-    "notified_siege": true,
+    "last_siege_at": 0,
+    "notified_siege": false,
     "notified_lost": false,
-    "siege_first_notify": 1788443507,
+    "siege_first_notify": 0,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [
-          {
-            "name": "Полем",
-            "image": "https://static-eu.scrydecdn.com/clan-images/0a1eac92ded2dd0b3e7e98825a1fe255-full.jpg"
-          }
-        ],
+        "last_attackers": [],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 1788447619,
-        "notified_siege": true,
+        "last_siege_at": 0,
+        "notified_siege": false,
         "notified_lost": false,
-        "siege_first_notify": 1788443507,
+        "siege_first_notify": 0,
         "notified_reminder": false
       }
     }
