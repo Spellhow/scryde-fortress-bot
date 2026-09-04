@@ -48,9 +48,8 @@
     "tg_update_offset": 848301169
   },
   "news": {
-    "last_seen_id": 4987,
+    "last_seen_id": 4988,
     "sent_ids": [
-      4743,
       4744,
       4745,
       4748,
@@ -99,21 +98,10 @@
       4944,
       4945,
       4956,
-      4958
+      4958,
+      4988
     ],
     "pending": [
-      {
-        "post_id": 4734,
-        "title": "Новий розклад Олімпіади на x1000",
-        "text": "✊ <b>Зміни у розкладі Олімпіади!</b><br/><br/>Поспішаємо повідомити про оновлений розклад Олімпіади для серверів <b>Scryde x50 &amp; x1000 (GMT+3)</b>:<br/><br/><blockquote>📅 <b>З понеділка по неділю з 18:00 до 23:50</b> — олімпіада у звичайному режимі.<br/><br/>⚔️ <b>Бої випадкового типу (3х3)</b> проходять по п'ятницях, суботах та неділях з 18:00 до 23:50.<br/><br/>🏆 <b>Щосуботи з 19:00 до 19:45</b> — Івент Олімпіади.</blockquote><br/><i>Плануйте свій кіберспорт за новим розкладом!</i> 😉",
-        "url": "https://t.me/scryde/4734",
-        "created_at": 1782826831,
-        "publish_after": 1782828331,
-        "status": "published",
-        "debug_message_id": 264,
-        "debug_preview_version": 5,
-        "source": "telegram"
-      },
       {
         "post_id": 4735,
         "title": "Великий Літній Марафон",
@@ -701,11 +689,23 @@
         "debug_message_id": 445,
         "debug_preview_version": 5,
         "source": "telegram"
+      },
+      {
+        "post_id": 4988,
+        "title": "Проблеми на старті",
+        "text": "Зіткнулися з низкою проблем на старті, у тому числі з DDoS-атаками ⚠️\n\nМи в курсі ситуації та вже працюємо над її вирішенням. Дамо додатковий анонс, щойно все стабілізується 🧘",
+        "url": "https://t.me/scryde/4988",
+        "created_at": 1788542583,
+        "publish_after": 1788544083,
+        "status": "pending",
+        "debug_message_id": 447,
+        "debug_preview_version": 5,
+        "source": "telegram"
       }
     ]
   },
   "forum_news": {
-    "last_seen_id": 1788541381,
+    "last_seen_id": 1788542102,
     "sent_ids": [
       2641914,
       2642269,
@@ -1159,6 +1159,6 @@
     "wiki_article_id": 86,
     "wiki_title": "Обновление от 25.08.26",
     "wiki_fingerprint": "7a0856b63568a938507c5de86f8788f4a8181bc6b806a15fc6b3e14620112baf",
-    "wiki_updated_at": 1788541381
+    "wiki_updated_at": 1788542102
   }
 }
