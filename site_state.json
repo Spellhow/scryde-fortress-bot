@@ -45,7 +45,7 @@
     "last_alerts": {
       "fortress:116:1788447619:Полем": 1788443507
     },
-    "tg_update_offset": 848301169
+    "tg_update_offset": 848301170
   },
   "news": {
     "last_seen_id": 4988,
@@ -697,7 +697,7 @@
         "url": "https://t.me/scryde/4988",
         "created_at": 1788542583,
         "publish_after": 1788544083,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 447,
         "debug_preview_version": 5,
         "source": "telegram"
