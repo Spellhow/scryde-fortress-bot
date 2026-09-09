@@ -49,9 +49,8 @@
     "tg_update_offset": 848301172
   },
   "news": {
-    "last_seen_id": 5005,
+    "last_seen_id": 5006,
     "sent_ids": [
-      4748,
       4753,
       4764,
       4767,
@@ -100,21 +99,10 @@
       4958,
       4988,
       4995,
-      4996
+      4996,
+      5006
     ],
     "pending": [
-      {
-        "post_id": 4739,
-        "title": "Робите відоси? Отримуйте реальні гроші за контент!",
-        "text": "<b>Робите відоси?</b> 🎥\n\nПрямо зараз у нас проходить <b>Creator Spotlight</b> — акція для всіх гравців проєкту, в якій ми обмінюємо ролики в соцмережах на реальні гроші!\n\n<b>У чому суть:</b>\n• Гравці створюють вертикальний контент та надсилають його у спеціальний Discord-чат.\n• У перших числах кожного місяця ми відбираємо ролики, які «залетіли» найкраще, та винагороджуємо авторів реальними грошима або ігровою валютою.\n• Брати участь може будь-який гравець проєкту (не лише стрімери з бонусної програми).\n• Також додано нагороду за Instagram Reels.\n\nДетальніше про активність та умови участі:\n😎 <a href=\"https://discord.gg/C6v29z4Pe\">Creator Spotlight у Discord</a>\n📜 <a href=\"https://a.scrd.to/scryde_partners-ru\">Програма креаторів</a>",
-        "url": "https://t.me/scryde/4739",
-        "created_at": 1783014036,
-        "publish_after": 1783015536,
-        "status": "published",
-        "debug_message_id": 275,
-        "debug_preview_version": 5,
-        "source": "telegram"
-      },
       {
         "post_id": 4741,
         "title": "Розіграш 1000 голди від Scryde",
@@ -702,11 +690,23 @@
         "debug_message_id": 453,
         "debug_preview_version": 5,
         "source": "telegram"
+      },
+      {
+        "post_id": 5006,
+        "title": "Новий iPhone DUO чудовий 📱",
+        "text": "<tg-spoiler>На ньому навіть сьогоднішні КМи показали…</tg-spoiler>",
+        "url": "https://t.me/scryde/5006",
+        "created_at": 1788979952,
+        "publish_after": 1788981452,
+        "status": "pending",
+        "debug_message_id": 456,
+        "debug_preview_version": 5,
+        "source": "telegram"
       }
     ]
   },
   "forum_news": {
-    "last_seen_id": 1788978961,
+    "last_seen_id": 1788979321,
     "sent_ids": [
       2641914,
       2642269,
@@ -1160,6 +1160,6 @@
     "wiki_article_id": 86,
     "wiki_title": "Обновление от 25.08.26",
     "wiki_fingerprint": "7a0856b63568a938507c5de86f8788f4a8181bc6b806a15fc6b3e14620112baf",
-    "wiki_updated_at": 1788978961
+    "wiki_updated_at": 1788979321
   }
 }
