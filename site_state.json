@@ -5,6 +5,10 @@
     "id": 116,
     "last_attackers": [
       {
+        "name": "YourBannyWrot",
+        "image": "https://static-eu.scrydecdn.com/clan-images/63f9237ea8e3629acaaf00b47663d46d-full.jpg"
+      },
+      {
         "name": "ValorS",
         "image": "https://static-eu.scrydecdn.com/clan-images/b990b03fbc5183ccc230574edf78cfe0-full.jpg"
       }
@@ -21,6 +25,10 @@
         "name": "Antharas Fortress",
         "id": 116,
         "last_attackers": [
+          {
+            "name": "YourBannyWrot",
+            "image": "https://static-eu.scrydecdn.com/clan-images/63f9237ea8e3629acaaf00b47663d46d-full.jpg"
+          },
           {
             "name": "ValorS",
             "image": "https://static-eu.scrydecdn.com/clan-images/b990b03fbc5183ccc230574edf78cfe0-full.jpg"
@@ -53,8 +61,8 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1788971981:Полем": 1788968508,
-      "fortress:116:1789060250:ValorS": 1789053108
+      "fortress:116:1789060250:ValorS": 1789053108,
+      "fortress:116:1789060250:ValorS|YourBannyWrot": 1789055498
     },
     "tg_update_offset": 848301172
   },
