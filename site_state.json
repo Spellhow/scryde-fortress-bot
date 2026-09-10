@@ -44,7 +44,7 @@
       "siege_at": 1789042250,
       "notified": true,
       "notified_at": 1789039314,
-      "notified_reminder": false,
+      "notified_reminder": true,
       "owner_icon": null
     }
   },
