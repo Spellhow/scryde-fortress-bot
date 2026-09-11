@@ -1161,5 +1161,10 @@
     "wiki_title": "Обновление от 25.08.26",
     "wiki_fingerprint": "7a0856b63568a938507c5de86f8788f4a8181bc6b806a15fc6b3e14620112baf",
     "wiki_updated_at": 1789119181
+  },
+  "wiki_patch_notes_health": {
+    "consecutive_failures": 1,
+    "last_failure_at": 1789120342,
+    "last_error": "HTTP failed (wiki __NEXT_DATA__ missing); Chromium fallback failed (Unterminated string starting at: line 1 column 18792 (char 18791))"
   }
 }
