@@ -48,10 +48,7 @@ def _fingerprint(title, plain_text):
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _parse_wiki_patch_note(page_html, final_url):
-    soup = BeautifulSoup(page_html or "", "html.parser")
-    next_data = soup.find("script", id="__NEXT_DATA__")
-    raw = next_data.string if next_data else None
+def _article_from_next_data(raw, final_url):
     if not raw:
         raise ValueError("wiki __NEXT_DATA__ missing")
 
@@ -89,6 +86,13 @@ def _parse_wiki_patch_note(page_html, final_url):
         "updated_at": updated_at,
         "created_at": created_at,
     }
+
+
+def _parse_wiki_patch_note(page_html, final_url):
+    soup = BeautifulSoup(page_html or "", "html.parser")
+    next_data = soup.find("script", id="__NEXT_DATA__")
+    raw = next_data.string if next_data else None
+    return _article_from_next_data(raw, final_url)
 
 
 def _looks_like_variti_challenge(page_html):
@@ -147,7 +151,37 @@ def _request_wiki_page(url):
     return None, url, last_error
 
 
-def _fetch_wiki_html_browser(url):
+def _extract_browser_article(page, final_url):
+    last_error = None
+    for attempt in range(1, 5):
+        try:
+            raw = page.locator("script#__NEXT_DATA__").text_content(timeout=4000)
+            article = _article_from_next_data(raw, final_url)
+            if attempt > 1:
+                bot.log(
+                    "wiki Chromium NEXT_DATA recovered on extraction attempt {}".format(attempt)
+                )
+            return article
+        except (json.JSONDecodeError, ValueError, bot.PlaywrightError) as exc:
+            last_error = exc
+            if attempt >= 4:
+                break
+            bot.log(
+                "wiki Chromium NEXT_DATA not ready on extraction attempt {}: {}".format(
+                    attempt,
+                    str(exc)[:180],
+                )
+            )
+            page.wait_for_timeout(500 * attempt)
+
+    raise ValueError(
+        "wiki Chromium NEXT_DATA remained invalid after retries: {}".format(
+            str(last_error)[:220]
+        )
+    )
+
+
+def _fetch_wiki_article_browser(url):
     with bot.sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
         try:
@@ -171,38 +205,48 @@ def _fetch_wiki_html_browser(url):
                 if route.request.resource_type in {"image", "font", "media"}
                 else route.continue_(),
             )
-            response = page.goto(
-                url,
-                wait_until="domcontentloaded",
-                timeout=WIKI_BROWSER_TIMEOUT_MS,
-            )
-            try:
-                page.wait_for_selector(
-                    "script#__NEXT_DATA__",
-                    state="attached",
+
+            last_error = None
+            for navigation_attempt in range(1, 3):
+                response = page.goto(
+                    url,
+                    wait_until="domcontentloaded",
                     timeout=WIKI_BROWSER_TIMEOUT_MS,
                 )
-            except bot.PlaywrightTimeoutError:
-                pass
-
-            page_html = page.content()
-            final_url = page.url or url
-            if "__NEXT_DATA__" not in page_html:
-                status = response.status if response is not None else "unknown"
-                title = ""
                 try:
-                    title = page.title()
-                except Exception:
-                    pass
-                raise ValueError(
-                    "wiki browser fallback did not reach article page "
-                    "(status={}, title={!r}, html_len={})".format(
-                        status,
-                        title,
-                        len(page_html),
+                    page.wait_for_selector(
+                        "script#__NEXT_DATA__",
+                        state="attached",
+                        timeout=WIKI_BROWSER_TIMEOUT_MS,
                     )
-                )
-            return page_html, final_url
+                    final_url = page.url or url
+                    return _extract_browser_article(page, final_url)
+                except (bot.PlaywrightTimeoutError, ValueError) as exc:
+                    last_error = exc
+                    if navigation_attempt >= 2:
+                        status = response.status if response is not None else "unknown"
+                        title = ""
+                        try:
+                            title = page.title()
+                        except Exception:
+                            pass
+                        raise ValueError(
+                            "wiki browser fallback failed after navigation retries "
+                            "(status={}, title={!r}): {}".format(
+                                status,
+                                title,
+                                str(exc)[:220],
+                            )
+                        ) from exc
+                    bot.log(
+                        "wiki Chromium navigation/extraction attempt {} failed: {}; reloading".format(
+                            navigation_attempt,
+                            str(exc)[:180],
+                        )
+                    )
+                    page.wait_for_timeout(800)
+
+            raise ValueError("wiki browser fallback failed: {}".format(last_error))
         finally:
             browser.close()
 
@@ -228,8 +272,7 @@ def fetch_wiki_patch_note(url=WIKI_URL):
         bot.log("wiki HTTP unavailable; switching to Chromium")
 
     try:
-        browser_html, browser_url = _fetch_wiki_html_browser(url)
-        article = _parse_wiki_patch_note(browser_html, browser_url)
+        article = _fetch_wiki_article_browser(url)
         bot.log("wiki patch notes fetched via Chromium fallback")
         return article
     except Exception as browser_exc:

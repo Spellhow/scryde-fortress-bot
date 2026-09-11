@@ -18,7 +18,7 @@ class FakeResponse:
             raise requests.HTTPError("{} error".format(self.status_code))
 
 
-def valid_wiki_html(title="Update 11.09.26"):
+def valid_next_data(title="Update 11.09.26"):
     payload = {
         "props": {
             "pageProps": {
@@ -32,9 +32,36 @@ def valid_wiki_html(title="Update 11.09.26"):
             }
         }
     }
+    return json.dumps(payload)
+
+
+def valid_wiki_html(title="Update 11.09.26"):
     return '<html><script id="__NEXT_DATA__" type="application/json">{}</script></html>'.format(
-        json.dumps(payload)
+        valid_next_data(title)
     )
+
+
+class FakeLocator:
+    def __init__(self, values):
+        self.values = list(values)
+
+    def text_content(self, timeout=None):
+        if len(self.values) > 1:
+            return self.values.pop(0)
+        return self.values[0]
+
+
+class FakePage:
+    def __init__(self, values):
+        self.fake_locator = FakeLocator(values)
+        self.waits = []
+
+    def locator(self, selector):
+        self.last_selector = selector
+        return self.fake_locator
+
+    def wait_for_timeout(self, timeout):
+        self.waits.append(timeout)
 
 
 class WikiPatchNotesTests(unittest.TestCase):
@@ -50,10 +77,14 @@ class WikiPatchNotesTests(unittest.TestCase):
     def test_variti_challenge_uses_browser_fallback(self):
         challenge = "<html><head><title>..</title></head><body><noscript>javascript disabled</noscript></body></html>"
         with patch.object(wiki.requests, "get", return_value=FakeResponse(challenge)):
+            browser_article = wiki._article_from_next_data(
+                valid_next_data("Browser update"),
+                wiki.WIKI_URL,
+            )
             with patch.object(
                 wiki,
-                "_fetch_wiki_html_browser",
-                return_value=(valid_wiki_html("Browser update"), wiki.WIKI_URL),
+                "_fetch_wiki_article_browser",
+                return_value=browser_article,
             ) as browser_fetch:
                 article = wiki.fetch_wiki_patch_note()
 
@@ -67,11 +98,23 @@ class WikiPatchNotesTests(unittest.TestCase):
         ]
         with patch.object(wiki.requests, "get", side_effect=responses):
             with patch.object(wiki.time, "sleep"):
-                with patch.object(wiki, "_fetch_wiki_html_browser") as browser_fetch:
+                with patch.object(wiki, "_fetch_wiki_article_browser") as browser_fetch:
                     article = wiki.fetch_wiki_patch_note()
 
         browser_fetch.assert_not_called()
         self.assertEqual(article["title"], "Recovered over HTTP")
+
+    def test_browser_extraction_retries_truncated_next_data(self):
+        page = FakePage([
+            '{"props":{"pageProps":{"preloadedArticle":{"title":"partial',
+            valid_next_data("Recovered browser JSON"),
+        ])
+
+        article = wiki._extract_browser_article(page, wiki.WIKI_URL)
+
+        self.assertEqual(article["title"], "Recovered browser JSON")
+        self.assertEqual(page.last_selector, "script#__NEXT_DATA__")
+        self.assertEqual(page.waits, [500])
 
     def test_failure_notifications_are_thresholded_and_cooled_down(self):
         state = {}
