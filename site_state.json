@@ -46,7 +46,7 @@
       "fortress:116:1789060250:ValorS": 1789053108,
       "fortress:116:1789060250:ValorS|YourBannyWrot": 1789055498
     },
-    "tg_update_offset": 848301172
+    "tg_update_offset": 848301173
   },
   "news": {
     "last_seen_id": 5010,
@@ -698,7 +698,7 @@
         "url": "https://t.me/scryde/5010",
         "created_at": 1789112556,
         "publish_after": 1789114056,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 501,
         "debug_preview_version": 5,
         "source": "telegram"
