@@ -48,8 +48,17 @@ jobs:
           cache: 'pip'
           cache-dependency-path: requirements-actions.txt
 
+      - name: Restore Playwright browser cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements-actions.txt') }}
+
       - name: Install Python dependencies
         run: pip install -r requirements-actions.txt
+
+      - name: Install Playwright Chromium
+        run: python -m playwright install chromium
 
       - name: Ensure state file exists
         run: |
@@ -57,11 +66,11 @@ jobs:
             echo '{}' > site_state.json
           fi
 
-      - name: Run pending queue regression tests
+      - name: Run news regression tests
         env:
           TG_TOKEN: test
           TG_CHAT: test
-        run: python -m unittest -v test_pending_news_queue.py
+        run: python -m unittest -v test_pending_news_queue.py test_wiki_patch_notes.py
 
       - name: Run news check
         env:
