@@ -19,9 +19,10 @@ list_active_runs() {
       --jq '[.[] | select(.status == "queued" or .status == "in_progress" or .status == "waiting" or .status == "requested" or .status == "pending")] | length' 2>&1)"; then
       printf '%s' "$output"
       return 0
+    else
+      rc=$?
     fi
 
-    rc=$?
     echo "WARN: gh run list failed for $workflow (attempt $attempt/$GH_RETRIES, rc=$rc): $output" >&2
     if (( attempt < GH_RETRIES )); then
       sleep $((attempt * 2))
@@ -38,9 +39,10 @@ dispatch_once() {
   if output="$(gh workflow run "$workflow" --repo "$REPO" --ref "$REF" 2>&1)"; then
     [[ -n "$output" ]] && echo "$output"
     return 0
+  else
+    rc=$?
   fi
 
-  rc=$?
   echo "WARN: gh workflow run failed for $workflow (rc=$rc): $output" >&2
   return "$rc"
 }
