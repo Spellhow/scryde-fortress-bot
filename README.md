@@ -72,3 +72,16 @@ python github_runner.py
 
 - `config.py` is intentionally excluded from git because it contains server-local secrets.
 - The old CentOS 7 server is not used for browser automation because Playwright crashes there.
+
+## Watchdog / failure alerts
+
+The VPS `scryde-news-dispatch.timer` is the dead-man dispatcher for GitHub Actions. Its watchdog now:
+
+- ignores GitHub Actions runs that remain `queued` / `in_progress` / `waiting` / `requested` / `pending` for more than 20 minutes instead of letting a zombie run block the bot forever;
+- treats either News Bot or Siege Bot having no successful run for 30 minutes as an incident;
+- keeps incident state under `/var/lib/scryde-fortress-watchdog`, rate-limits repeat alerts to once per 6 hours, and sends one recovery message after both workflows become healthy again;
+- exits non-zero while unhealthy so the systemd service itself is visibly failed instead of reporting a false success.
+
+For VPS-side Telegram alerts, create `/etc/scryde-fortress-watchdog.env` (root-readable only) with `SCRYDE_TG_TOKEN` and `SCRYDE_TG_CHAT`. The systemd unit loads this file optionally, so dispatching still works if it is absent. GitHub Actions also sends a Telegram debug notification on workflow failures using the repository `TG_TOKEN` / `TG_CHAT_DEBUG` secrets.
+
+The VPS watchdog is intentionally independent of the code inside GitHub Actions: if a workflow never starts, the VPS can still detect the missing heartbeat and dispatch again.

@@ -7,4 +7,5 @@ Wants=network-online.target
 Type=oneshot
 WorkingDirectory=/opt/scryde-fortress-bot-work
 Environment=GH_CONFIG_DIR=/opt/sentinelx-cloud-core/.config/gh
+EnvironmentFile=-/etc/scryde-fortress-watchdog.env
 ExecStart=/opt/scryde-fortress-bot-work/ops/dispatch_news_watchdog.sh

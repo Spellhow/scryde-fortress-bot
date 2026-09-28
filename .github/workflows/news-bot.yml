@@ -115,3 +115,21 @@ jobs:
           git commit -m "chore: update fortress bot state"
           git pull --rebase origin master
           git push
+
+      - name: Notify Telegram about workflow failure
+        if: ${{ failure() }}
+        shell: bash
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [[ -z "$TG_TOKEN" || -z "$TG_CHAT_DEBUG" ]]; then
+            echo "Telegram failure notification is not configured"
+            exit 0
+          fi
+          text="🚨 Scryde News Bot workflow failed — $RUN_URL"
+          curl -fsS --retry 2 --retry-delay 2 \
+            --data-urlencode "chat_id=$TG_CHAT_DEBUG" \
+            --data-urlencode "text=$text" \
+            "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" >/dev/null || true
