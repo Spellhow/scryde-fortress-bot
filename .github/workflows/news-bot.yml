@@ -70,7 +70,7 @@ jobs:
         env:
           TG_TOKEN: test
           TG_CHAT: test
-        run: python -m unittest -v test_pending_news_queue.py test_wiki_patch_notes.py
+        run: python -m unittest -v test_dispatch_watchdog.py test_pending_news_queue.py test_wiki_patch_notes.py
 
       - name: Run news check
         env:
