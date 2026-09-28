@@ -45,7 +45,7 @@
     "last_alerts": {
       "fortress:116:1789153401:LibrarianS": 1789150303
     },
-    "tg_update_offset": 848301174
+    "tg_update_offset": 848301176
   },
   "news": {
     "last_seen_id": 5053,
@@ -685,7 +685,7 @@
         "url": "https://t.me/scryde/5049",
         "created_at": 1790589158,
         "publish_after": 1790590658,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 508,
         "debug_preview_version": 5,
         "source": "telegram"
@@ -697,7 +697,7 @@
         "url": "https://t.me/scryde/5053",
         "created_at": 1790589175,
         "publish_after": 1790590675,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 509,
         "debug_preview_version": 5,
         "source": "telegram"
