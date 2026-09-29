@@ -84,6 +84,8 @@ BACKOFF_MINUTES_ON_CHALLENGE = int(os.environ.get("BACKOFF_MINUTES_ON_CHALLENGE"
 SITE_ERROR_NOTIFY_AFTER = 2
 FORTRESS_ANTIBOT_RETRIES = int(os.environ.get("FORTRESS_ANTIBOT_RETRIES", "1"))
 CASTLE_ANTIBOT_RETRIES = int(os.environ.get("CASTLE_ANTIBOT_RETRIES", "1"))
+LOSS_CONFIRM_POLLS = max(2, int(os.environ.get("LOSS_CONFIRM_POLLS", "2")))
+FORTRESS_LOSS_SIEGE_WINDOW_SEC = max(0, int(os.environ.get("FORTRESS_LOSS_SIEGE_WINDOW_SEC", "3900")))
 DEBUG_SCRYDE_FETCH = os.environ.get("DEBUG_SCRYDE_FETCH", "false").lower() == "true"
 SIEGE_DIAG_DIR = os.environ.get("SIEGE_DIAG_DIR", "siege_diagnostics")
 GAME_TZ = ZoneInfo("Europe/Kyiv")
@@ -1766,6 +1768,10 @@ def default_object_state():
         "notified_lost": False,
         "siege_first_notify": 0,
         "notified_reminder": False,
+        "loss_guard_until": 0,
+        "loss_candidate_owner": None,
+        "loss_candidate_count": 0,
+        "loss_candidate_since": 0,
     }
 
 
@@ -1816,9 +1822,17 @@ def process_defence(state_section, items, obj_key, page_url):
         s["id"] = fort_id
         s["owner_image"] = (our.get("owner") or {}).get("image")
         s["notified_lost"] = False
+        s["loss_candidate_owner"] = None
+        s["loss_candidate_count"] = 0
+        s["loss_candidate_since"] = 0
 
         if attackers and siege_at:
             now = int(time.time())
+            if obj_key == "fortress":
+                s["loss_guard_until"] = max(
+                    int(s.get("loss_guard_until") or 0),
+                    int(siege_at) + FORTRESS_LOSS_SIEGE_WINDOW_SEC,
+                )
             attackers_str = ", ".join(attackers)
             siege_time_str = format_time(siege_at)
             alert_key = build_siege_alert_key(obj_key, fort_id, siege_at, attackers)
@@ -1907,6 +1921,7 @@ def process_defence(state_section, items, obj_key, page_url):
             s["notified_reminder"] = False
         processed.append((our, s, bool(attackers and siege_at)))
 
+    now = int(time.time())
     for fort_key, s in list(tracked.items()):
         if fort_key in current_ids:
             continue
@@ -1916,8 +1931,42 @@ def process_defence(state_section, items, obj_key, page_url):
             if our_old:
                 new_owner = our_old.get("owner")
                 new_owner_name = "NPC (без власника)" if new_owner is None else new_owner.get("name", "невідомо")
+                owner_key = "__npc__" if new_owner is None else "clan:{}".format(new_owner_name)
             else:
                 new_owner_name = "невідомо"
+                owner_key = "__missing__"
+
+            if s.get("loss_candidate_owner") == owner_key:
+                s["loss_candidate_count"] = int(s.get("loss_candidate_count") or 0) + 1
+            else:
+                s["loss_candidate_owner"] = owner_key
+                s["loss_candidate_count"] = 1
+                s["loss_candidate_since"] = now
+
+            guard_until = int(s.get("loss_guard_until") or 0)
+            if owner_key == "__npc__" and obj_key == "fortress" and now < guard_until:
+                log(
+                    "{} loss pending for {}: transient NPC during siege window, confirm_after={} count={}".format(
+                        obj_key,
+                        fort_name,
+                        format_time(guard_until),
+                        s["loss_candidate_count"],
+                    )
+                )
+                continue
+
+            if int(s.get("loss_candidate_count") or 0) < LOSS_CONFIRM_POLLS:
+                log(
+                    "{} loss candidate for {}: owner={} confirmation {}/{}".format(
+                        obj_key,
+                        fort_name,
+                        new_owner_name,
+                        s["loss_candidate_count"],
+                        LOSS_CONFIRM_POLLS,
+                    )
+                )
+                continue
+
             msg = OBJECT_LOST.format(acc_lost=o["acc_lost"], nom=o["nom"], name=fort_name, owner=new_owner_name, url=page_url)
             image = build_event_card(obj_type, fort_name, "{} втрачено!".format(o["acc_lost"]), (80, 80, 80), new_owner_name, (our_old.get("owner") or {}).get("image") if our_old else None, [], None, page_url)
             if send_notification(msg, image):
@@ -1928,8 +1977,10 @@ def process_defence(state_section, items, obj_key, page_url):
                 s["last_siege_at"] = 0
                 s["siege_first_notify"] = 0
                 s["notified_reminder"] = False
-            else:
-                s["had"] = False
+                s["loss_guard_until"] = 0
+                s["loss_candidate_owner"] = None
+                s["loss_candidate_count"] = 0
+                s["loss_candidate_since"] = 0
 
     if processed:
         preferred = next((entry for entry in processed if entry[2]), processed[0])
