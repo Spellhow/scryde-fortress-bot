@@ -49,7 +49,7 @@
       "siege_at": 1790677825,
       "notified": true,
       "notified_at": 1790664697,
-      "notified_reminder": false,
+      "notified_reminder": true,
       "owner_icon": null
     }
   },
