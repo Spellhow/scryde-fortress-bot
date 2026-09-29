@@ -1916,8 +1916,21 @@ def process_defence(state_section, items, obj_key, page_url):
             if our_old:
                 new_owner = our_old.get("owner")
                 new_owner_name = "NPC (без власника)" if new_owner is None else new_owner.get("name", "невідомо")
+                live_evidence = {
+                    "id": our_old.get("id"),
+                    "name": our_old.get("name"),
+                    "owner": None if new_owner is None else new_owner.get("name"),
+                    "siege_at": our_old.get("siege_at", 0),
+                    "attackers": get_attackers(our_old),
+                }
             else:
                 new_owner_name = "невідомо"
+                live_evidence = {
+                    "id": s.get("id"),
+                    "name": fort_name,
+                    "row_missing": True,
+                }
+            log("ownership transition evidence {}".format(json.dumps(live_evidence, ensure_ascii=False, sort_keys=True)))
             msg = OBJECT_LOST.format(acc_lost=o["acc_lost"], nom=o["nom"], name=fort_name, owner=new_owner_name, url=page_url)
             image = build_event_card(obj_type, fort_name, "{} втрачено!".format(o["acc_lost"]), (80, 80, 80), new_owner_name, (our_old.get("owner") or {}).get("image") if our_old else None, [], None, page_url)
             if send_notification(msg, image):
@@ -2067,14 +2080,16 @@ def main():
 
     if RUN_SIEGES:
         fortress_items = safe_fetch_page_data(FORTRESS_URL, "fortresses", state)
+        if fortress_items is not None:
+            # Fortress alerts are time-sensitive. Process the live fortress row
+            # immediately instead of waiting for the independent castle fetch.
+            state["fortress"] = process_defence(state["fortress"], fortress_items, "fortress", FORTRESS_URL)
+            state["our_fortress_attacks"] = process_our_attacks(state.get("our_fortress_attacks", {}), fortress_items, "fortress", FORTRESS_URL)
+
         delay = random.randint(*BETWEEN_REQUESTS_DELAY)
         log("between requests delay {}s".format(delay))
         time.sleep(delay)
         castle_items = safe_fetch_page_data(CASTLE_URL, "castles", state)
-
-        if fortress_items is not None:
-            state["fortress"] = process_defence(state["fortress"], fortress_items, "fortress", FORTRESS_URL)
-            state["our_fortress_attacks"] = process_our_attacks(state.get("our_fortress_attacks", {}), fortress_items, "fortress", FORTRESS_URL)
 
         if castle_items is not None:
             state["castle"] = process_defence(state["castle"], castle_items, "castle", CASTLE_URL)
