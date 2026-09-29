@@ -61,7 +61,7 @@
       "fortress:116:1790629631:BARS": 1790626308,
       "fortress:116:1790659825:ValorS": 1790656895
     },
-    "tg_update_offset": 848301177
+    "tg_update_offset": 848301178
   },
   "news": {
     "last_seen_id": 5055,
@@ -713,7 +713,7 @@
         "url": "https://t.me/scryde/5055",
         "created_at": 1790673147,
         "publish_after": 1790674647,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 519,
         "debug_preview_version": 5,
         "source": "telegram"
