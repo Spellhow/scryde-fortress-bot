@@ -64,9 +64,8 @@
     "tg_update_offset": 848301177
   },
   "news": {
-    "last_seen_id": 5054,
+    "last_seen_id": 5055,
     "sent_ids": [
-      4772,
       4773,
       4774,
       4775,
@@ -115,21 +114,10 @@
       5016,
       5049,
       5053,
-      5054
+      5054,
+      5055
     ],
     "pending": [
-      {
-        "post_id": 4753,
-        "title": "Розпродаж Скарбів 💎",
-        "text": "Вирішили випустити обмежену серію бандлів, всередині яких ви знайдете Скарби Морських Глибин, Заточки Морського Конька та Destruction сувої на Ольфа. Набори будуть доступні всього три дні й більше ніколи не з'являться у продажу.<br/><br/>🎁 <b>Склад однаковий для всіх серверів:</b><br/><blockquote><b>Базовий:</b><br/>☀️ Скарб морських глибин (60 шт.)<br/>🐟 Благословенна заточка конька (150 шт.)<br/>🐟 Стародавня заточка конька (2 шт.)<br/>🏋️ Destruction OLF Enchant Scroll (3 шт.)<br/><br/><b>Покращений:</b><br/>☀️ Скарб морських глибин (120 шт.)<br/>🐟 Благословенна заточка конька (400 шт.)<br/>🐟 Стародавня заточка конька (5 шт.)<br/>🏋️ Destruction OLF Enchant Scroll (5 шт.)<br/><br/>🔥 <b>Елітний:</b><br/>☀️ Скарб морських глибин (300 шт.)<br/>🐟 Благословенна заточка конька (1 000 шт.)<br/>🐟 Стародавня заточка конька (20 шт.)<br/>🏋️ Destruction OLF Enchant Scroll (10 шт.)</blockquote><br/>❗️ <b>Важливо:</b> можна купити тільки один набір з трьох на одного персонажа. Вони зникнуть з продажу <b>13 липня о 23:59 (GMT+3)</b>.<br/><br/>🫴 <a href=\"https://a.scrd.to/treasure-bundles?from=social\"><b>Замовити Скарб</b></a>",
-        "url": "https://t.me/scryde/4753",
-        "created_at": 1783690843,
-        "publish_after": 1783692343,
-        "status": "cancelled",
-        "debug_message_id": 303,
-        "debug_preview_version": 5,
-        "source": "telegram"
-      },
       {
         "post_id": 4764,
         "title": "Що в скринях у Оріона? 🪙",
@@ -717,11 +705,23 @@
         "debug_message_id": 515,
         "debug_preview_version": 5,
         "source": "telegram"
+      },
+      {
+        "post_id": 5055,
+        "title": "Свіжий патч на Scryde X1000",
+        "text": "<b>🚨 Свіжий патч на Scryde X1000!</b><br/><br/>Головне з патчноуту:<br/>– Кланові вміння, що діють на клан, тепер поширюються і на союзників по альянсу.<br/>– Виправлено роботу Mutual Response: прибрано помилковий тригер від звичайних атак. Тепер лікування вихованця спрацьовує тільки при використанні Dimension Spiral.<br/>– Кількість схем бафів збільшено з 7 до 10.<br/>– Gear Score намиста Chaotic Necklace of Frintezza знижено з 500 до 300 і прирівняно до звичайного намиста Valakas.<br/>– У Chain Lightning дальність застосування знижена з 1000 до 500, а радіус — з 1200 до 200.<br/>– Баф Stronghold від захопленого стовпа більше не можна вкрасти. Предмети з позначкою Private більше не можна кристалізувати.<br/>– Виправлено помилку, через яку під дебафами Thorn Shot і Frozen Field можна було використовувати вміння переміщення Ghost Step, Crusher і Shadow Step Strike.<br/><br/>📜 <a href=\"https://a.scrd.to/patch-29.09\"><b>Повний патчноут</b></a>",
+        "url": "https://t.me/scryde/5055",
+        "created_at": 1790673147,
+        "publish_after": 1790674647,
+        "status": "pending",
+        "debug_message_id": 519,
+        "debug_preview_version": 5,
+        "source": "telegram"
       }
     ]
   },
   "forum_news": {
-    "last_seen_id": 1790672042,
+    "last_seen_id": 1790672581,
     "sent_ids": [
       2641914,
       2642269,
@@ -1175,6 +1175,6 @@
     "wiki_article_id": 86,
     "wiki_title": "Обновление от 25.08.26",
     "wiki_fingerprint": "7a0856b63568a938507c5de86f8788f4a8181bc6b806a15fc6b3e14620112baf",
-    "wiki_updated_at": 1790672042
+    "wiki_updated_at": 1790672581
   }
 }
