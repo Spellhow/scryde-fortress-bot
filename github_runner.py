@@ -85,7 +85,7 @@ SITE_ERROR_NOTIFY_AFTER = 2
 FORTRESS_ANTIBOT_RETRIES = int(os.environ.get("FORTRESS_ANTIBOT_RETRIES", "1"))
 CASTLE_ANTIBOT_RETRIES = int(os.environ.get("CASTLE_ANTIBOT_RETRIES", "1"))
 LOSS_CONFIRM_POLLS = max(2, int(os.environ.get("LOSS_CONFIRM_POLLS", "2")))
-FORTRESS_LOSS_SIEGE_WINDOW_SEC = max(0, int(os.environ.get("FORTRESS_LOSS_SIEGE_WINDOW_SEC", "3900")))
+FORTRESS_LOSS_SIEGE_WINDOW_SEC = max(0, int(os.environ.get("FORTRESS_LOSS_SIEGE_WINDOW_SEC", "3600")))
 DEBUG_SCRYDE_FETCH = os.environ.get("DEBUG_SCRYDE_FETCH", "false").lower() == "true"
 SIEGE_DIAG_DIR = os.environ.get("SIEGE_DIAG_DIR", "siege_diagnostics")
 GAME_TZ = ZoneInfo("Europe/Kyiv")
