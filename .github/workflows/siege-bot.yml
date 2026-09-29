@@ -57,6 +57,13 @@ jobs:
             echo '{}' > site_state.json
           fi
 
+      - name: Run siege regression tests
+        env:
+          TG_TOKEN: test
+          TG_CHAT: test
+          TG_CHAT_DEBUG: test
+        run: python -m unittest -v test_fortress_loss_signal.py test_dispatch_watchdog.py
+
       - name: Run siege check
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}

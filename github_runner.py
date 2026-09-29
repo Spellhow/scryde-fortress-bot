@@ -1913,23 +1913,27 @@ def process_defence(state_section, items, obj_key, page_url):
         if s["had"] and not s.get("notified_lost"):
             fort_name = s.get("name") or "невідомий об'єкт"
             our_old = next((f for f in items if f.get("id") == s.get("id")), None)
-            if our_old:
-                new_owner = our_old.get("owner")
-                new_owner_name = "NPC (без власника)" if new_owner is None else new_owner.get("name", "невідомо")
-                live_evidence = {
-                    "id": our_old.get("id"),
-                    "name": our_old.get("name"),
-                    "owner": None if new_owner is None else new_owner.get("name"),
-                    "siege_at": our_old.get("siege_at", 0),
-                    "attackers": get_attackers(our_old),
-                }
-            else:
-                new_owner_name = "невідомо"
-                live_evidence = {
-                    "id": s.get("id"),
-                    "name": fort_name,
-                    "row_missing": True,
-                }
+            if not our_old:
+                log(
+                    "ownership transition deferred {}".format(
+                        json.dumps(
+                            {"id": s.get("id"), "name": fort_name, "row_missing": True},
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        )
+                    )
+                )
+                continue
+
+            new_owner = our_old.get("owner")
+            new_owner_name = "NPC (без власника)" if new_owner is None else new_owner.get("name", "невідомо")
+            live_evidence = {
+                "id": our_old.get("id"),
+                "name": our_old.get("name"),
+                "owner": None if new_owner is None else new_owner.get("name"),
+                "siege_at": our_old.get("siege_at", 0),
+                "attackers": get_attackers(our_old),
+            }
             log("ownership transition evidence {}".format(json.dumps(live_evidence, ensure_ascii=False, sort_keys=True)))
             msg = OBJECT_LOST.format(acc_lost=o["acc_lost"], nom=o["nom"], name=fort_name, owner=new_owner_name, url=page_url)
             image = build_event_card(obj_type, fort_name, "{} втрачено!".format(o["acc_lost"]), (80, 80, 80), new_owner_name, (our_old.get("owner") or {}).get("image") if our_old else None, [], None, page_url)
