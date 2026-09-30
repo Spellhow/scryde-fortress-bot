@@ -50,9 +50,8 @@
     "tg_update_offset": 848301178
   },
   "news": {
-    "last_seen_id": 5059,
+    "last_seen_id": 5060,
     "sent_ids": [
-      4773,
       4774,
       4775,
       4776,
@@ -101,21 +100,10 @@
       5049,
       5053,
       5054,
-      5055
+      5055,
+      5060
     ],
     "pending": [
-      {
-        "post_id": 4764,
-        "title": "Що в скринях у Оріона? 🪙",
-        "text": "На карті є 20 скринь із випадковими скарбами: від Золотих Монет до нових лімітованих Бандлів з Літніми скарбами, або ж там може бути зовсім порожньо. Ваше завдання — обрати найпривабливішу та написати її номер у коментарях.\n\n<b>Детальні умови:</b>\n— підписатися на @scryderu та @SCRYDETALK\n— написати номер скрині в коментарях до <a href=\"https://t.me/scryderu\">оригінального поста</a>\n\n<i>Завтра о 20:00 оберуть 5 щасливчиків, відкриють їхні скрині та подарують вміст. Беруть участь усі сервери!</i>\n\n🫴 <a href=\"https://a.scrd.to/treasure-bundles?from=social\"><b>Замовити Скарб</b></a>",
-        "url": "https://t.me/scryde/4764",
-        "created_at": 1783785031,
-        "publish_after": 1783786531,
-        "status": "cancelled",
-        "debug_message_id": 306,
-        "debug_preview_version": 5,
-        "source": "telegram"
-      },
       {
         "post_id": 4767,
         "title": "Скарби майже все",
@@ -703,11 +691,23 @@
         "debug_message_id": 519,
         "debug_preview_version": 5,
         "source": "telegram"
+      },
+      {
+        "post_id": 5060,
+        "title": "Початок котября та Геловіну",
+        "text": "<b>Завтра починається котябр, Геловін усе ближче, а з ним і нові активності…</b> <i>Що ж підготував нам цей сезон?</i> 🎃",
+        "url": "https://t.me/scryde/5060",
+        "created_at": 1790778145,
+        "publish_after": 1790779645,
+        "status": "pending",
+        "debug_message_id": 523,
+        "debug_preview_version": 5,
+        "source": "telegram"
       }
     ]
   },
   "forum_news": {
-    "last_seen_id": 1790776981,
+    "last_seen_id": 1790777701,
     "sent_ids": [
       2641914,
       2642269,
@@ -1161,6 +1161,6 @@
     "wiki_article_id": 86,
     "wiki_title": "Обновление от 25.08.26",
     "wiki_fingerprint": "7a0856b63568a938507c5de86f8788f4a8181bc6b806a15fc6b3e14620112baf",
-    "wiki_updated_at": 1790776981
+    "wiki_updated_at": 1790777701
   }
 }
