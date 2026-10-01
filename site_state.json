@@ -1,6 +1,6 @@
 {
   "fortress": {
-    "had": true,
+    "had": false,
     "name": "Antharas Fortress",
     "id": 116,
     "last_attackers": [
@@ -17,21 +17,16 @@
     "notified_reminder": true,
     "objects": {
       "116": {
-        "had": true,
+        "had": false,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [
-          {
-            "name": "GnomOFF",
-            "image": "https://static-eu.scrydecdn.com/clan-images/d4279c4e25343fa790118fa3e38b2945-full.jpg"
-          }
-        ],
+        "last_attackers": [],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 1790861356,
-        "notified_siege": true,
-        "notified_lost": false,
-        "siege_first_notify": 1790853669,
-        "notified_reminder": true
+        "last_siege_at": 0,
+        "notified_siege": false,
+        "notified_lost": true,
+        "siege_first_notify": 0,
+        "notified_reminder": false
       }
     }
   },
@@ -48,7 +43,16 @@
     "notified_reminder": false,
     "objects": {}
   },
-  "our_fortress_attacks": {},
+  "our_fortress_attacks": {
+    "116": {
+      "name": "Antharas Fortress",
+      "siege_at": 1790879356,
+      "notified": true,
+      "notified_at": 1790863269,
+      "notified_reminder": false,
+      "owner_icon": "https://static-eu.scrydecdn.com/clan-images/d4279c4e25343fa790118fa3e38b2945-full.jpg"
+    }
+  },
   "our_castle_attacks": {},
   "meta": {
     "backoff_until": {},
