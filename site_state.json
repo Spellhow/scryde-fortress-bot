@@ -44,7 +44,7 @@
       "siege_at": 1791059577,
       "notified": true,
       "notified_at": 1791056454,
-      "notified_reminder": false,
+      "notified_reminder": true,
       "owner_icon": "https://static-eu.scrydecdn.com/clan-images/0d228cea1f9227dec3f925b540c80039-full.jpg"
     }
   },
