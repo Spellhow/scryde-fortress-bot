@@ -49,9 +49,8 @@
     "tg_update_offset": 848301178
   },
   "news": {
-    "last_seen_id": 5068,
+    "last_seen_id": 5069,
     "sent_ids": [
-      4774,
       4775,
       4776,
       4786,
@@ -100,21 +99,10 @@
       5053,
       5054,
       5055,
-      5060
+      5060,
+      5069
     ],
     "pending": [
-      {
-        "post_id": 4767,
-        "title": "Скарби майже все",
-        "text": "Уже завтра лімітована серія бандлів із <b>Скарбами Морських Глибин</b> зникне з продажу. Не проґавте останню можливість забрати ексклюзивні набори!\n\n🎁 <b>Склад однаковий для всіх серверів:</b>\n\n<b>Базовий:</b>\n☀️ Скарб морських глибин (60 шт.)\n🐟 Благословенна заточка коника (150 шт.)\n🐟 Стародавня заточка коника (2 шт.)\n🏋️ Destruction OLF Enchant Scroll (3 шт.)\n\n<b>Покращений:</b>\n☀️ Скарб морських глибин (120 шт.)\n🐟 Благословенна заточка коника (400 шт.)\n🐟 Стародавня заточка коника (5 шт.)\n🏋️ Destruction OLF Enchant Scroll (5 шт.)\n\n🔥 <b>Елітний:</b>\n☀️ Скарб морських глибин (300 шт.)\n🐟 Благословенна заточка коника (1 000 шт.)\n🐟 Стародавня заточка коника (20 шт.)\n🏋️ Destruction OLF Enchant Scroll (10 шт.)\n\n❗️ <b>Важливо:</b> можна купити тільки один набір з трьох на одного персонажа. Вони зникнуть з продажу <b>13 липня о 23:59 (GMT+3)</b>.\n\n🫴 <a href=\"https://a.scrd.to/treasure-bundles?from=social\"><b>Замовити Скарби</b></a>",
-        "url": "https://t.me/scryde/4767",
-        "created_at": 1783861829,
-        "publish_after": 1783863329,
-        "status": "cancelled",
-        "debug_message_id": 309,
-        "debug_preview_version": 5,
-        "source": "telegram"
-      },
       {
         "post_id": 4768,
         "title": "Амністія для заблокованих гравців",
@@ -702,11 +690,23 @@
         "debug_message_id": 523,
         "debug_preview_version": 5,
         "source": "telegram"
+      },
+      {
+        "post_id": 5069,
+        "title": "Скрайд тепер у смартфоні!",
+        "text": "Тепер стежити за новинами можна без Telegram та інших соцмереж у нашому офіційному додатку Scryde, який уже доступний в App Store та Google Play! 📱<br/><br/>Що доступно у додатку:<br/>• Важливі анонси та сповіщення про події<br/>• Календар подій та рейтинги гравців<br/>• 🎁 <b>Щотижневий промокод</b> для вашого персонажа<br/><br/>Завантажуйте за посиланнями:<br/>📱 <a href=\"https://apps.apple.com/app/scryde-game/id6798386072\">App Store</a><br/>📱 <a href=\"https://play.google.com/store/apps/details?id=game.scryde&amp;hl=ru\">Google Play</a>",
+        "url": "https://t.me/scryde/5069",
+        "created_at": 1791209569,
+        "publish_after": 1791211069,
+        "status": "pending",
+        "debug_message_id": 525,
+        "debug_preview_version": 5,
+        "source": "telegram"
       }
     ]
   },
   "forum_news": {
-    "last_seen_id": 1791208442,
+    "last_seen_id": 1791208981,
     "sent_ids": [
       2641914,
       2642269,
@@ -1160,6 +1160,6 @@
     "wiki_article_id": 86,
     "wiki_title": "Обновление от 25.08.26",
     "wiki_fingerprint": "7a0856b63568a938507c5de86f8788f4a8181bc6b806a15fc6b3e14620112baf",
-    "wiki_updated_at": 1791208442
+    "wiki_updated_at": 1791208981
   }
 }
