@@ -698,7 +698,7 @@
         "url": "https://t.me/scryde/5074",
         "created_at": 1791300749,
         "publish_after": 1791302249,
-        "status": "pending",
+        "status": "published",
         "debug_message_id": 530,
         "debug_preview_version": 5,
         "source": "telegram"
