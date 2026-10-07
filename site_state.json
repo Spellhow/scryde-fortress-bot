@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "ВЛАСТЬШИЗАМ",
+        "image": "https://static-eu.scrydecdn.com/clan-images/fd97c7592f579dc468fbfdc8e5ac1d95-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1791400064,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1791396655,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "ВЛАСТЬШИЗАМ",
+            "image": "https://static-eu.scrydecdn.com/clan-images/fd97c7592f579dc468fbfdc8e5ac1d95-full.jpg"
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1791400064,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1791396655,
         "notified_reminder": false
       }
     }
@@ -43,10 +53,10 @@
   "meta": {
     "backoff_until": {},
     "last_alerts": {
-      "fortress:116:1791313044:RAINBOW": 1791309670,
       "fortress:116:1791344125:DeathSpell": 1791340857,
       "fortress:116:1791362125:SpellhowFunClub": 1791355866,
-      "fortress:116:1791380125:SpellhowFunClub": 1791366670
+      "fortress:116:1791380125:SpellhowFunClub": 1791366670,
+      "fortress:116:1791400064:ВЛАСТЬШИЗАМ": 1791396655
     },
     "tg_update_offset": 848301179
   },
