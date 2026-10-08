@@ -48,7 +48,7 @@
       "fortress:116:1791380125:SpellhowFunClub": 1791366670,
       "fortress:116:1791400064:ВЛАСТЬШИЗАМ": 1791396655
     },
-    "tg_update_offset": 848301179
+    "tg_update_offset": 848301180
   },
   "news": {
     "last_seen_id": 5075,
@@ -700,7 +700,7 @@
         "url": "https://t.me/scryde/5075",
         "created_at": 1791447731,
         "publish_after": 1791449231,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 532,
         "debug_preview_version": 5,
         "source": "telegram"
