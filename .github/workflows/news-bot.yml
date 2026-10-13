@@ -16,6 +16,14 @@ on:
         description: 'Optional comma-separated forum post ids for Gemini forum test, e.g. 2617420'
         required: false
         default: ''
+      repair_source_post_id:
+        description: 'Manually repair a published news source post ID (requires channel message ID)'
+        required: false
+        default: ''
+      repair_channel_message_id:
+        description: 'Existing destination channel message ID to edit in place'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -85,6 +93,8 @@ jobs:
           NEWS_TARGET_CHAT: prod
           NEWS_TEST_POST_IDS: ${{ github.event.inputs.news_test_post_ids }}
           FORUM_TEST_POST_IDS: ${{ github.event.inputs.forum_test_post_ids }}
+          NEWS_REPAIR_SOURCE_POST_ID: ${{ github.event.inputs.repair_source_post_id }}
+          NEWS_REPAIR_MESSAGE_ID: ${{ github.event.inputs.repair_channel_message_id }}
           NEWS_APPROVE_DELAY_MIN: 25
           NEWS_PENDING_EXPIRE_HOURS: 24
           NEWS_AUTO_PUBLISH_GRACE_MIN: 30
@@ -100,8 +110,12 @@ jobs:
           STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 60
         run: |
-          python wiki_patch_notes.py
-          python github_runner.py
+          if [[ -n "$NEWS_REPAIR_SOURCE_POST_ID" ]]; then
+            python github_runner.py
+          else
+            python wiki_patch_notes.py
+            python github_runner.py
+          fi
 
       - name: Commit updated state
         id: persist_state

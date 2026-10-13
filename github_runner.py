@@ -117,8 +117,29 @@ def compact_text(value, limit=500):
     return value
 
 
+def repair_news_layout(body):
+    """Restore list layout when Gemini returns an entire formatted post on one line."""
+    body = (body or "").strip()
+    # Only repair collapsed multi-item lists; preserve existing authored line breaks.
+    inline_bullets = re.findall(r"[ \t]+[–•][ \t]+", body)
+    has_list_heading = bool(re.search(r":[ \t]*(?:</b>)?[ \t]+[–•][ \t]+", body))
+    if body.count("\n") >= 2 or len(inline_bullets) < 2 or (len(inline_bullets) == 2 and not has_list_heading):
+        return body
+
+    body = re.sub(r"[ \t]+(?=[–•][ \t]+)", "\n", body)
+    body = re.sub(r"(?<!\n)\n([–•][ \t]+)", r"\n\n\1", body, count=1)
+    body = re.sub(
+        r"(?<=[.!?])[ \t]+(?=(?:[^\w<\s]{1,4}[ \t]+)?<b>[^<\n]{2,100}:</b>\n\n[–•])",
+        "\n\n",
+        body,
+    )
+    body = re.sub(r"^([^\n]{0,8}<b>[^<\n]{3,100}</b>)[ \t]+(?=\S)", r"\1\n\n", body, count=1)
+    body = re.sub(r"[ \t]+(?=[📜🔗][ \t]+<a\b)", "\n\n", body)
+    return re.sub(r"\n{3,}", "\n\n", body)
+
+
 def build_news_post_message(title, body, url):
-    content = (body or "").strip() or (title or "Новина Scryde x1000")
+    content = repair_news_layout(body) or (title or "Новина Scryde x1000")
     return "{}\n\n{}".format(content, url or "")
 
 
@@ -647,6 +668,8 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
         "<tg-spoiler> використовуй рідко і тільки для коротких необов'язкових деталей/сюрпризів; не ховай під спойлером важливі умови, половину поста, патчноут або основний зміст.\n"
         "Якщо є промокод, обов'язково загорни його в <code>.\n"
         "Збережи красиве форматування по контексту: абзаци, списки, акценти. Не вигадуй інформацію, якої нема в оригіналі.\n"
+        "ОБОВ’ЯЗКОВО став переноси рядків: відділи заголовок, вступ, назву секції, кожен пункт списку та фінальне посилання.\n"
+        "Не стискай списки в один довгий рядок через тире. В JSON полі text передавай переноси рядків як \\n.\n"
         "Додай трохи доречних емодзі, але без спаму: зазвичай 2-5 на весь пост.\n"
         "Якщо пост довгий і має другорядний блок, наприклад 'Новий клієнт', 'додатково', 'на інші сервери завтра', зазвичай не ховай його під спойлер: або залиш стисло відкритим текстом, або прибери як шум.\n"
         "Якщо новина важлива і структурована, намагайся зберігати оригінальну логіку секцій: короткий вступ, основний патчноут, другорядні деталі нижче.\n"
@@ -939,7 +962,7 @@ def process_feed_posts(state, posts, state_key, source_label):
             continue
 
         title = (rewritten.get("title") or "Новина Scryde x1000").strip()
-        body = (rewritten.get("text") or "").strip()
+        body = repair_news_layout(rewritten.get("text"))
         if not body:
             continue
         title_prefix = "⚙️ " if source_label == "forum" else ""
@@ -2062,8 +2085,39 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
     return attack_state
 
 
+def repair_published_news(state, source_post_id, channel_message_id):
+    """Repair one existing Telegram post using its persisted source content."""
+    for state_key in ("news", "forum_news"):
+        for item in state.get(state_key, {}).get("pending", []):
+            if int(item.get("post_id") or 0) != source_post_id:
+                continue
+            if item.get("status") != "published":
+                raise ValueError("source post is not published")
+            body = item.get("text", "")
+            repaired = repair_news_layout(body)
+            if repaired == body:
+                raise ValueError("source news layout is already normalized")
+            outgoing = build_news_post_message(item.get("title"), repaired, item.get("url"))
+            if not edit_telegram_message_text(TG_CHAT, channel_message_id, outgoing):
+                raise RuntimeError("Telegram rejected news message edit")
+            item["text"] = repaired
+            log("repaired published {} source {} in channel message {}".format(
+                state_key, source_post_id, channel_message_id
+            ))
+            return
+    raise ValueError("published source post not found in persisted state")
+
+
 def main():
     state = load_state()
+    repair_source_id = int(os.getenv("NEWS_REPAIR_SOURCE_POST_ID") or 0)
+    repair_message_id = int(os.getenv("NEWS_REPAIR_MESSAGE_ID") or 0)
+    if repair_source_id or repair_message_id:
+        if not (repair_source_id > 0 and repair_message_id > 0):
+            raise ValueError("both NEWS_REPAIR_SOURCE_POST_ID and NEWS_REPAIR_MESSAGE_ID are required")
+        repair_published_news(state, repair_source_id, repair_message_id)
+        save_state(state)
+        return
     if GEMINI_MODEL_POLICY_REJECTED:
         log(
             "ignored disallowed GEMINI_MODEL={} and forced free-tier model {}".format(
