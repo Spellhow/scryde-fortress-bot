@@ -3,24 +3,34 @@
     "had": true,
     "name": "Antharas Fortress",
     "id": 116,
-    "last_attackers": [],
+    "last_attackers": [
+      {
+        "name": "GodZ",
+        "image": "https://static-eu.scrydecdn.com/clan-images/7c4bfa3404b0ad78634ce50c88422711-full.jpg"
+      }
+    ],
     "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-    "last_siege_at": 0,
-    "notified_siege": false,
+    "last_siege_at": 1792193042,
+    "notified_siege": true,
     "notified_lost": false,
-    "siege_first_notify": 0,
+    "siege_first_notify": 1792185065,
     "notified_reminder": false,
     "objects": {
       "116": {
         "had": true,
         "name": "Antharas Fortress",
         "id": 116,
-        "last_attackers": [],
+        "last_attackers": [
+          {
+            "name": "GodZ",
+            "image": "https://static-eu.scrydecdn.com/clan-images/7c4bfa3404b0ad78634ce50c88422711-full.jpg"
+          }
+        ],
         "owner_image": "https://static-eu.scrydecdn.com/clan-images/66bd0f4e6f7c6ff79b966405097b14ff-full.jpg",
-        "last_siege_at": 0,
-        "notified_siege": false,
+        "last_siege_at": 1792193042,
+        "notified_siege": true,
         "notified_lost": false,
-        "siege_first_notify": 0,
+        "siege_first_notify": 1792185065,
         "notified_reminder": false
       }
     }
@@ -44,7 +54,8 @@
     "backoff_until": {},
     "last_alerts": {
       "fortress:116:1792157042:Glamour": 1792153856,
-      "fortress:116:1792175042:Огород": 1792171856
+      "fortress:116:1792175042:Огород": 1792171856,
+      "fortress:116:1792193042:GodZ": 1792185065
     },
     "tg_update_offset": 848301181
   },
