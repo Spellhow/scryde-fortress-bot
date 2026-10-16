@@ -48,7 +48,7 @@
       "fortress:116:1792068042:Triniti": 1792065066,
       "fortress:116:1792086042:GodZ": 1792081254
     },
-    "tg_update_offset": 848301180
+    "tg_update_offset": 848301181
   },
   "news": {
     "last_seen_id": 5091,
@@ -700,7 +700,7 @@
         "url": "https://t.me/scryde/5091",
         "created_at": 1792148555,
         "publish_after": 1792150055,
-        "status": "pending",
+        "status": "cancelled",
         "debug_message_id": 549,
         "debug_preview_version": 5,
         "source": "telegram"
