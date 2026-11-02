@@ -21,6 +21,7 @@ from messages import (
     SIEGE_CANCELLED,
     OBJECT_LOST,
     WE_ATTACK,
+    WE_ATTACK_REMINDER,
     WE_CANCELLED,
     DEBUG_CYCLE_ERROR,
     DEBUG_SITE_DOWN,
@@ -48,16 +49,27 @@ TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT = os.environ["TG_CHAT"]
 TG_CHAT_DEBUG = os.environ.get("TG_CHAT_DEBUG", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
+# Fail-closed model policy: these exact stable model IDs are explicitly listed
+# by Google with free input/output on the Gemini API Free Tier (2026-08-25).
+FREE_TIER_GEMINI_MODELS = {
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+}
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
+_requested_gemini_model = os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL).strip()
+GEMINI_MODEL = _requested_gemini_model if _requested_gemini_model in FREE_TIER_GEMINI_MODELS else DEFAULT_GEMINI_MODEL
+GEMINI_MODEL_POLICY_REJECTED = _requested_gemini_model if _requested_gemini_model not in FREE_TIER_GEMINI_MODELS else ""
 GEMINI_THINKING_LEVEL = "HIGH"
 NEWS_TARGET_CHAT = os.environ.get("NEWS_TARGET_CHAT", "debug")
 NEWS_TEST_POST_IDS = [int(x) for x in os.environ.get("NEWS_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 FORUM_TEST_POST_IDS = [int(x) for x in os.environ.get("FORUM_TEST_POST_IDS", "").split(",") if x.strip().isdigit()]
 NEWS_APPROVE_DELAY_MIN = int(os.environ.get("NEWS_APPROVE_DELAY_MIN", "25"))
 NEWS_PENDING_EXPIRE_HOURS = int(os.environ.get("NEWS_PENDING_EXPIRE_HOURS", "24"))
+NEWS_AUTO_PUBLISH_GRACE_MIN = int(os.environ.get("NEWS_AUTO_PUBLISH_GRACE_MIN", "30"))
 NEWS_MAX_NEW_POSTS_PER_RUN = int(os.environ.get("NEWS_MAX_NEW_POSTS_PER_RUN", "5"))
 NEWS_DEBUG_PREVIEW_VERSION = 5
 RUN_NEWS = os.environ.get("RUN_NEWS", "true").lower() == "true"
+RUN_NEWS_QUEUE = os.environ.get("RUN_NEWS_QUEUE", "false").lower() == "true"
 RUN_SIEGES = os.environ.get("RUN_SIEGES", "true").lower() == "true"
 OUR_CLAN = os.environ.get("OUR_CLAN", "BSOE")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://ua.scryde.game/rankings/1000/fortresses")
@@ -110,8 +122,29 @@ def normalize_visible_newline_escapes(text):
     return re.sub(r"\\+(?:r\\n|n|r)", "\n", str(text or ""))
 
 
+def repair_news_layout(body):
+    """Restore list layout when Gemini returns an entire formatted post on one line."""
+    body = (body or "").strip()
+    # Only repair collapsed multi-item lists; preserve existing authored line breaks.
+    inline_bullets = re.findall(r"[ \t]+[–•][ \t]+", body)
+    has_list_heading = bool(re.search(r":[ \t]*(?:</b>)?[ \t]+[–•][ \t]+", body))
+    if body.count("\n") >= 2 or len(inline_bullets) < 2 or (len(inline_bullets) == 2 and not has_list_heading):
+        return body
+
+    body = re.sub(r"[ \t]+(?=[–•][ \t]+)", "\n", body)
+    body = re.sub(r"(?<!\n)\n([–•][ \t]+)", r"\n\n\1", body, count=1)
+    body = re.sub(
+        r"(?<=[.!?])[ \t]+(?=(?:[^\w<\s]{1,4}[ \t]+)?<b>[^<\n]{2,100}:</b>\n\n[–•])",
+        "\n\n",
+        body,
+    )
+    body = re.sub(r"^([^\n]{0,8}<b>[^<\n]{3,100}</b>)[ \t]+(?=\S)", r"\1\n\n", body, count=1)
+    body = re.sub(r"[ \t]+(?=[📜🔗][ \t]+<a\b)", "\n\n", body)
+    return re.sub(r"\n{3,}", "\n\n", body)
+
+
 def build_news_post_message(title, body, url):
-    content = (body or "").strip() or (title or "Новина Scryde x1000")
+    content = repair_news_layout(body) or (title or "Новина Scryde x1000")
     return "{}\n\n{}".format(content, url or "")
 
 
@@ -348,7 +381,7 @@ def parse_gemini_news_response(text_out):
     return normalize_gemini_news_json(json.loads(extract_json_object(text_out)))
 
 
-def repair_gemini_news_json(client, broken_json, parse_error):
+def repair_gemini_news_json(client, broken_json, parse_error, model_name=None):
     broken_json = (broken_json or "").strip()
     if not broken_json:
         return None
@@ -360,7 +393,7 @@ def repair_gemini_news_json(client, broken_json, parse_error):
         "Помилка парсингу: {}\n\n{}"
     ).format(parse_error, broken_json[:12000])
     response = client.models.generate_content(
-        model=GEMINI_MODEL,
+        model=model_name or GEMINI_MODEL,
         contents=[types.Content(role="user", parts=[types.Part.from_text(text=repair_prompt)])],
         config=types.GenerateContentConfig(
             temperature=0,
@@ -611,8 +644,14 @@ def fetch_forum_posts(forum_url):
     return posts
 
 
-def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, source_html=None):
+def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, source_html=None, model_override=None, retries_override=None):
     if not GEMINI_API_KEY:
+        return None
+
+    model_name = (model_override or GEMINI_MODEL).strip()
+    if model_name not in FREE_TIER_GEMINI_MODELS:
+        log("blocked non-free-tier Gemini model: {}".format(model_name))
+        send_debug(DEBUG_CYCLE_ERROR.format(error="blocked non-free-tier Gemini model: {}".format(model_name)))
         return None
 
     pending_context_json = json.dumps(pending_context or [], ensure_ascii=False)
@@ -636,6 +675,8 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
         "<tg-spoiler> використовуй рідко і тільки для коротких необов'язкових деталей/сюрпризів; не ховай під спойлером важливі умови, половину поста, патчноут або основний зміст.\n"
         "Якщо є промокод, обов'язково загорни його в <code>.\n"
         "Збережи красиве форматування по контексту: абзаци, списки, акценти. Не вигадуй інформацію, якої нема в оригіналі.\n"
+        "ОБОВ’ЯЗКОВО став переноси рядків: відділи заголовок, вступ, назву секції, кожен пункт списку та фінальне посилання.\n"
+        "Не стискай списки в один довгий рядок через тире. В JSON полі text передавай переноси рядків як \\n.\n"
         "Додай трохи доречних емодзі, але без спаму: зазвичай 2-5 на весь пост.\n"
         "Якщо пост довгий і має другорядний блок, наприклад 'Новий клієнт', 'додатково', 'на інші сервери завтра', зазвичай не ховай його під спойлер: або залиш стисло відкритим текстом, або прибери як шум.\n"
         "Якщо новина важлива і структурована, намагайся зберігати оригінальну логіку секцій: короткий вступ, основний патчноут, другорядні деталі нижче.\n"
@@ -667,11 +708,11 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
     )
 
     client = genai.Client(api_key=GEMINI_API_KEY)
-    retries = 4
+    retries = int(retries_override or 4)
     for attempt in range(1, retries + 1):
         try:
             response = client.models.generate_content(
-                model=GEMINI_MODEL,
+                model=model_name,
                 contents=[
                     types.Content(
                         role="user",
@@ -697,7 +738,7 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
             except json.JSONDecodeError as parse_exc:
                 log("gemini returned invalid json attempt {}/{}: {}; raw_prefix={!r}".format(attempt, retries, parse_exc, (text_out or "")[:300]))
                 try:
-                    repaired = repair_gemini_news_json(client, text_out, parse_exc)
+                    repaired = repair_gemini_news_json(client, text_out, parse_exc, model_name=model_name)
                     if repaired:
                         log("gemini json repaired attempt {}/{}".format(attempt, retries))
                         return repaired
@@ -707,7 +748,7 @@ def gemini_rewrite_x1000_news(text, source_label=None, pending_context=None, sou
         except Exception as exc:
             err = str(exc)
             transient = any(token in err for token in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "Timeout", "timed out"))
-            log("gemini rewrite failed attempt {}/{}: {}".format(attempt, retries, err))
+            log("gemini rewrite failed model={} attempt {}/{}: {}".format(model_name, attempt, retries, err))
             if attempt < retries:
                 time.sleep(min(20, attempt * 4))
                 continue
@@ -928,7 +969,7 @@ def process_feed_posts(state, posts, state_key, source_label):
             continue
 
         title = (rewritten.get("title") or "Новина Scryde x1000").strip()
-        body = (rewritten.get("text") or "").strip()
+        body = repair_news_layout(rewritten.get("text"))
         if not body:
             continue
         title_prefix = "⚙️ " if source_label == "forum" else ""
@@ -992,10 +1033,39 @@ def process_pending_news_queue(state):
                 item["status"] = "expired"
                 log("{} pending post {} expired without publishing".format(state_key, item.get("post_id")))
                 continue
+            publish_after = int(item.get("publish_after", 0) or 0)
+            if now < publish_after:
+                continue
+
             if NEWS_TARGET_CHAT == "debug":
                 continue
-            if now < int(item.get("publish_after", 0) or 0):
-                continue
+
+            # GitHub Actions schedules are best-effort. A missed scheduler run
+            # must not turn a 25-minute moderation delay into permission to
+            # publish stale, time-sensitive news hours later. Explicitly
+            # approved items are exempt because the owner chose to publish.
+            if status == "pending" and publish_after > 0:
+                latest_auto_publish_at = publish_after + max(0, NEWS_AUTO_PUBLISH_GRACE_MIN) * 60
+                if now > latest_auto_publish_at:
+                    late_minutes = max(0, (now - publish_after) // 60)
+                    item["status"] = "expired"
+                    log(
+                        "{} pending post {} expired: auto-publish window missed by {} min".format(
+                            state_key,
+                            item.get("post_id"),
+                            late_minutes,
+                        )
+                    )
+                    if item.get("debug_message_id") and TG_CHAT_DEBUG:
+                        edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
+                        send_telegram(
+                            "<b>[NEWS EXPIRED]</b> <b>{}</b>\n\n"
+                            "Автопублікацію пропущено: воркер запізнився на {} хв.\n{}".format(
+                                item.get("title", "Новина"), late_minutes, item.get("url", "")
+                            ),
+                            chat_id=TG_CHAT_DEBUG,
+                        )
+                    continue
 
             message = build_news_post_message(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
             sent_ok = send_telegram(message, chat_id=TG_CHAT)
@@ -1873,11 +1943,28 @@ def process_defence(state_section, items, obj_key, page_url):
         if s["had"] and not s.get("notified_lost"):
             fort_name = s.get("name") or "невідомий об'єкт"
             our_old = next((f for f in items if f.get("id") == s.get("id")), None)
-            if our_old:
-                new_owner = our_old.get("owner")
-                new_owner_name = "NPC (без власника)" if new_owner is None else new_owner.get("name", "невідомо")
-            else:
-                new_owner_name = "невідомо"
+            if not our_old:
+                log(
+                    "ownership transition deferred {}".format(
+                        json.dumps(
+                            {"id": s.get("id"), "name": fort_name, "row_missing": True},
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        )
+                    )
+                )
+                continue
+
+            new_owner = our_old.get("owner")
+            new_owner_name = "NPC (без власника)" if new_owner is None else new_owner.get("name", "невідомо")
+            live_evidence = {
+                "id": our_old.get("id"),
+                "name": our_old.get("name"),
+                "owner": None if new_owner is None else new_owner.get("name"),
+                "siege_at": our_old.get("siege_at", 0),
+                "attackers": get_attackers(our_old),
+            }
+            log("ownership transition evidence {}".format(json.dumps(live_evidence, ensure_ascii=False, sort_keys=True)))
             msg = OBJECT_LOST.format(acc_lost=o["acc_lost"], nom=o["nom"], name=fort_name, owner=new_owner_name, url=page_url)
             image = build_event_card(obj_type, fort_name, "{} втрачено!".format(o["acc_lost"]), (80, 80, 80), new_owner_name, (our_old.get("owner") or {}).get("image") if our_old else None, [], None, page_url)
             if send_notification(msg, image):
@@ -1907,6 +1994,7 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
     o = OBJ[obj_key]
     obj_type = o["acc"]
     current_ids = set()
+    now = int(time.time())
 
     for item in items:
         attackers = get_attackers(item)
@@ -1926,7 +2014,8 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
         current_ids.add(obj_id)
         prev = attack_state.get(obj_id, {})
 
-        if not prev.get("notified") or siege_at != prev.get("siege_at", 0):
+        is_new_siege = (not prev.get("notified")) or siege_at != prev.get("siege_at", 0)
+        if is_new_siege:
             msg = WE_ATTACK.format(acc=o["acc"], nom=o["nom"], name=obj_name, owner=owner_name, time=siege_time_str, url=page_url)
             image = build_event_card(
                 obj_type,
@@ -1944,11 +2033,47 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
                     "name": obj_name,
                     "siege_at": siege_at,
                     "notified": True,
+                    "notified_at": now,
+                    "notified_reminder": False,
                     "owner_icon": (item.get("owner") or {}).get("image"),
                 }
+                prev = attack_state[obj_id]
+        else:
+            secs_left = siege_at - now if siege_at else 0
+            mins_left = max(0, secs_left // 60)
+            notified_at = int(prev.get("notified_at", 0) or 0)
+            enough_gap = (not notified_at) or (now - notified_at >= 30 * 60)
+            should_remind = (
+                prev.get("notified")
+                and not prev.get("notified_reminder")
+                and 0 < secs_left <= 30 * 60
+                and enough_gap
+            )
+            if should_remind:
+                msg = WE_ATTACK_REMINDER.format(
+                    mins=max(1, mins_left),
+                    nom=o["nom"],
+                    name=obj_name,
+                    owner=owner_name,
+                    time=siege_time_str,
+                    url=page_url,
+                )
+                image = build_event_card(
+                    obj_type,
+                    obj_name,
+                    "Наша облога через {} хв!".format(max(1, mins_left)),
+                    C_GOLD,
+                    owner_name,
+                    (item.get("owner") or {}).get("image"),
+                    attacker_rows,
+                    siege_time_str,
+                    page_url,
+                )
+                if send_notification(msg, image):
+                    prev["notified_reminder"] = True
+                    attack_state[obj_id] = prev
 
     disappeared = set(attack_state.keys()) - current_ids
-    now = int(time.time())
     to_delete = []
     for obj_id in disappeared:
         prev = attack_state[obj_id]
@@ -1967,8 +2092,46 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
     return attack_state
 
 
+def repair_published_news(state, source_post_id, channel_message_id):
+    """Repair one existing Telegram post using its persisted source content."""
+    for state_key in ("news", "forum_news"):
+        for item in state.get(state_key, {}).get("pending", []):
+            if int(item.get("post_id") or 0) != source_post_id:
+                continue
+            if item.get("status") != "published":
+                raise ValueError("source post is not published")
+            body = item.get("text", "")
+            repaired = repair_news_layout(body)
+            if repaired == body:
+                raise ValueError("source news layout is already normalized")
+            outgoing = build_news_post_message(item.get("title"), repaired, item.get("url"))
+            if not edit_telegram_message_text(TG_CHAT, channel_message_id, outgoing):
+                raise RuntimeError("Telegram rejected news message edit")
+            item["text"] = repaired
+            log("repaired published {} source {} in channel message {}".format(
+                state_key, source_post_id, channel_message_id
+            ))
+            return
+    raise ValueError("published source post not found in persisted state")
+
+
 def main():
     state = load_state()
+    repair_source_id = int(os.getenv("NEWS_REPAIR_SOURCE_POST_ID") or 0)
+    repair_message_id = int(os.getenv("NEWS_REPAIR_MESSAGE_ID") or 0)
+    if repair_source_id or repair_message_id:
+        if not (repair_source_id > 0 and repair_message_id > 0):
+            raise ValueError("both NEWS_REPAIR_SOURCE_POST_ID and NEWS_REPAIR_MESSAGE_ID are required")
+        repair_published_news(state, repair_source_id, repair_message_id)
+        save_state(state)
+        return
+    if GEMINI_MODEL_POLICY_REJECTED:
+        log(
+            "ignored disallowed GEMINI_MODEL={} and forced free-tier model {}".format(
+                GEMINI_MODEL_POLICY_REJECTED,
+                GEMINI_MODEL,
+            )
+        )
     process_callback_updates(state)
     state["fortress"]["_root_state"] = state
     state["castle"]["_root_state"] = state
@@ -1976,18 +2139,22 @@ def main():
         process_channel_news(state)
         process_forum_news(state)
         refresh_pending_debug_previews(state)
+
+    if RUN_NEWS or RUN_NEWS_QUEUE:
         process_pending_news_queue(state)
 
     if RUN_SIEGES:
         fortress_items = safe_fetch_page_data(FORTRESS_URL, "fortresses", state)
+        if fortress_items is not None:
+            # Fortress alerts are time-sensitive. Process the live fortress row
+            # immediately instead of waiting for the independent castle fetch.
+            state["fortress"] = process_defence(state["fortress"], fortress_items, "fortress", FORTRESS_URL)
+            state["our_fortress_attacks"] = process_our_attacks(state.get("our_fortress_attacks", {}), fortress_items, "fortress", FORTRESS_URL)
+
         delay = random.randint(*BETWEEN_REQUESTS_DELAY)
         log("between requests delay {}s".format(delay))
         time.sleep(delay)
         castle_items = safe_fetch_page_data(CASTLE_URL, "castles", state)
-
-        if fortress_items is not None:
-            state["fortress"] = process_defence(state["fortress"], fortress_items, "fortress", FORTRESS_URL)
-            state["our_fortress_attacks"] = process_our_attacks(state.get("our_fortress_attacks", {}), fortress_items, "fortress", FORTRESS_URL)
 
         if castle_items is not None:
             state["castle"] = process_defence(state["castle"], castle_items, "castle", CASTLE_URL)

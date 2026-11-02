@@ -4,6 +4,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
+  # VPS systemd timer dispatches this workflow every 10 minutes.
+  # GitHub scheduled workflows are intentionally disabled because they can be delayed for hours.
   workflow_dispatch:
     inputs:
       news_test_post_ids:
@@ -14,12 +16,20 @@ on:
         description: 'Optional comma-separated forum post ids for Gemini forum test, e.g. 2617420'
         required: false
         default: ''
+      repair_source_post_id:
+        description: 'Manually repair a published news source post ID (requires channel message ID)'
+        required: false
+        default: ''
+      repair_channel_message_id:
+        description: 'Existing destination channel message ID to edit in place'
+        required: false
+        default: ''
 
 permissions:
   contents: write
 
 concurrency:
-  group: news-bot
+  group: scryde-state
   cancel-in-progress: false
 
 jobs:
@@ -46,8 +56,17 @@ jobs:
           cache: 'pip'
           cache-dependency-path: requirements-actions.txt
 
+      - name: Restore Playwright browser cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements-actions.txt') }}
+
       - name: Install Python dependencies
         run: pip install -r requirements-actions.txt
+
+      - name: Install Playwright Chromium
+        run: python -m playwright install chromium
 
       - name: Ensure state file exists
         run: |
@@ -55,17 +74,30 @@ jobs:
             echo '{}' > site_state.json
           fi
 
+      - name: Run news regression tests
+        env:
+          TG_TOKEN: test
+          TG_CHAT: test
+        run: python -m unittest -v test_dispatch_watchdog.py test_pending_news_queue.py test_wiki_patch_notes.py
+
       - name: Run news check
+        id: news_check
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
           TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Exact stable model IDs that Google currently lists as Free Tier ($0 input/output).
+          GEMINI_MODEL: gemini-3.5-flash-lite
+          SCRYDE_WIKI_GEMINI_FALLBACK_MODEL: gemini-3.1-flash-lite
           NEWS_TARGET_CHAT: prod
           NEWS_TEST_POST_IDS: ${{ github.event.inputs.news_test_post_ids }}
           FORUM_TEST_POST_IDS: ${{ github.event.inputs.forum_test_post_ids }}
+          NEWS_REPAIR_SOURCE_POST_ID: ${{ github.event.inputs.repair_source_post_id }}
+          NEWS_REPAIR_MESSAGE_ID: ${{ github.event.inputs.repair_channel_message_id }}
           NEWS_APPROVE_DELAY_MIN: 25
           NEWS_PENDING_EXPIRE_HOURS: 24
+          NEWS_AUTO_PUBLISH_GRACE_MIN: 30
           NEWS_MAX_NEW_POSTS_PER_RUN: 5
           RUN_NEWS: true
           RUN_SIEGES: false
@@ -73,21 +105,46 @@ jobs:
           FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
           CASTLE_URL: https://ua.scryde.game/rankings/1000/castles
           SCRYDE_CHANNEL_URL: https://t.me/s/scryde
+          SCRYDE_WIKI_UPDATES_URL: https://ru.scryde.game/wiki/articles/patch-notes/updates
           SCRYDE_FORUM_UPDATES_URL: https://board.scryde.net/threads/obnovlenija.30694/latest
           STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 60
-        run: python github_runner.py
+        run: |
+          if [[ -n "$NEWS_REPAIR_SOURCE_POST_ID" ]]; then
+            python github_runner.py
+          else
+            python wiki_patch_notes.py
+            python github_runner.py
+          fi
 
       - name: Commit updated state
+        id: persist_state
         shell: bash
+        run: ./ops/persist_state_with_retry.sh site_state.json
+
+      - name: Notify Telegram about workflow failure
+        if: ${{ failure() }}
+        shell: bash
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CHECK_OUTCOME: ${{ steps.news_check.outcome }}
+          PERSIST_OUTCOME: ${{ steps.persist_state.outcome }}
         run: |
-          if git diff --quiet -- site_state.json; then
-            echo "No state changes"
+          if [[ -z "$TG_TOKEN" || -z "$TG_CHAT_DEBUG" ]]; then
+            echo "Telegram failure notification is not configured"
             exit 0
           fi
-          git add site_state.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: update fortress bot state"
-          git pull --rebase origin master
-          git push
+          if [[ "$CHECK_OUTCOME" == "failure" ]]; then
+            reason="monitoring check failed"
+          elif [[ "$PERSIST_OUTCOME" == "failure" ]]; then
+            reason="state persistence failed after retries"
+          else
+            reason="workflow infrastructure failed"
+          fi
+          text="🚨 Scryde News Bot: $reason — $RUN_URL"
+          curl -fsS --retry 2 --retry-delay 2 \
+            --data-urlencode "chat_id=$TG_CHAT_DEBUG" \
+            --data-urlencode "text=$text" \
+            "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" >/dev/null || true
