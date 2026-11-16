@@ -1,0 +1,33 @@
+"""Offline contract tests for opt-in schedules and current dispatch compatibility."""
+
+from pathlib import Path
+import unittest
+
+
+WORKFLOW_DIR = Path(__file__).resolve().parent / ".github" / "workflows"
+
+
+class WorkflowContractTests(unittest.TestCase):
+    def test_scheduled_runs_are_opt_in(self):
+        for name in ("news-bot.yml", "siege-bot.yml"):
+            with self.subTest(workflow=name):
+                content = (WORKFLOW_DIR / name).read_text(encoding="utf-8")
+                self.assertIn("workflow_dispatch:", content)
+                self.assertIn("schedule:", content)
+                self.assertIn("GITHUB_ONLY_MODE", content)
+                self.assertIn(
+                    "github.event_name != 'schedule' || vars.GITHUB_ONLY_MODE == 'true'",
+                    content,
+                )
+                self.assertIn("group: scryde-state", content)
+                self.assertIn("cancel-in-progress: false", content)
+
+    def test_news_and_siege_have_distinct_10_minute_offsets(self):
+        news = (WORKFLOW_DIR / "news-bot.yml").read_text(encoding="utf-8")
+        siege = (WORKFLOW_DIR / "siege-bot.yml").read_text(encoding="utf-8")
+        self.assertIn("7,17,27,37,47,57 * * * *", news)
+        self.assertIn("2,12,22,32,42,52 * * * *", siege)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -4,6 +4,9 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
+  # Opt-in GitHub-only scheduling; skipped unless GITHUB_ONLY_MODE=true.
+  schedule:
+    - cron: '2,12,22,32,42,52 * * * *'
   # VPS systemd timer dispatches this workflow every 10 minutes, staggered from News Bot.
   # GitHub scheduled workflows are intentionally disabled because they can be delayed for hours.
   workflow_dispatch:
@@ -17,6 +20,7 @@ concurrency:
 
 jobs:
   run-bot:
+    if: github.event_name != 'schedule' || vars.GITHUB_ONLY_MODE == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 12
 
