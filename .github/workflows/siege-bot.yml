@@ -8,7 +8,7 @@ on:
   schedule:
     - cron: '2,12,22,32,42,52 * * * *'
   # VPS systemd timer dispatches this workflow every 10 minutes, staggered from News Bot.
-  # GitHub scheduled workflows are intentionally disabled because they can be delayed for hours.
+  # Opt-in GitHub cron may run late; use VPS dispatch for time-sensitive production alerts.
   workflow_dispatch:
 
 permissions:
@@ -80,10 +80,10 @@ jobs:
           RUN_NEWS: false
           RUN_NEWS_QUEUE: true
           RUN_SIEGES: true
-          OUR_CLAN: BSOE
-          FORTRESS_URL: https://ua.scryde.game/rankings/1000/fortresses
-          CASTLE_URL: https://ua.scryde.game/rankings/1000/castles
-          SCRYDE_CHANNEL_URL: https://t.me/s/scryde
+          OUR_CLAN: ${{ vars.OUR_CLAN || 'BSOE' }}
+          FORTRESS_URL: ${{ vars.FORTRESS_URL || 'https://ua.scryde.game/rankings/1000/fortresses' }}
+          CASTLE_URL: ${{ vars.CASTLE_URL || 'https://ua.scryde.game/rankings/1000/castles' }}
+          SCRYDE_CHANNEL_URL: ${{ vars.SCRYDE_CHANNEL_URL || 'https://t.me/s/scryde' }}
           SCRYDE_FORUM_UPDATES_URL: https://board.scryde.net/threads/obnovlenija.30694/page-19?from=game-news
           STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 0

@@ -1811,8 +1811,10 @@ def process_defence(state_section, items, obj_key, page_url):
 
     our_items = []
     for item in items:
+        if not isinstance(item, dict):
+            continue
         owner = item.get("owner")
-        if owner and owner.get("name") == OUR_CLAN:
+        if owner and isinstance(owner, dict) and owner.get("name") == OUR_CLAN:
             our_items.append(item)
 
     current_ids = set()
@@ -1990,6 +1992,8 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
     now = int(time.time())
 
     for item in items:
+        if not isinstance(item, dict):
+            continue
         attackers = get_attackers(item)
         if OUR_CLAN not in attackers:
             continue
