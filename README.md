@@ -1,87 +1,79 @@
 # Scryde Fortress Bot
 
-Telegram bot for clan `BSOE` that monitors Scryde fortresses and castles and sends alerts about:
+A Python Telegram bot for the **BSOE clan on Scryde Lineage 2 x1000**. It monitors fortress and castle sieges and publishes relevant Ukrainian-language server news.
 
-- attacks on our fortress or castle
-- our clan attacks on enemy objects
-- cancelled sieges
-- lost ownership
+**Now:** Scryde x1000 + Telegram. **Planned:** configurable Lineage 2 servers, community feeds, multiple destinations and Discord. See [the implementation plan](docs/IMPLEMENTATION_PLAN.md) for agent-ready milestones and honest status.
 
-The original CentOS 7 deployment is kept for reference, but the active deployment target for this repository is **GitHub Actions** with **Playwright**.
+## What it does
 
-## Why GitHub Actions
+- Alerts when our fortress/castle is attacked, when our clan attacks another object, when a siege is cancelled, or ownership is lost.
+- Sends pre-siege reminders and optional visual cards with castle/fortress and clan information.
+- Reads Scryde rankings with Playwright Chromium (the site requires JavaScript/anti-bot handling).
+- Reads [Scryde Telegram news](https://t.me/s/scryde) and Scryde Wiki patch notes, filters for x1000 and prepares Ukrainian Telegram posts with Gemini.
+- Offers a Telegram debug/moderation queue with approval, delay, expiration and duplicate suppression.
+- Tracks previous state in `site_state.json` and commits updates after workflow runs.
+- Uses a separate VPS watchdog to detect missing GitHub Actions results in the existing production deployment.
 
-The target site now uses JS anti-bot protection, so plain `requests` is no longer enough.
-GitHub Actions provides a fresh Ubuntu runner where Playwright works reliably without touching the production server that also hosts other projects.
+This is a **community information bot**, not a game client or character automation tool.
 
-## Repository secrets
+## Deployment options
 
-Configure these repository secrets before enabling the workflow:
+| Mode | Status | Server needed? | Scheduling |
+| --- | --- | --- | --- |
+| GitHub-only | Experimental opt-in | No | GitHub Actions cron; can be delayed |
+| Existing VPS dispatcher | Active BSOE deployment | Yes, only for dispatch/watchdog | External `workflow_dispatch` every ~10 min |
 
-- `TG_TOKEN`
-- `TG_CHAT`
-- `TG_CHAT_DEBUG`
-- `GEMINI_API_KEY`
-- optional: `GEMINI_MODEL` (default `gemini-3.5-flash-lite`; only the hardcoded Free-Tier allowlist is accepted)
+The repository uses **two** workflows: [News Bot](.github/workflows/news-bot.yml) and [Siege Bot](.github/workflows/siege-bot.yml). Both can be run manually from GitHub Actions. The optional GitHub-only schedule is disabled by default and enabled with the repository variable `GITHUB_ONLY_MODE=true`. Do **not** enable that variable for the existing VPS dispatcher unless the scheduling paths are coordinated.
 
-## Workflow behavior
+See [GitHub-first deployment notes](docs/GITHUB_FIRST.md) for a test setup, required secrets, current limitations and offline checks. A fully validated template-based onboarding flow is a planned milestone, not yet a released feature.
 
-- News workflow runs every 10 minutes; siege monitoring has its own workflow
-- Uses Playwright Chromium to load:
-  - `https://ua.scryde.game/rankings/1000/fortresses`
-  - `https://ua.scryde.game/rankings/1000/castles`
-- Fetches `https://t.me/s/scryde` and rewrites only `x1000`-relevant news through Gemini
-- Fetches `https://ru.scryde.game/wiki/articles/patch-notes/updates` through the stable page HTML and parses `__NEXT_DATA__` (no hardcoded Next.js build id)
-- Reuses the existing `forum_news` moderation queue for Wiki patch notes so old pending/state stays compatible
-- Deduplicates the reused Wiki URL by title + normalized content fingerprint; same-title edits refresh a pending item but do not create a second post after the update is already final
-- Gemini calls are fail-closed to stable Free-Tier model IDs only: `gemini-3.5-flash-lite` (primary) and `gemini-3.1-flash-lite` (Wiki fallback); any other `GEMINI_MODEL` value is ignored/blocked
-- To guarantee zero billing, `GEMINI_API_KEY` must belong to a Gemini API **Free Tier** project with billing disabled; model selection alone cannot turn a Paid Tier project into free usage
-- Blocks heavy asset types like images, fonts, media, and stylesheets
-- Stores bot state in `site_state.json`
-- Commits updated `site_state.json` back to the repository automatically
-- Applies a 60-minute backoff if the site returns anti-bot challenge without usable data
+## Required repository secrets
 
-## Main files
+- `TG_TOKEN`: Telegram bot token.
+- `TG_CHAT`: destination chat ID.
+- `TG_CHAT_DEBUG`: moderation/debug chat ID.
+- `GEMINI_API_KEY`: Gemini API credential used for news filtering and rewriting.
 
-- `.github/workflows/fortress-bot.yml` — scheduled GitHub Actions workflow
-- `github_runner.py` — main GitHub Actions runner and Telegram/Gemini moderation pipeline
-- `wiki_patch_notes.py` — adapter for the new Scryde Wiki patch-note page
-- `messages.py` — notification templates
-- `card_builder.py` — optional Telegram image card generator
-- `site_state.json` — persisted state between workflow runs
+Secrets belong in GitHub Settings → Secrets and variables → Actions. Do not put them in `config.py`, `site_state.json`, workflow YAML or issue comments. Existing default world/clan settings currently live in the workflows and environment variables. See [configuration details](docs/GITHUB_FIRST.md).
 
-## Local dry run
+The news rewrite allows only specific Gemini model IDs in the current runner, but **zero billing also requires a Google AI Free Tier project with billing disabled**. Model allowlisting alone cannot guarantee zero charges.
 
-Use this only on a machine where Playwright works:
+## How the existing jobs work
+
+1. The dispatcher (VPS or opted-in GitHub cron) starts a workflow on a fresh Ubuntu runner.
+2. The runner installs Python dependencies and Chromium and fetches the configured Scryde pages.
+3. It compares the current siege/news data with persisted state and sends applicable Telegram messages.
+4. The news flow uses moderation and delay rules. Past the configured auto-publish window, stale news expires.
+5. The workflow persists any changed `site_state.json`. Both workflows share the `scryde-state` concurrency group.
+6. Failures are reported to the debug chat; the VPS watchdog provides independent missing-run monitoring in the legacy deployment.
+
+GitHub Actions scheduling is best effort. If immediate or guaranteed siege alerts are required, use a more dependable always-on dispatcher. Publishing status and event times must not be presented as guaranteed live data.
+
+## Code map
+
+- `github_runner.py`: current GitHub Actions runner; siege/news processing and Telegram moderation.
+- `wiki_patch_notes.py`: Wiki article adapter and pending-news state integration.
+- `messages.py`: Ukrainian text templates.
+- `card_builder.py`: optional illustrated notifications.
+- `fortress_bot.py`: legacy standalone runtime kept for reference/compatibility.
+- `ops/dispatch_news_watchdog.sh` and `ops/systemd/`: legacy VPS dispatch/watchdog.
+- `.github/workflows/news-bot.yml`, `.github/workflows/siege-bot.yml`: production jobs.
+- `.github/workflows/ci.yml`: offline code regression tests for pull requests.
+- `site_state.json`: **currently public, versioned state**; migration is planned. Do not add personal or private data.
+
+## Development
 
 ```bash
-pip install -r requirements-actions.txt
-python -m playwright install chromium
+python -m pip install -r requirements-actions.txt
+TG_TOKEN=test TG_CHAT=test TG_CHAT_DEBUG=test python -m unittest -v \
+  test_dispatch_watchdog test_fortress_loss_signal test_pending_news_queue \
+  test_wiki_patch_notes test_workflow_contract
 ```
 
-Set env vars:
+Offline tests do not need a Chromium browser download. To run the actual monitoring on a compatible machine, install the browser with `python -m playwright install chromium`. The old CentOS 7 server is incompatible with the Playwright driver used by this project.
 
-```bash
-TG_TOKEN=...
-TG_CHAT=...
-TG_CHAT_DEBUG=...
-python github_runner.py
-```
+## Contributing, roadmap and safety
 
-## Notes
+Implementation tasks and acceptance gates: [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md). Coding agents should read [AGENTS.md](AGENTS.md) first. See [SECURITY.md](SECURITY.md) before sharing logs, secrets or custom news sources.
 
-- `config.py` is intentionally excluded from git because it contains server-local secrets.
-- The old CentOS 7 server is not used for browser automation because Playwright crashes there.
-
-## Watchdog / failure alerts
-
-The VPS `scryde-news-dispatch.timer` is the dead-man dispatcher for GitHub Actions. Its watchdog now:
-
-- ignores GitHub Actions runs that remain `queued` / `in_progress` / `waiting` / `requested` / `pending` for more than 20 minutes instead of letting a zombie run block the bot forever;
-- treats either News Bot or Siege Bot having no successful run for 30 minutes as an incident;
-- keeps incident state under `/var/lib/scryde-fortress-watchdog`, rate-limits repeat alerts to once per 6 hours, and sends one recovery message after both workflows become healthy again;
-- exits non-zero while unhealthy so the systemd service itself is visibly failed instead of reporting a false success.
-
-For VPS-side Telegram alerts, create `/etc/scryde-fortress-watchdog.env` (root-readable only) with `SCRYDE_TG_TOKEN` and `SCRYDE_TG_CHAT`. The systemd unit loads this file optionally, so dispatching still works if it is absent. GitHub Actions also sends a Telegram debug notification on workflow failures using the repository `TG_TOKEN` / `TG_CHAT_DEBUG` secrets.
-
-The VPS watchdog is intentionally independent of the code inside GitHub Actions: if a workflow never starts, the VPS can still detect the missing heartbeat and dispatch again.
+Code is published under the [MIT license](LICENSE). Third-party dependencies and media retain their own licenses.

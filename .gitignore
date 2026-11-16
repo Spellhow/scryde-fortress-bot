@@ -12,3 +12,9 @@ test.py
 fortress_bot.service
 run-fortress-bot.sh
 playwright/.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.bak.*
+.env.*
+!.env.example

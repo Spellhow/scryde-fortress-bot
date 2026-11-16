@@ -1,0 +1,150 @@
+# Implementation plan: Scryde Fortress Bot to Lineage 2 Community Bot
+
+Status: **approved direction; implementation in progress**. Owner decision 2026-11-16: **GitHub-only first**. This document is a task contract for coding agents, not a statement that future features already exist.
+
+## Outcome and non-negotiables
+An admin can deploy the bot from a GitHub template, configure a Lineage 2 world/clan, connect an authorized Telegram destination and receive tracked events and filtered news. The standard install does not need VPS, Docker, a database service, a web UI or paid AI. More reliable dispatch and Discord interactions may use optional self-hosting.
+
+Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan attacks, cancellation/loss, early reminders, news and wiki adaptation, Gemini-assisted Ukrainian posts, moderation queue, deduplication, debug alerts, and watchdog. Existing deployments must have a migration/rollback path.
+
+**Constraints**
+- GitHub Actions scheduled jobs can be delayed or disabled after inactivity. Never promise precise alert times in GitHub-only mode.
+- Differentiate the **game network**, **world/server**, **chronicle/ruleset**, **clan** and **destination**.
+- Pull news/HTML/API once per source, normalize once, then fan out to subscribed destinations. Keep platform formatting separate.
+- No unapproved scraping, private-channel reading, SSRF, exposed tokens, or uncontrolled external URLs.
+- AI must not invent castle owners, raid boss kills, times, rewards, patch contents or promo codes. Failed AI must not silently publish fabricated content.
+- Explicitly classify event provenance: `observed`, `scheduled`, `manual`; note confidence and timestamp.
+- Budget GitHub Actions minutes, API calls, and Git commit churn; avoid extra hosted CI for docs-only changes.
+- No breaking changes to the original BSOE installation without tests and owner-aware rollout.
+
+## Milestone tracker
+
+### P0-BASE: baseline audit and repository hygiene (first PR)
+- [x] Set truthful GitHub description and topics (the current Scryde bot, not unreleased Discord features).
+- [x] Add this agent plan and `AGENTS.md`.
+- [x] Correct README: two workflows, VPS dispatcher today, opt-in GitHub-only schedule, existing functionality and limitations.
+- [x] Add offline pull-request CI (no browser install, network scraping or real credentials).
+- [x] Add explicit security and contributor/deployment notes.
+- [x] Add a license for repository code; audit dependency and asset licenses before redistributing bundled artifacts.
+- [x] Add workflow-contract regression test for schedule gating.
+- [ ] Audit tracked files and *history* for credentials and personal identifiers, document verified findings; if historical leakage is found, rotate first and coordinate removal.
+- [ ] Add fixtures for malformed siege rows, multi-object ownership, re-registrations, pending news expiry and idempotent publication; reuse existing tests.
+- [ ] Inventory configuration globals in `github_runner.py`, `fortress_bot.py` and both workflows; separate operational secrets from reusable defaults.
+- [ ] Verify production workflows after merging without enabling extra scheduled jobs for the VPS deployment.
+
+**P0 acceptance**: offline suite passes, runtime workflows have unchanged behavior unless `GITHUB_ONLY_MODE=true`, no credentials leaked by new files, README matches reality, and the BSOE owner confirms existing dispatch continues. Do not mark P0 complete just because this first PR merges.
+
+### P0-SCHEDULE: self-contained GitHub-only starter
+- [x] Add an *opt-in* 10-minute scheduled trigger to both existing workflows. A repository variable `GITHUB_ONLY_MODE=true` enables jobs for schedule events, while manual/VPS `workflow_dispatch` remains available.
+- [ ] Exercise the opt-in path in a disposable/test repository and verify news/siege dedupe, secrets, workflow permissions, state persistence and recovery.
+- [ ] Document fork/template ownership, GitHub Actions enabling and repository secrets/variables; test the full setup with a clean account.
+- [ ] Decide template vs fork (prefer template) and mark repository as template only after end-to-end onboarding is verified.
+- [ ] Investigate Git state persistence alternatives without adding required paid hosting. Start with existing serialized, committed `site_state.json` compatibility; do not delete it early.
+- [ ] Document default cadence, latency, rate limits and forked GitHub Actions quotas.
+
+**Acceptance**: fresh repository + secrets + target channel + variable + enabled Actions produces a safe test alert with no VPS; defaults leave original production unchanged.
+
+### P1-CORE: event model and Scryde adapter
+- [ ] Define typed `GameNetwork`, `World`, `Clan`, `Source`, `Event`, `Destination`, `Subscription` and provenance fields.
+- [ ] Build `SourceAdapter` interface: `fetch/parse/normalize`, source IDs, revision and normalized event keys.
+- [ ] Extract Scryde fortress/castle parsing to a module without changing event semantics. Freeze representative HTML/JSON fixtures first.
+- [ ] Extract news ingestion, Gemini formatting, moderation, template rendering and delivery into tested modules.
+- [ ] Enforce shared source polling, publication idempotency per destination and safe retries.
+- [ ] Add source-level backoff/health and check that anti-bot challenges do not imply a lost fortress.
+- [ ] Compare old and new Scryde outputs in read-only shadow mode on representative cases before cutover.
+
+**Acceptance**: identical BSOE event decisions and news publication policies, full offline tests, rollback by configuration.
+
+### P1-STATE: durable state without required hosting
+- [ ] Define a versioned state schema and atomic update strategy for GitHub-only (workflow concurrency + conflict-aware commits).
+- [ ] Preserve sent/pending IDs and latest observed ownership through migration; include migration and rollback scripts with dry-run mode.
+- [ ] Prevent repeated AI processing and repeated sends across retries, crashes and concurrent deliveries.
+- [ ] For optional always-on mode, offer SQLite with a single writer; later PostgreSQL only when operationally justified.
+- [ ] Eliminate per-run Git commits when there are no changes; measure Git churn and retention.
+- [ ] Review public state for potentially sensitive user-specific data *before* adding multi-tenancy. Never commit private community configuration.
+
+**Acceptance**: old state imports deterministically, no duplicate posts under replay tests, GitHub-only needs no external DB.
+
+### P1-CONFIG: multi-community Telegram setup
+- [ ] Introduce a versioned YAML/JSON config and validate network/world/chronicle/clan independently.
+- [ ] Support multiple Telegram destinations with isolated subscription filters and correct publication permissions.
+- [ ] Add CLI / Telegram admin-only setup as a progressive enhancement; keep a secrets-based starter setup.
+- [ ] Persist destination settings outside public state unless explicitly intended; do not commit secrets or private chat IDs.
+- [ ] Test a two-destination scenario: one source fetch, different language/filter, independent message IDs and failure handling.
+- [ ] Document least-privilege bot permissions and admin authorization.
+
+**Acceptance**: two test channels with different settings receive only relevant events; a failed destination cannot block another.
+
+### P1-L2DEX: first additional server
+- [ ] Verify current official/public castle ranking schema and rules of use; capture fixtures and timestamps.
+- [ ] Implement an independent L2Dex adapter for world-specific owner/attacker/siege data where actually exposed.
+- [ ] Compare observed owner changes, missing rows and unreliable data against truth; classify uncertain events.
+- [ ] Add tests for changed HTML, empty rankings and server/world mixups.
+- [ ] Ship as opt-in, shadow first; only enable outgoing alerts after real-world verification.
+
+**Acceptance**: Scryde and L2Dex run from same event core, no Scryde regressions, no fabricated siege signals.
+
+### P1-FEEDS: configurable sources
+- [ ] Add RSS/Atom then public Telegram feeds, JSON APIs and permitted HTML pages.
+- [ ] Require URL allowlisting/SSRF prevention (private IP, redirects, DNS rebinding, credentials in URLs, local file/metadata services).
+- [ ] Cap response size, timeouts, browser usage and per-domain rate.
+- [ ] Provide source preview, formatting, provenance, per-server filtering and moderation choices.
+- [ ] Treat private Telegram and Discord sources as authenticated opt-in integrations, never scrape inaccessible data.
+- [ ] Cache normalized article content and optional translations across recipients.
+
+**Acceptance**: a new public source can be configured without changing Python source; a malicious source URL is rejected.
+
+### P1-DISCORD: optional publisher and commands
+- [ ] Separate Discord webhook delivery from interactive Discord bot commands.
+- [ ] Add channel mapping, role mention controls, permission checks, embeds and slash commands.
+- [ ] Reuse the event store and source poller; do not run another crawler per destination.
+- [ ] Document that full-time interactive commands may require an always-on process; GitHub-only supports scheduled outbound notifications first.
+- [ ] Test missing permissions, rate limits, duplicates and stale token behavior.
+
+**Acceptance**: identical event semantics in Telegram and Discord, with platform-native formatting.
+
+### P1-TIMERS / P2-EXTENSIONS
+- [ ] Support `observed` boss respawns only with trustworthy source data; otherwise manual/scheduled timers are explicitly labeled.
+- [ ] Optional reminders before sieges and recurring events with world timezone conversion.
+- [ ] Evaluate L2 Reborn, Masterwork/MW Essence, Warland and Asterios only after validating legal and technical access to live data.
+- [ ] Add optional read-only status dashboards and server/community analytics after the core is stable.
+- [ ] Prepare template release, screenshots, example configs, issue templates, contributor guide and tagged version.
+
+## Proposed boundaries (incremental, not a mandatory mass rename)
+```text
+app/
+  core/          # event models, schedule, dedupe, subscriptions
+  sources/       # scryde, l2dex, RSS, public Telegram, JSON/HTML
+  services/      # siege, news, timers, optional Gemini
+  publishers/    # Telegram, Discord
+  moderation/    # per-destination pending/approve/reject
+  storage/       # GitHub state strategy, optional SQLite
+  config/        # validation and migrations
+tests/           # recorded fixtures and offline regression
+docs/            # installation, security, supported sources
+.github/workflows/
+```
+Avoid moving all existing files at once. Introduce adapters and compat shims per PR.
+
+## PR execution order and gates
+1. **PR-01** P0 baseline docs/security/CI/opt-in schedule (no live behavior change by default).
+2. **PR-02** P0 security/history audit and baseline regression fixtures; compatibility-safe configuration extraction.
+3. **PR-03** GitHub-only clean-install test and template onboarding.
+4. **PR-04** Event model + Scryde parser adapter (shadow mode).
+5. **PR-05** Versioned state and dedupe migration.
+6. **PR-06** Multi-destination Telegram subscriptions.
+7. **PR-07** L2Dex adapter (opt-in).
+8. **PR-08** Configurable feeds with validation.
+9. **PR-09** Discord outbound; interactive commands as a separate optional subtask.
+10. **PR-10+** raid/event timers, more validated worlds, presentation and release.
+
+Every PR must document: *why now, touched runtime paths, before/after behavior, deterministic tests, resources/Actions-minute impact, safe rollout, rollback, accepted limitations*. Keep checklist items unchecked until verified on a relevant target.
+
+## Risk register
+- **Schedule delay**: GitHub cron is best effort; expose freshness timestamp and warn on time-critical alerts.
+- **Git write contention**: `site_state.json` is shared by workflows. Preserve concurrency and optimistic state update.
+- **AI cost**: free-tier model IDs alone cannot guarantee zero billing; key must be from free-tier project without billing.
+- **Source volatility**: anti-bot/HTML changes need parser diagnostics, fixtures and backoff, never synthetic events.
+- **Multi-tenancy**: avoid leaking private chat IDs, user preferences or chat content to a public repo.
+- **Discord**: outbound webhooks suit GitHub-only; interactive commands need an always-on gateway or supported interaction endpoint.
+- **License/attribution**: audit third-party fonts/images/dependencies before redistributing any bundled copyrighted assets.

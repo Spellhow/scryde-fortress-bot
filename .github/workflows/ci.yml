@@ -1,0 +1,42 @@
+name: Offline regression tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '*.py'
+      - 'ops/**'
+      - 'requirements-actions.txt'
+      - '.github/workflows/**'
+      - '.gitignore'
+      - 'AGENTS.md'
+
+permissions:
+  contents: read
+
+jobs:
+  python-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      TG_TOKEN: test
+      TG_CHAT: test
+      TG_CHAT_DEBUG: test
+      GEMINI_API_KEY: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-actions.txt
+      - name: Install Python packages (no browser download)
+        run: pip install -r requirements-actions.txt
+      - name: Check syntax
+        run: python -m compileall -q github_runner.py fortress_bot.py wiki_patch_notes.py messages.py card_builder.py
+      - name: Run offline regression tests
+        run: |
+          python -m unittest -v \
+            test_dispatch_watchdog test_fortress_loss_signal \
+            test_pending_news_queue test_wiki_patch_notes \
+            test_workflow_contract
