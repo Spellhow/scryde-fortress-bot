@@ -33,8 +33,10 @@ class SourceConfig:
             raise ValueError("telegram public source requires https://t.me/s/<channel>")
         if self.kind == "telegram_public" and parts.hostname not in {"t.me", "telegram.me"}:
             raise ValueError("Telegram source host must be t.me or telegram.me")
-        if self.kind == "webpage" and self.selector and len(self.selector) > 120:
-            raise ValueError("CSS selector too long")
+        if type(self.enabled) is not bool:
+            raise ValueError("enabled must be true or false")
+        if not isinstance(self.selector, str) or len(self.selector) > 120:
+            raise ValueError("CSS selector must be text of at most 120 characters")
 
 
 @dataclass(frozen=True)

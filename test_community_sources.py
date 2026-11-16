@@ -45,6 +45,19 @@ class SourceTests(unittest.TestCase):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 source("rss", url)
 
+    def test_reject_bad_config_flags(self):
+        base = {"version": 1, "sources": [
+            {"id":"x","kind":"rss","url":"https://example.com","world":WORLD,
+             "enabled":"false"}], "destinations":[], "subscriptions":[]}
+        with self.assertRaises(ValueError):
+            parse_config(base)
+
+    def test_json_feed_rejects_unsafe_links(self):
+        rows = parse_json_api(
+            '{"events":[{"id":"42","title":"Update","body":"Test","url":"javascript:alert(1)"}]}',
+            source("json_api"), NOW)
+        self.assertEqual([], rows)
+
     def test_secret_map_is_never_sourced_from_config(self):
         env = credential_environment({"COMMUNITY_SECRETS_JSON": '{"TG_CHAT":"-123","TG_TOKEN":"secret"}'})
         self.assertEqual("-123", env["TG_CHAT"])

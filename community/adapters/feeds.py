@@ -23,6 +23,11 @@ def _plain(value, limit=3200):
 def _event(world, source_id, external_id, title, body, link, now, kind="news"):
     if not title.strip() or not body.strip():
         return None
+    # Feed links are displayed, never fetched. Avoid publishing javascript,
+    # file, or credential-containing links as if they were official sources.
+    parts = urlsplit(link)
+    if parts.scheme != "https" or not parts.hostname or parts.username or parts.password:
+        return None
     return Event(world=world, source_id=source_id, external_id=external_id,
                  kind=kind, title=title[:160], body=body[:3200],
                  source_url=link, provenance=Provenance.OBSERVED, observed_at=now)
