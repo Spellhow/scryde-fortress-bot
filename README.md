@@ -53,6 +53,10 @@ GitHub Actions scheduling is best effort. If immediate or guaranteed siege alert
 
 The opt-in `community/` Python package now provides a typed world/event model, destination and subscription filters, a versioned local delivery state, and a read-only Scryde adapter for shadow testing. It is **not yet wired into the existing production bot**. See [architecture](docs/ARCHITECTURE.md).
 
+## Configurable community library (under development)
+
+The `community/` package can now parse a versioned [example configuration](community.example.json), read public RSS/Atom, Telegram pages, JSON and selected HTML, and format outbound Telegram or Discord webhook messages. All credential references are environment-variable names. The new library is **not yet connected to a scheduled publishing workflow**, and this is not a released multi-server bot. Documentation: [source and destination design](docs/SOURCES.md).
+
 ## Code map
 
 - `github_runner.py`: current GitHub Actions runner; siege/news processing and Telegram moderation.

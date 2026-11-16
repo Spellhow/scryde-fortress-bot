@@ -66,7 +66,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 **Acceptance**: old state imports deterministically, no duplicate posts under replay tests, GitHub-only needs no external DB.
 
 ### P1-CONFIG: multi-community Telegram setup
-- [ ] Introduce a versioned YAML/JSON config and validate network/world/chronicle/clan independently.
+- [x] Introduce a versioned YAML/JSON config and validate network/world/chronicle/clan independently. Versioned JSON parser and example implemented; interactive setup remains open.
 - [ ] Support multiple Telegram destinations with isolated subscription filters and correct publication permissions.
 - [ ] Add CLI / Telegram admin-only setup as a progressive enhancement; keep a secrets-based starter setup.
 - [ ] Persist destination settings outside public state unless explicitly intended; do not commit secrets or private chat IDs.
@@ -85,8 +85,8 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 **Acceptance**: Scryde and L2Dex run from same event core, no Scryde regressions, no fabricated siege signals.
 
 ### P1-FEEDS: configurable sources
-- [ ] Add RSS/Atom then public Telegram feeds, JSON APIs and permitted HTML pages.
-- [ ] Require URL allowlisting/SSRF prevention (private IP, redirects, DNS rebinding, credentials in URLs, local file/metadata services).
+- [x] Add RSS/Atom then public Telegram feeds, JSON APIs and permitted HTML pages. Stateless parsers and safe HTTP reader implemented; live scheduling/integration still open.
+- [x] Require URL allowlisting/SSRF prevention (private IP, redirects, DNS rebinding, credentials in URLs, local file/metadata services). HTTPS-only public DNS verification with connection IP pinning; no redirects.
 - [ ] Cap response size, timeouts, browser usage and per-domain rate.
 - [ ] Provide source preview, formatting, provenance, per-server filtering and moderation choices.
 - [ ] Treat private Telegram and Discord sources as authenticated opt-in integrations, never scrape inaccessible data.
@@ -95,7 +95,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 **Acceptance**: a new public source can be configured without changing Python source; a malicious source URL is rejected.
 
 ### P1-DISCORD: optional publisher and commands
-- [ ] Separate Discord webhook delivery from interactive Discord bot commands.
+- [x] Separate Discord webhook delivery from interactive Discord bot commands. Outbound webhook transport implemented; interactive commands not implemented.
 - [ ] Add channel mapping, role mention controls, permission checks, embeds and slash commands.
 - [ ] Reuse the event store and source poller; do not run another crawler per destination.
 - [ ] Document that full-time interactive commands may require an always-on process; GitHub-only supports scheduled outbound notifications first.
