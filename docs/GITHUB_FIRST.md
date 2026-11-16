@@ -6,12 +6,12 @@ The repository currently contains two independently dispatched GitHub Actions wo
 **New:** opt-in GitHub-only cron schedules are available, but they are *best effort*, not guaranteed exact 10-minute checks. A fresh template setup is **not yet validated** and the repository is not yet advertised as a one-click install. Consult `docs/IMPLEMENTATION_PLAN.md`.
 
 ## GitHub-only pilot (existing Scryde x1000 configuration)
-1. Create a separate test repository from this source or fork it; enable GitHub Actions. Scheduled events execute from the default branch.
+1. Create a repository using **Use this template** (or a fork) and enable GitHub Actions. Scheduled events run from the default branch. The original owner's `site_state.json` is deliberately ignored in other repositories: a fresh `community_state.json` is generated and committed there.
 2. In repository Settings → Secrets and variables → Actions, add repository **secrets**: `TG_TOKEN`, `TG_CHAT`, `TG_CHAT_DEBUG`, `GEMINI_API_KEY`. `TG_CHAT_DEBUG` is for moderation/debug messages; restrict access.
 3. Add a repository **variable** named `GITHUB_ONLY_MODE` with the exact value `true`.
-4. Check that the bot has permission to post to the target Telegram channel/group; use a dedicated test channel first.
-5. Run `News Bot` and `Siege Bot` once manually via Actions → workflow → Run workflow. Inspect logs, moderator previews, published messages and persisted state.
-6. Monitor several scheduled cycles and verify no duplicated notifications. Remove/disable the variable to stop scheduled jobs.
+4. Optionally set GitHub Actions **variables** `OUR_CLAN`, `FORTRESS_URL`, `CASTLE_URL` and `SCRYDE_CHANNEL_URL` to suit your Scryde world. These URLs must actually provide the expected Scryde ranking format; other L2 networks are not supported by the legacy parser yet. Check that the bot can post to a dedicated test Telegram channel.
+5. Run `News Bot` and `Siege Bot` once manually via Actions → workflow → Run workflow. Inspect logs, moderator previews, published messages and the new `community_state.json` state file.
+6. Monitor scheduled cycles and verify no duplicated notifications. Remove/disable the variable to stop scheduled jobs. The expected update interval is best effort, not a promise; forks/private repos may have Actions minutes/storage quotas.
 
 **Important:** Do **not** enable `GITHUB_ONLY_MODE=true` in the existing BSOE repository until the VPS dispatcher has been stopped or deliberately coordinated. The manual `workflow_dispatch` route remains enabled regardless of this variable, so the watchdog continues to function.
 
@@ -27,14 +27,14 @@ The repository currently contains two independently dispatched GitHub Actions wo
 | `FORTRESS_URL`, `CASTLE_URL` | workflow env | Scryde x1000 ranking pages |
 | `SCRYDE_CHANNEL_URL`, `SCRYDE_WIKI_UPDATES_URL` | workflow env | News sources |
 | `NEWS_TARGET_CHAT`, `NEWS_APPROVE_DELAY_MIN` | workflow env | News moderation/delivery controls |
-| `STATE_FILE` | workflow env | Serialized state path |
+| `STATE_FILE` | job env | `site_state.json` on the original BSOE repository; `community_state.json` on forks/templates |
 
 The current workflows still hardcode most nonsecret values. Configurable server/world/community setup belongs to P1 and is **not implemented yet**.
 
 ## Operational limitations
 - GitHub scheduled runs may start late; inactive repositories can lose scheduled triggers. Treat critical siege notifications as best effort.
 - Each fresh GitHub-hosted runner installs Python packages and Playwright Chromium. This can be slow and uses Actions minutes.
-- `site_state.json` is currently versioned in Git, causing state commits. Keep it until a tested migration exists.
+- `site_state.json` is currently versioned in the original repository and will be included when you use a template. It is **not used** by fork/template workflows; their independently generated `community_state.json` still causes Git commits. Do not delete the original state in production.
 - Interactive Discord slash commands are not available in GitHub-only mode today.
 - The repository currently monitors one clan on Scryde x1000 and publishes to Telegram; multi-server support is planned.
 
@@ -46,6 +46,6 @@ The existing VPS can continue to dispatch `workflow_dispatch` every 10 minutes w
 python -m pip install -r requirements-actions.txt
 TG_TOKEN=test TG_CHAT=test TG_CHAT_DEBUG=test python -m unittest -v \
   test_dispatch_watchdog test_fortress_loss_signal test_pending_news_queue \
-  test_wiki_patch_notes test_workflow_contract
+  test_wiki_patch_notes test_workflow_contract test_p0_hardening test_state_persistence
 ```
 No live Telegram messages, browser downloads or API calls should occur in these offline tests.

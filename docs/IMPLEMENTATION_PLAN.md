@@ -39,8 +39,8 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [ ] Exercise the opt-in path in a disposable/test repository and verify news/siege dedupe, secrets, workflow permissions, state persistence and recovery.
 - [ ] Document fork/template ownership, GitHub Actions enabling and repository secrets/variables; test the full setup with a clean account.
 - [ ] Decide template vs fork (prefer template) and mark repository as template only after end-to-end onboarding is verified.
-- [ ] Investigate Git state persistence alternatives without adding required paid hosting. Start with existing serialized, committed `site_state.json` compatibility; do not delete it early.
-- [ ] Document default cadence, latency, rate limits and forked GitHub Actions quotas.
+- [ ] Investigate Git state persistence alternatives without adding required paid hosting. Existing BSOE `site_state.json` remains; GitHub-only forks use isolated `community_state.json` (implemented). Atomic/alternate state storage still open.
+- [x] Document default cadence, latency, rate limits and forked GitHub Actions quotas (see `docs/GITHUB_FIRST.md`).
 
 **Acceptance**: fresh repository + secrets + target channel + variable + enabled Actions produces a safe test alert with no VPS; defaults leave original production unchanged.
 

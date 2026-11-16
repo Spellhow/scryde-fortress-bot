@@ -40,6 +40,9 @@ jobs:
     if: github.event_name != 'schedule' || vars.GITHUB_ONLY_MODE == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    env:
+      # Keep BSOE state isolated from template/fork installations.
+      STATE_FILE: ${{ github.repository == 'Spellhow/scryde-fortress-bot' && 'site_state.json' || 'community_state.json' }}
 
     steps:
       - name: Checkout repository
@@ -74,8 +77,8 @@ jobs:
 
       - name: Ensure state file exists
         run: |
-          if [ ! -f site_state.json ]; then
-            echo '{}' > site_state.json
+          if [ ! -f "$STATE_FILE" ]; then
+            echo '{}' > "$STATE_FILE"
           fi
 
       - name: Run news regression tests
@@ -111,7 +114,6 @@ jobs:
           SCRYDE_CHANNEL_URL: ${{ vars.SCRYDE_CHANNEL_URL || 'https://t.me/s/scryde' }}
           SCRYDE_WIKI_UPDATES_URL: https://ru.scryde.game/wiki/articles/patch-notes/updates
           SCRYDE_FORUM_UPDATES_URL: https://board.scryde.net/threads/obnovlenija.30694/latest
-          STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 60
         run: |
           if [[ -n "$NEWS_REPAIR_SOURCE_POST_ID" ]]; then
@@ -124,7 +126,7 @@ jobs:
       - name: Commit updated state
         id: persist_state
         shell: bash
-        run: ./ops/persist_state_with_retry.sh site_state.json
+        run: ./ops/persist_state_with_retry.sh "$STATE_FILE"
 
       - name: Notify Telegram about workflow failure
         if: ${{ failure() }}
