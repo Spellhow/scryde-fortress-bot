@@ -22,6 +22,18 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertIn("group: scryde-state", content)
                 self.assertIn("cancel-in-progress: false", content)
 
+    def test_template_state_isolated_and_persisted(self):
+        for name in ("news-bot.yml", "siege-bot.yml"):
+            with self.subTest(workflow=name):
+                content = (WORKFLOW_DIR / name).read_text(encoding="utf-8")
+                self.assertIn(
+                    "github.repository == 'Spellhow/scryde-fortress-bot' && 'site_state.json' || 'community_state.json'",
+                    content,
+                )
+                self.assertIn('if [ ! -f "$STATE_FILE" ]; then', content)
+                self.assertIn('./ops/persist_state_with_retry.sh "$STATE_FILE"', content)
+                self.assertNotIn("          STATE_FILE: site_state.json", content)
+
     def test_news_and_siege_have_distinct_10_minute_offsets(self):
         news = (WORKFLOW_DIR / "news-bot.yml").read_text(encoding="utf-8")
         siege = (WORKFLOW_DIR / "siege-bot.yml").read_text(encoding="utf-8")

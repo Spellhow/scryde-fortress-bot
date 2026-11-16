@@ -4,9 +4,13 @@ set -euo pipefail
 state_file="${1:-site_state.json}"
 max_attempts="${STATE_PUSH_MAX_ATTEMPTS:-5}"
 
-if git diff --quiet -- "$state_file"; then
-  echo "No state changes"
-  exit 0
+# git diff ignores untracked files. Fresh template installs start with an
+# untracked community_state.json which must be committed on the first run.
+if git ls-files --error-unmatch -- "$state_file" >/dev/null 2>&1; then
+  if git diff --quiet -- "$state_file"; then
+    echo "No state changes"
+    exit 0
+  fi
 fi
 
 git add "$state_file"

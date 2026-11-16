@@ -23,6 +23,9 @@ jobs:
     if: github.event_name != 'schedule' || vars.GITHUB_ONLY_MODE == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    env:
+      # Keep BSOE state isolated from template/fork installations.
+      STATE_FILE: ${{ github.repository == 'Spellhow/scryde-fortress-bot' && 'site_state.json' || 'community_state.json' }}
 
     steps:
       - name: Checkout repository
@@ -57,8 +60,8 @@ jobs:
 
       - name: Ensure state file exists
         run: |
-          if [ ! -f site_state.json ]; then
-            echo '{}' > site_state.json
+          if [ ! -f "$STATE_FILE" ]; then
+            echo '{}' > "$STATE_FILE"
           fi
 
       - name: Run siege regression tests
@@ -85,7 +88,6 @@ jobs:
           CASTLE_URL: ${{ vars.CASTLE_URL || 'https://ua.scryde.game/rankings/1000/castles' }}
           SCRYDE_CHANNEL_URL: ${{ vars.SCRYDE_CHANNEL_URL || 'https://t.me/s/scryde' }}
           SCRYDE_FORUM_UPDATES_URL: https://board.scryde.net/threads/obnovlenija.30694/page-19?from=game-news
-          STATE_FILE: site_state.json
           BACKOFF_MINUTES_ON_CHALLENGE: 0
           CASTLE_ANTIBOT_RETRIES: 1
           DEBUG_SCRYDE_FETCH: false
@@ -104,7 +106,7 @@ jobs:
       - name: Commit updated state
         id: persist_state
         shell: bash
-        run: ./ops/persist_state_with_retry.sh site_state.json
+        run: ./ops/persist_state_with_retry.sh "$STATE_FILE"
 
       - name: Notify Telegram about workflow failure
         if: ${{ failure() }}
