@@ -31,9 +31,13 @@ class ScrydeRankingAdapter:
                 continue
             sides = row.get("siege_sides") or {}
             attackers = sides.get("attackers", []) if isinstance(sides, dict) else []
-            names = sorted({a["name"] for a in attackers if isinstance(a, dict) and a.get("name")}) if isinstance(attackers, list) else []
+            names = sorted({a["name"].strip() for a in attackers if isinstance(a, dict) and isinstance(a.get("name"), str) and a["name"].strip()}) if isinstance(attackers, list) else []
             siege_at = row.get("siege_at")
             if not names or not isinstance(siege_at, (int, float)) or siege_at <= now.timestamp():
+                continue
+            try:
+                occurrence = datetime.fromtimestamp(siege_at, tz=timezone.utc)
+            except (ValueError, OSError, OverflowError):
                 continue
             events.append(Event(
                 world=world, source_id=self.source_id,
@@ -42,7 +46,7 @@ class ScrydeRankingAdapter:
                 title=f"{name}: attackers registered",
                 body=f"Owner: {owner['name']}; attackers: {', '.join(names)}",
                 source_url=self.page_url, provenance=Provenance.OBSERVED,
-                observed_at=now, occurs_at=datetime.fromtimestamp(siege_at, tz=timezone.utc),
+                observed_at=now, occurs_at=occurrence,
                 clan=str(owner["name"]), object_name=str(name), revision="|".join(names),
             ))
         return events

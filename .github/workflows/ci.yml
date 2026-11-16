@@ -33,10 +33,10 @@ jobs:
       - name: Install Python packages (no browser download)
         run: pip install -r requirements-actions.txt
       - name: Check syntax
-        run: python -m compileall -q github_runner.py fortress_bot.py wiki_patch_notes.py messages.py card_builder.py
+        run: python -m compileall -q github_runner.py fortress_bot.py wiki_patch_notes.py messages.py card_builder.py community
       - name: Run offline regression tests
         run: |
           python -m unittest -v \
             test_dispatch_watchdog test_fortress_loss_signal \
             test_pending_news_queue test_wiki_patch_notes \
-            test_workflow_contract test_p0_hardening test_state_persistence
+            test_workflow_contract test_p0_hardening test_state_persistence test_community_core

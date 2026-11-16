@@ -79,6 +79,26 @@ class CommunityCoreTests(unittest.TestCase):
         self.assertTrue(state.was_delivered("beta", make_event(self.world).event_id))
         self.assertNotIn("secret-should-never-be-logged", str(result.errors))
 
+    def test_explicit_send_rejection_is_not_marked_delivered(self):
+        state = DeliveryState()
+        result = dispatch_events(
+            [make_event(self.world)], self.subs, self.targets, state,
+            lambda *_: False, now=NOW,
+        )
+        self.assertEqual(0, result.sent)
+        self.assertEqual(2, len(result.errors))
+        self.assertFalse(state.was_delivered("alpha", make_event(self.world).event_id))
+
+    def test_unknown_destination_is_reported(self):
+        state = DeliveryState()
+        result = dispatch_events(
+            [make_event(self.world)],
+            [Subscription("missing", self.world)],
+            self.targets, state, lambda *_: True, now=NOW,
+        )
+        self.assertEqual(0, result.sent)
+        self.assertEqual(1, len(result.errors))
+
     def test_clan_filter_and_world_filter(self):
         state = DeliveryState()
         calls = []
