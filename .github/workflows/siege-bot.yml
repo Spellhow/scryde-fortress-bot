@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   run-bot:
-    if: github.event_name != 'schedule' || vars.GITHUB_ONLY_MODE == 'true'
+    if: (github.event_name != 'schedule' || vars.GITHUB_ONLY_MODE == 'true') && vars.COMMUNITY_MODE != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     env:

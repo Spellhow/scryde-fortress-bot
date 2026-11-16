@@ -55,7 +55,7 @@ The opt-in `community/` Python package now provides a typed world/event model, d
 
 ## Configurable community library (under development)
 
-The `community/` package can now parse a versioned [example configuration](community.example.json), read public RSS/Atom, Telegram pages, JSON and selected HTML, and format outbound Telegram or Discord webhook messages. All credential references are environment-variable names. The new library is **not yet connected to a scheduled publishing workflow**, and this is not a released multi-server bot. Documentation: [source and destination design](docs/SOURCES.md).
+The `community/` package can now parse a versioned [example configuration](community.example.json), read public RSS/Atom, Telegram pages, JSON and selected HTML, and format outbound Telegram or Discord webhook messages. All credential references are environment-variable names. The library now has an **opt-in Community Bot workflow** for public feeds and Telegram/Discord webhooks (20-minute best-effort schedule). It does not replace live Scryde siege monitoring. Configure it from [community.example.json](community.example.json), keeping all credentials in GitHub Secrets. First runs warm-start to avoid a flood of historical posts. See [GitHub-first setup](docs/GITHUB_FIRST.md). Documentation: [source and destination design](docs/SOURCES.md).
 
 ## Code map
 

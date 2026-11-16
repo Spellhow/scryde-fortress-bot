@@ -4,20 +4,37 @@
     {
       "id": "scryde-official-news",
       "kind": "telegram_public",
-      "world": {"network": "Scryde", "name": "x1000", "chronicle": "High Five"},
+      "world": {
+        "network": "Scryde",
+        "name": "x1000",
+        "chronicle": "High Five"
+      },
       "url": "https://t.me/s/scryde",
-      "enabled": true
+      "enabled": false
     }
   ],
   "destinations": [
-    {"id": "clan-telegram", "kind": "telegram", "address_env": "TG_CHAT", "token_env": "TG_TOKEN"}
+    {
+      "id": "clan-telegram",
+      "kind": "telegram",
+      "address_env": "TG_CHAT",
+      "token_env": "TG_TOKEN"
+    }
   ],
   "subscriptions": [
     {
       "destination_id": "clan-telegram",
-      "world": {"network": "Scryde", "name": "x1000", "chronicle": "High Five"},
-      "source_ids": ["scryde-official-news"],
-      "event_types": ["news"],
+      "world": {
+        "network": "Scryde",
+        "name": "x1000",
+        "chronicle": "High Five"
+      },
+      "source_ids": [
+        "scryde-official-news"
+      ],
+      "event_types": [
+        "news"
+      ],
       "clans": [],
       "language": "uk"
     }

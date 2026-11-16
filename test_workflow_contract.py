@@ -34,6 +34,20 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertIn('./ops/persist_state_with_retry.sh "$STATE_FILE"', content)
                 self.assertNotIn("          STATE_FILE: site_state.json", content)
 
+    def test_community_mode_disables_legacy_workflows(self):
+        for name in ("news-bot.yml", "siege-bot.yml"):
+            with self.subTest(name=name):
+                content = (WORKFLOW_DIR / name).read_text(encoding="utf-8")
+                self.assertIn("vars.COMMUNITY_MODE != 'true'", content)
+
+    def test_community_runner_persists_state_after_partial_failures(self):
+        content = (WORKFLOW_DIR / "community-bot.yml").read_text(encoding="utf-8")
+        self.assertIn("vars.COMMUNITY_MODE == 'true'", content)
+        self.assertIn("continue-on-error: true", content)
+        self.assertIn("always() && vars.COMMUNITY_DRY_RUN != 'true'", content)
+        self.assertIn("steps.community_run.outcome == 'failure'", content)
+        self.assertIn("community_deliveries.json", content)
+
     def test_news_and_siege_have_distinct_10_minute_offsets(self):
         news = (WORKFLOW_DIR / "news-bot.yml").read_text(encoding="utf-8")
         siege = (WORKFLOW_DIR / "siege-bot.yml").read_text(encoding="utf-8")

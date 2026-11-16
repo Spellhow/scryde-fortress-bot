@@ -49,3 +49,21 @@ TG_TOKEN=test TG_CHAT=test TG_CHAT_DEBUG=test python -m unittest -v \
   test_wiki_patch_notes test_workflow_contract test_p0_hardening test_state_persistence
 ```
 No live Telegram messages, browser downloads or API calls should occur in these offline tests.
+
+
+## New multi-community news mode (experimental, fully GitHub-hosted)
+
+For the new stateless public feed pipeline, copy `community.example.json` to `community.json` in your own repository and customize:
+- source network, world, chronicle, URL and explicit enabled flag;
+- Telegram/Discord destination aliases, pointing only to environment variable names;
+- subscriptions by destination/world/source/type/clan.
+
+The sample Scryde Telegram source is **disabled** because it may include posts for worlds besides x1000. Enable a source only after checking that its content is appropriate for your community. The new runner does not yet AI-filter or translate cross-world official news.
+
+Set repository variables `COMMUNITY_MODE=true` and `GITHUB_ONLY_MODE=true`. Optionally set `COMMUNITY_DRY_RUN=true` to inspect a run without delivery or state mutations. Keep `TG_CHAT` and `TG_TOKEN` as secrets, or store a flat JSON mapping of environment variable names to secret values in `COMMUNITY_SECRETS_JSON` (GitHub **Secret**, not a checked-in file) for multiple targets. Set `COMMUNITY_DRY_RUN=false` only after verifying authorized destination permissions.
+
+Select Actions → Community Bot (GitHub-only) → Run workflow to trigger once. Scheduled checks are requested at minute 3, 23 and 43 of each hour (UTC), but GitHub can delay or skip them. The first successful feed snapshot only warms subscriptions; subsequent new posts are eligible for delivery. Delivery IDs are stored as hashes in public `community_deliveries.json`, which is committed to Git by the workflow, while real chat/webhook values remain in secrets. GitHub-only output works for Discord **webhooks** but not always-on slash commands.
+
+The old News Bot and Siege Bot workflows are skipped when `COMMUNITY_MODE=true` so no duplicate legacy Scryde polling occurs. The new public feed runner **does not yet reproduce Scryde live siege alerts**. To run the original Scryde tracker, leave `COMMUNITY_MODE` unset/false.
+
+This feature is new and not yet end-to-end verified with a user's real Telegram/Discord credentials. Do not assume reliable delivery until a test channel and repeated runs have passed.

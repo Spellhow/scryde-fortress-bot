@@ -38,11 +38,16 @@ jobs:
       - name: Validate configuration
         run: python community_runner.py --validate
       - name: Poll public sources and deliver
+        id: community_run
+        continue-on-error: true
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
           COMMUNITY_SECRETS_JSON: ${{ secrets.COMMUNITY_SECRETS_JSON }}
         run: python community_runner.py
       - name: Persist delivery state
-        if: ${{ success() && vars.COMMUNITY_DRY_RUN != 'true' }}
+        if: ${{ always() && vars.COMMUNITY_DRY_RUN != 'true' }}
         run: ./ops/persist_state_with_retry.sh community_deliveries.json
+      - name: Report any degraded polling or delivery
+        if: ${{ steps.community_run.outcome == 'failure' }}
+        run: exit 1
