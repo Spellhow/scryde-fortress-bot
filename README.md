@@ -49,6 +49,10 @@ The news rewrite allows only specific Gemini model IDs in the current runner, bu
 
 GitHub Actions scheduling is best effort. If immediate or guaranteed siege alerts are required, use a more dependable always-on dispatcher. Publishing status and event times must not be presented as guaranteed live data.
 
+## Future multi-world core
+
+The opt-in `community/` Python package now provides a typed world/event model, destination and subscription filters, a versioned local delivery state, and a read-only Scryde adapter for shadow testing. It is **not yet wired into the existing production bot**. See [architecture](docs/ARCHITECTURE.md).
+
 ## Code map
 
 - `github_runner.py`: current GitHub Actions runner; siege/news processing and Telegram moderation.

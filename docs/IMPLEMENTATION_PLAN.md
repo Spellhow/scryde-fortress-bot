@@ -45,11 +45,11 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 **Acceptance**: fresh repository + secrets + target channel + variable + enabled Actions produces a safe test alert with no VPS; defaults leave original production unchanged.
 
 ### P1-CORE: event model and Scryde adapter
-- [ ] Define typed `GameNetwork`, `World`, `Clan`, `Source`, `Event`, `Destination`, `Subscription` and provenance fields.
-- [ ] Build `SourceAdapter` interface: `fetch/parse/normalize`, source IDs, revision and normalized event keys.
+- [ ] Define typed `GameNetwork`, `World`, `Clan`, `Source`, `Event`, `Destination`, `Subscription` and provenance fields. Core `World`, `Event`, `Destination`, `Subscription`, provenance are implemented; separate network/clan/source entities remain.
+- [ ] Build `SourceAdapter` interface: `fetch/parse/normalize`, source IDs, revision and normalized event keys. Stateless parse/normalize Protocol exists; common fetching and health remain.
 - [ ] Extract Scryde fortress/castle parsing to a module without changing event semantics. Freeze representative HTML/JSON fixtures first.
 - [ ] Extract news ingestion, Gemini formatting, moderation, template rendering and delivery into tested modules.
-- [ ] Enforce shared source polling, publication idempotency per destination and safe retries.
+- [ ] Enforce shared source polling, publication idempotency per destination and safe retries. Pure fanout+hashed delivery keys exist; live source polling/remote retries remain.
 - [ ] Add source-level backoff/health and check that anti-bot challenges do not imply a lost fortress.
 - [ ] Compare old and new Scryde outputs in read-only shadow mode on representative cases before cutover.
 

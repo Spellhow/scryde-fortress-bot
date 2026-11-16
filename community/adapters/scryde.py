@@ -1,0 +1,52 @@
+"""Read-only Scryde ranking adapter for shadow comparisons.
+
+The existing github_runner.py remains the authoritative live publisher.
+Never infer lost ownership from missing/invalid rows.
+"""
+from datetime import datetime, timezone
+
+from community.models import Event, Provenance
+
+
+class ScrydeRankingAdapter:
+    def __init__(self, source_id, page_url, object_type="fortress"):
+        if object_type not in ("fortress", "castle"):
+            raise ValueError("invalid object type")
+        self.source_id = source_id
+        self.page_url = page_url
+        self.object_type = object_type
+
+    def parse(self, payload, *, world):
+        if not isinstance(payload, list):
+            raise ValueError("ranking must contain a list")
+        now = datetime.now(timezone.utc)
+        events = []
+        for row in payload:
+            if not isinstance(row, dict):
+                continue
+            owner = row.get("owner")
+            name = row.get("name")
+            object_id = row.get("id")
+            if not isinstance(owner, dict) or not owner.get("name") or not name or object_id is None:
+                continue
+            sides = row.get("siege_sides") or {}
+            attackers = sides.get("attackers", []) if isinstance(sides, dict) else []
+            names = sorted({a["name"].strip() for a in attackers if isinstance(a, dict) and isinstance(a.get("name"), str) and a["name"].strip()}) if isinstance(attackers, list) else []
+            siege_at = row.get("siege_at")
+            if not names or not isinstance(siege_at, (int, float)) or siege_at <= now.timestamp():
+                continue
+            try:
+                occurrence = datetime.fromtimestamp(siege_at, tz=timezone.utc)
+            except (ValueError, OSError, OverflowError):
+                continue
+            events.append(Event(
+                world=world, source_id=self.source_id,
+                external_id=f"{self.object_type}:{object_id}:{int(siege_at)}",
+                kind="siege_registration",
+                title=f"{name}: attackers registered",
+                body=f"Owner: {owner['name']}; attackers: {', '.join(names)}",
+                source_url=self.page_url, provenance=Provenance.OBSERVED,
+                observed_at=now, occurs_at=occurrence,
+                clan=str(owner["name"]), object_name=str(name), revision="|".join(names),
+            ))
+        return events
