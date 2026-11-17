@@ -28,3 +28,11 @@ These are aggregate counts from the repository snapshot, **not live server statu
 7. Keep the original `site_state.json` and legacy workflow available for rollback until a live, authorized test passes. Never silently merge legacy JSON into `community_deliveries.json`, which was designed for **public hashed delivery receipts**, not private moderation text.
 
 **The preflight intentionally never returns `migration_ready=true` today** because the modern delivery pipeline does not implement full BSOE moderation and siege state compatibility. Avoid enabling an automatic production cutover based only on sanitized state counts.
+
+
+
+## Replay safety for published items
+
+The legacy `/news_retry` command cannot reopen an item marked `published`: doing so would allow a duplicate channel post on the next queue cycle. The operator should use the existing manual in-place news repair workflow when changing already published content. Expired or cancelled entries can still be deliberately retried.
+
+When the source fetch returns a post ID already recorded in `sent_ids` but the source cursor is stale, the runner now advances that cursor without issuing another Gemini request or inserting a duplicate pending item. Failures on *new* posts still leave the cursor positioned for retry.
