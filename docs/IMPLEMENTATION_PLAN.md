@@ -36,7 +36,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 
 ### P0-SCHEDULE: self-contained GitHub-only starter
 - [x] Add an *opt-in* 10-minute scheduled trigger to both existing workflows. A repository variable `RUN_GITHUB_SCHEDULE=true` enables jobs for schedule events, while manual/VPS `workflow_dispatch` remains available.
-- [ ] Exercise the opt-in path in a disposable/test repository and verify news/siege dedupe, secrets, workflow permissions, state persistence and recovery. New Community Bot clean setup/dry-run/baseline passed; original Scryde workflows, real outgoing sends, failure-recovery and cron timing are still outstanding.
+- [ ] Exercise the opt-in path in a disposable/test repository and verify news/siege dedupe, secrets, workflow permissions, state persistence and recovery. Clean Community Bot setup/dry-run/baseline passed; simulated Telegram/Discord ack-failure and persisted retry tests added. Real outgoing sends, recovery and cron timing remain outstanding.
 - [ ] Document fork/template ownership, GitHub Actions enabling and repository secrets/variables; test the full setup with a clean account. Same-owner private clean-copy smoke test passed on 2026-11-17. Real outbound messaging and independent-account onboarding remain.
 - [x] Choose GitHub template and enable its flag (2026-11-17). A clean private-repository test passed setup, live-source dry-run, first persisted baseline and valid variable creation. External Telegram/Discord delivery and cron timing are pending verification.
 - [ ] Investigate Git state persistence alternatives without adding required paid hosting. Existing BSOE `site_state.json` remains; GitHub-only forks use isolated `community_state.json` (implemented). Atomic/alternate state storage still open.
@@ -99,7 +99,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [ ] Add channel mapping, role mention controls, permission checks, embeds and slash commands.
 - [ ] Reuse the event store and source poller; do not run another crawler per destination.
 - [ ] Document that full-time interactive commands may require an always-on process; GitHub-only supports scheduled outbound notifications first.
-- [ ] Test missing permissions, rate limits, duplicates and stale token behavior.
+- [ ] Test missing permissions, rate limits, duplicates and stale token behavior. Offline Telegram/Discord response contracts (2xx with message ID, 429/permission/malformed failures) and restart/replay tests added; live authorized channel/webhook smoke remains.
 
 **Acceptance**: identical event semantics in Telegram and Discord, with platform-native formatting.
 
