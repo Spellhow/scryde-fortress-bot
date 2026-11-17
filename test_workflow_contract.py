@@ -48,6 +48,15 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("steps.community_run.outcome == 'failure'", content)
         self.assertIn("community_deliveries.json", content)
 
+    def test_setup_workflow_writes_only_fresh_template_config(self):
+        config = (WORKFLOW_DIR / "setup-community.yml").read_text(encoding="utf-8")
+        self.assertIn("github.repository != 'Spellhow/scryde-fortress-bot'", config)
+        self.assertIn("github.event.repository.default_branch", config)
+        self.assertIn("python scripts/setup_community.py", config)
+        self.assertIn("SETUP_SOURCE_URL: ", config)
+        self.assertIn("git add community.json", config)
+        self.assertNotIn("git add .", config)
+
     def test_news_and_siege_have_distinct_10_minute_offsets(self):
         news = (WORKFLOW_DIR / "news-bot.yml").read_text(encoding="utf-8")
         siege = (WORKFLOW_DIR / "siege-bot.yml").read_text(encoding="utf-8")

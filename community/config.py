@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 import os
 import re
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qsl
 from .models import World, Destination, Subscription, required
 from .schedules import ScheduledEvent, MAX_SCHEDULES
 
@@ -31,6 +31,12 @@ class SourceConfig:
             raise ValueError("source must be a public HTTPS URL without credentials or fragment")
         if parts.port not in (None, 443):
             raise ValueError("custom source ports are unsupported")
+        # This URL is committed to GitHub. Reject obvious query-string secrets.
+        # Public filters such as ?format=rss remain supported.
+        sensitive = {"token", "key", "api_key", "apikey", "access_token", "secret",
+                     "password", "pass", "signature", "authorization", "auth"}
+        if any(name.casefold() in sensitive for name, _ in parse_qsl(parts.query, keep_blank_values=True)):
+            raise ValueError("source URL query must not contain credentials")
         if self.kind == "telegram_public" and not re.fullmatch(r"/s/[A-Za-z0-9_]{4,}", parts.path):
             raise ValueError("telegram public source requires https://t.me/s/<channel>")
         if self.kind == "telegram_public" and parts.hostname not in {"t.me", "telegram.me"}:
