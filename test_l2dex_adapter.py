@@ -100,6 +100,14 @@ class CastleFixtureTests(unittest.TestCase):
         self.assertEqual([],events)
         self.assertEqual("A", load_snapshot(snap2)["1"]["owner"])
 
+    def test_dash_placeholder_owner_does_not_trigger_false_transfer(self):
+        original = parse_castles(page(castle_row(1, "Gludio Castle", "ClanA")))
+        _, snapshot = diff_castles(None, original, SRC, NOW)
+        placeholder = parse_castles(page(castle_row(1, "Gludio Castle", "-")))
+        events, updated = diff_castles(snapshot, placeholder, SRC, NOW)
+        self.assertEqual([], events)
+        self.assertEqual("ClanA", load_snapshot(updated)["1"]["owner"])
+
     def test_missing_row_does_not_delete_prior_owner(self):
         a = parse_castles(page(castle_row(1,"Gludio Castle","A"),castle_row(2,"Dion Castle","B")))
         _, snap = diff_castles(None,a,SRC,NOW)

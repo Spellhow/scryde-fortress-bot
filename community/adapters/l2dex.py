@@ -100,7 +100,8 @@ def parse_castles(html_text: str) -> dict[str, Castle]:
             raise ValueError("duplicate castle ID")
         castles[identifier] = Castle(
             identifier=identifier, name=name,
-            owner=_label(info, "Clan"), leader=_label(info, "Leader"),
+            owner=("" if _label(info, "Clan") in ("-", "—") else _label(info, "Clan")),
+            leader=_label(info, "Leader"),
             siege_display=re.sub(r"\s+", " ", display).strip(),
             attackers=_clans(siege, "Attackers"),
             defenders=_clans(siege, "Defenders"),
