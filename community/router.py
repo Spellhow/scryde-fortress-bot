@@ -23,6 +23,9 @@ def dispatch_events(events, subscriptions, destinations, state, sender, now=None
     source_events = list(events)  # event source polled exactly once by caller
     attempted = sent = skipped = 0
     errors = []
+    # One outbound attempt per destination + event per run, even if several
+    # overlapping subscriptions match it and the first send fails.
+    attempted_keys = set()
     for subscription in subscriptions:
         target = destinations.get(subscription.destination_id)
         if target is None:
@@ -34,6 +37,11 @@ def dispatch_events(events, subscriptions, destinations, state, sender, now=None
             if state.was_delivered(target.id, event.event_id):
                 skipped += 1
                 continue
+            attempt_key = (target.id.casefold(), event.event_id)
+            if attempt_key in attempted_keys:
+                skipped += 1
+                continue
+            attempted_keys.add(attempt_key)
             attempted += 1
             try:
                 success = sender(target, event, subscription.language)

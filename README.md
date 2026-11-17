@@ -77,6 +77,8 @@ Failed public HTTPS fetches now use persistent 20–120-minute backoff across Gi
 
 Community owners can preview up to five enabled public sources without publishing anything: **Actions → Preview Community Sources (manual)**. Each job shares HTTP fetches and caps new requests at six distinct URLs per domain. See [source preview and safety limits](docs/SOURCES.md).
 
+**Multi-channel guardrails:** the new Community Bot rejects alias collisions and conflicting language rules for overlapping subscriptions, and attempts an event only once per destination per run. See [configuration and channel safety](docs/GITHUB_FIRST.md).
+
 ## Per-world news relevance (opt-in)
 
 Public Telegram/RSS/HTML/JSON sources can now use `include_keywords` and `exclude_keywords` in `community.json`. The installer for public Telegram news defaults to the chosen world name, so a channel for x1000 will not automatically receive x100-only posts. Matching is simple Unicode-aware keyword/phrase matching, not AI semantic classification or translation. Multiple world subscriptions sharing one feed URL reuse the same fetch. Details: [source filtering](docs/SOURCES.md).

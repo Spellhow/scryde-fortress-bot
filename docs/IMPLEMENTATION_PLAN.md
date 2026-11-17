@@ -67,7 +67,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 
 ### P1-CONFIG: multi-community Telegram setup
 - [x] Introduce a versioned YAML/JSON config and validate network/world/chronicle/clan independently. Versioned JSON parser and example implemented; interactive setup remains open.
-- [ ] Support multiple Telegram destinations with isolated subscription filters and correct publication permissions. JSON config and fan-out exist; live permission verification and end-to-end multi-channel test pending.
+- [ ] Support multiple Telegram destinations with isolated subscription filters and correct publication permissions. Case-insensitive destination/source alias collisions now rejected, in-run failed overlapping sends attempted once, and ambiguous language rules rejected. Offline fan-out tested; live permission verification and real multi-channel smoke pending.
 - [ ] Add CLI / Telegram admin-only setup as a progressive enhancement; keep a secrets-based starter setup. One-time GitHub Actions and CLI setup generators now exist; Telegram chat-driven setup remains open.
 - [ ] Persist destination settings outside public state unless explicitly intended; do not commit secrets or private chat IDs.
 - [ ] Test a two-destination scenario: one source fetch, different language/filter, independent message IDs and failure handling.
