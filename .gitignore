@@ -5,12 +5,12 @@ __pycache__/
 .venv/
 venv/
 .env
-config.py
-state.json
+/config.py
+/state.json
 fortress_bot.log
-test.py
-fortress_bot.service
-run-fortress-bot.sh
+/test.py
+/fortress_bot.service
+/run-fortress-bot.sh
 playwright/.cache/
 .pytest_cache/
 .mypy_cache/
