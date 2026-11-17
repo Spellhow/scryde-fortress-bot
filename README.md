@@ -63,6 +63,8 @@ The opt-in `community/` Python package now provides a typed world/event model, d
 
 **Forum migration checkpoint:** a separate dry-run-first tool maps the original public forum post numbers into one destination-scoped, hashed checkpoint without publishing or modifying BSOE state. Usage: `python3 scripts/prepare_legacy_forum_watermark.py`. [Migration notes](docs/LEGACY_STATE_MIGRATION.md).
 
+**Forum page upgrades:** Scryde forum subscriptions retain their identity when the thread page changes. Previously initialized page-specific markers are recognized on a compatible first run; see [source upgrade notes](docs/SOURCES.md).
+
 **Public forum adapter:** the Community Bot now has an experimental source for the official Scryde forum updates thread, with stable post IDs and explicit world-keyword filters. It is opt-in and does not replace BSOE moderation. See [supported sources](docs/SOURCES.md).
 
 **Unified BSOE history preflight:** a dry-run-only-by-default tool prepares Telegram and Scryde forum source watermarks in one separate candidate. It does not authorize a production cutover. See [migration requirements](docs/LEGACY_STATE_MIGRATION.md).
