@@ -23,7 +23,7 @@ The first valid snapshot establishes a silent baseline. Each later valid snapsho
 
 ## Example configuration
 
-Use `community.example.json` and opt in to the existing `l2dex-new-interlude-castles` source by setting `"enabled": true`. Keep `COMMUNITY_MODE=true` and `GITHUB_ONLY_MODE=true` as repository **variables** and Telegram/Discord destinations as **secrets**. Do not enable the legacy Scryde tracker simultaneously in that repository.
+Use `community.example.json` and opt in to the existing `l2dex-new-interlude-castles` source by setting `"enabled": true`. Keep `COMMUNITY_MODE=true` and `RUN_GITHUB_SCHEDULE=true` as repository **variables** and Telegram/Discord destinations as **secrets**. Do not enable the legacy Scryde tracker simultaneously in that repository.
 
 World identity for the example is `network: L2Dex`, `name: New-Interlude x25`, `chronicle: Interlude`. A different L2Dex game world needs its own ranking page and source ID, not just a changed display name.
 

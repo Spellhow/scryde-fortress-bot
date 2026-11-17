@@ -8,12 +8,12 @@ The repository currently contains two independently dispatched GitHub Actions wo
 ## GitHub-only pilot (existing Scryde x1000 configuration)
 1. Create a repository using **Use this template** (or a fork) and enable GitHub Actions. Scheduled events run from the default branch. The original owner's `site_state.json` is deliberately ignored in other repositories: a fresh `community_state.json` is generated and committed there.
 2. In repository Settings → Secrets and variables → Actions, add repository **secrets**: `TG_TOKEN`, `TG_CHAT`, `TG_CHAT_DEBUG`, `GEMINI_API_KEY`. `TG_CHAT_DEBUG` is for moderation/debug messages; restrict access.
-3. Add a repository **variable** named `GITHUB_ONLY_MODE` with the exact value `true`.
+3. Add a repository **variable** named `RUN_GITHUB_SCHEDULE` with the exact value `true`.
 4. Optionally set GitHub Actions **variables** `OUR_CLAN`, `FORTRESS_URL`, `CASTLE_URL` and `SCRYDE_CHANNEL_URL` to suit your Scryde world. These URLs must actually provide the expected Scryde ranking format; other L2 networks are not supported by the legacy parser yet. Check that the bot can post to a dedicated test Telegram channel.
 5. Run `News Bot` and `Siege Bot` once manually via Actions → workflow → Run workflow. Inspect logs, moderator previews, published messages and the new `community_state.json` state file.
 6. Monitor scheduled cycles and verify no duplicated notifications. Remove/disable the variable to stop scheduled jobs. The expected update interval is best effort, not a promise; forks/private repos may have Actions minutes/storage quotas.
 
-**Important:** Do **not** enable `GITHUB_ONLY_MODE=true` in the existing BSOE repository until the VPS dispatcher has been stopped or deliberately coordinated. The manual `workflow_dispatch` route remains enabled regardless of this variable, so the watchdog continues to function.
+**Important:** Do **not** enable `RUN_GITHUB_SCHEDULE=true` in the existing BSOE repository until the VPS dispatcher has been stopped or deliberately coordinated. The manual `workflow_dispatch` route remains enabled regardless of this variable, so the watchdog continues to function.
 
 ## Runtime configuration today
 | Name | Kind | Purpose |
@@ -22,7 +22,7 @@ The repository currently contains two independently dispatched GitHub Actions wo
 | `TG_CHAT` | secret | Production destination |
 | `TG_CHAT_DEBUG` | secret | Moderation/debug destination |
 | `GEMINI_API_KEY` | secret | AI news processing (requires a free-tier project without billing for zero billing) |
-| `GITHUB_ONLY_MODE` | repository variable | Exact string `true` enables cron jobs |
+| `RUN_GITHUB_SCHEDULE` | repository variable | Exact string `true` enables cron jobs |
 | `OUR_CLAN` | workflow env | Clan to monitor, currently BSOE |
 | `FORTRESS_URL`, `CASTLE_URL` | workflow env | Scryde x1000 ranking pages |
 | `SCRYDE_CHANNEL_URL`, `SCRYDE_WIKI_UPDATES_URL` | workflow env | News sources |
@@ -60,7 +60,7 @@ For the new stateless public feed pipeline, copy `community.example.json` to `co
 
 The sample Scryde Telegram source is **disabled** because it may include posts for worlds besides x1000. Enable a source only after checking that its content is appropriate for your community. The new runner does not yet AI-filter or translate cross-world official news.
 
-Set repository variables `COMMUNITY_MODE=true` and `GITHUB_ONLY_MODE=true`. Optionally set `COMMUNITY_DRY_RUN=true` to inspect a run without delivery or state mutations. Keep `TG_CHAT` and `TG_TOKEN` as secrets, or store a flat JSON mapping of environment variable names to secret values in `COMMUNITY_SECRETS_JSON` (GitHub **Secret**, not a checked-in file) for multiple targets. Set `COMMUNITY_DRY_RUN=false` only after verifying authorized destination permissions.
+Set repository variables `COMMUNITY_MODE=true` and `RUN_GITHUB_SCHEDULE=true`. Optionally set `COMMUNITY_DRY_RUN=true` to inspect a run without delivery or state mutations. Keep `TG_CHAT` and `TG_TOKEN` as secrets, or store a flat JSON mapping of environment variable names to secret values in `COMMUNITY_SECRETS_JSON` (GitHub **Secret**, not a checked-in file) for multiple targets. Set `COMMUNITY_DRY_RUN=false` only after verifying authorized destination permissions.
 
 Select Actions → Community Bot (GitHub-only) → Run workflow to trigger once. Scheduled checks are requested at minute 3, 23 and 43 of each hour (UTC), but GitHub can delay or skip them. The first successful feed snapshot only warms subscriptions; subsequent new posts are eligible for delivery. Delivery IDs are stored as hashes in public `community_deliveries.json`, which is committed to Git by the workflow, while real chat/webhook values remain in secrets. GitHub-only output works for Discord **webhooks** but not always-on slash commands.
 
@@ -77,7 +77,7 @@ A fresh fork/template copy can run **Actions → Set up Community Bot (one-time)
 After configuration, set the following in your own repository:
 
 1. Telegram: Actions secrets `TG_TOKEN` and `TG_CHAT`, or Discord: Actions secret `DISCORD_WEBHOOK`. For several destinations, use `COMMUNITY_SECRETS_JSON` with a flat mapping from environment names to secret values (never commit it to Git).
-2. Actions repository variables `COMMUNITY_MODE=true` and `GITHUB_ONLY_MODE=true`.
+2. Actions repository variables `COMMUNITY_MODE=true` and `RUN_GITHUB_SCHEDULE=true`.
 3. Use `COMMUNITY_DRY_RUN=true` initially to check source accessibility without sending or saving alerts. Turn dry-run off for the first baseline, which intentionally sends no historical source events.
 4. Run **Actions → Community Bot (GitHub-only)** once, verify its logs, and check that state is persisted to `community_deliveries.json`. Scheduled checks thereafter are best-effort.
 
@@ -90,3 +90,9 @@ If you prefer a local shell, run `python scripts/setup_community.py --help`. Nei
 ### Clean archive/fork portability
 
 The legacy root `config.py`, `state.json` and `test.py` files remain ignored, while reusable modules such as `community/config.py` must be committed to new repositories. Scoped ignore rules and `test_template_gitignore.py` prevent Git archive / fresh Git init copies from accidentally omitting the new community configuration parser.
+
+
+
+## GitHub Actions variable naming
+
+The exact schedule toggle is `RUN_GITHUB_SCHEDULE=true`. GitHub **rejects repository variable names beginning with `GITHUB_`**, so `GITHUB_ONLY_MODE` is an obsolete name from early iterations and must not be used. This was verified during the first clean GitHub Actions smoke test on 2026-11-17.

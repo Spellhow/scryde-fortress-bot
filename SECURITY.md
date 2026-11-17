@@ -7,7 +7,7 @@ Use GitHub's private vulnerability reporting for this repository if enabled, or 
 ## Deployment precautions
 - Set `TG_TOKEN`, `TG_CHAT`, `TG_CHAT_DEBUG` and `GEMINI_API_KEY` as GitHub Actions **secrets**, not workflow literals or committed files.
 - The current `site_state.json` is committed to this **public** repo. Do not add personal subscriber information, sensitive destination IDs or private content to it. A privacy-safe storage migration is tracked in `docs/IMPLEMENTATION_PLAN.md`.
-- Keep `GITHUB_ONLY_MODE` disabled on a VPS-dispatched deployment unless its schedule is coordinated.
+- Keep `RUN_GITHUB_SCHEDULE` disabled on a VPS-dispatched deployment unless its schedule is coordinated.
 - Give Telegram/Discord bots only required channel permissions.
 - New user-provided web feeds must validate URLs, redirects and destination IPs before fetching.
 - Never enable arbitrary execution from news posts or AI-generated content.

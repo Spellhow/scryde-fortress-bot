@@ -12,7 +12,7 @@ Read `docs/IMPLEMENTATION_PLAN.md` before starting feature work. The user has ch
 - Never assume a server provides live attack or boss data. Distinguish observed events from timetable estimates and manually entered timers.
 - Keep local CI offline: no live site access, no real Telegram/Discord messages, no Gemini calls.
 - Check the status of both existing `news-bot.yml` and `siege-bot.yml` before touching deployment. They share `site_state.json` and the `scryde-state` concurrency group.
-- Do not enable `GITHUB_ONLY_MODE` in the owner repository while the VPS dispatcher is active. The fallback scheduler is opt-in.
+- Do not enable `RUN_GITHUB_SCHEDULE` in the owner repository while the VPS dispatcher is active. The fallback scheduler is opt-in.
 - Avoid adding full browsers or a build step to PR validation. Workflow minutes and Git write volume are constraints.
 
 ## For each implementation task

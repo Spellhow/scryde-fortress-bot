@@ -6,7 +6,7 @@ This inventory covers the present single-clan Scryde runtime. New multi-world/co
 
 | Scope | Variable / secret | Source now | Default/current behavior | Notes |
 | --- | --- | --- | --- | --- |
-| Repository variable | `GITHUB_ONLY_MODE` | GitHub Actions | unset (cron jobs skipped) | Keep unset if the VPS watchdog dispatches jobs |
+| Repository variable | `RUN_GITHUB_SCHEDULE` | GitHub Actions | unset (cron jobs skipped) | Keep unset if the VPS watchdog dispatches jobs |
 | Repository variable | `OUR_CLAN` | GitHub Actions | `BSOE` | Injected into siege and news jobs; no changes for owner |
 | Repository variable | `FORTRESS_URL` | GitHub Actions | Scryde x1000 fortress ranking | Must stay on the intended game world |
 | Repository variable | `CASTLE_URL` | GitHub Actions | Scryde x1000 castle ranking | Validate public URL before editing |

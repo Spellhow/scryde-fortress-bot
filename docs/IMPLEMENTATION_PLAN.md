@@ -32,10 +32,10 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [x] Inventory configuration globals in `github_runner.py`, `fortress_bot.py` and both workflows; separate operational secrets from reusable defaults. See `docs/CONFIG_INVENTORY.md`; the next milestone introduces versioned multi-community config.
 - [ ] Verify production workflows after merging without enabling extra scheduled jobs for the VPS deployment. Note: as of 2026-11-16 the VPS dispatcher timer was disabled and the last News/Siege workflows ran on 2026-10-19; do not re-enable without checking the owner's intent.
 
-**P0 acceptance**: offline suite passes, runtime workflows have unchanged behavior unless `GITHUB_ONLY_MODE=true`, no credentials leaked by new files, README matches reality, and the BSOE owner confirms existing dispatch continues. Do not mark P0 complete just because this first PR merges.
+**P0 acceptance**: offline suite passes, runtime workflows have unchanged behavior unless `RUN_GITHUB_SCHEDULE=true`, no credentials leaked by new files, README matches reality, and the BSOE owner confirms existing dispatch continues. Do not mark P0 complete just because this first PR merges.
 
 ### P0-SCHEDULE: self-contained GitHub-only starter
-- [x] Add an *opt-in* 10-minute scheduled trigger to both existing workflows. A repository variable `GITHUB_ONLY_MODE=true` enables jobs for schedule events, while manual/VPS `workflow_dispatch` remains available.
+- [x] Add an *opt-in* 10-minute scheduled trigger to both existing workflows. A repository variable `RUN_GITHUB_SCHEDULE=true` enables jobs for schedule events, while manual/VPS `workflow_dispatch` remains available.
 - [ ] Exercise the opt-in path in a disposable/test repository and verify news/siege dedupe, secrets, workflow permissions, state persistence and recovery.
 - [ ] Document fork/template ownership, GitHub Actions enabling and repository secrets/variables; test the full setup with a clean account. Setup workflow and CLI generated config are implemented; clean independent repository smoke test still required.
 - [ ] Decide template vs fork (prefer template) and mark repository as template only after end-to-end onboarding is verified.
