@@ -27,8 +27,14 @@ class ScrydeRankingAdapter:
             owner = row.get("owner")
             name = row.get("name")
             object_id = row.get("id")
-            if not isinstance(owner, dict) or not owner.get("name") or not name or object_id is None:
+            # An explicitly observed owner=None means NPC / unowned.
+            # The same shared row validator rejects a missing or malformed
+            # owner field, so we never invent an owner for an incomplete row.
+            if owner is not None and not isinstance(owner, dict):
                 continue
+            if not name or object_id is None:
+                continue
+            owner_name = owner["name"] if owner is not None else "NPC (unowned)"
             names = sorted({name.strip() for name in get_attackers(row)})
             siege_at = row.get("siege_at")
             if not names or not isinstance(siege_at, (int, float)) or siege_at <= now.timestamp():
@@ -42,9 +48,10 @@ class ScrydeRankingAdapter:
                 external_id=f"{self.object_type}:{object_id}:{int(siege_at)}",
                 kind="siege_registration",
                 title=f"{name}: attackers registered",
-                body=f"Owner: {owner['name']}; attackers: {', '.join(names)}",
+                body=f"Owner: {owner_name}; attackers: {', '.join(names)}",
                 source_url=self.page_url, provenance=Provenance.OBSERVED,
                 observed_at=now, occurs_at=occurrence,
-                clan=str(owner["name"]), object_name=str(name), revision="|".join(names),
+                clan=owner["name"] if owner is not None else None,
+                object_name=str(name), revision="|".join(names),
             ))
         return events

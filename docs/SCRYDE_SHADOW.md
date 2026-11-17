@@ -96,3 +96,24 @@ before deleting a cancellation registration. Offline tests cover both
 castles and fortresses, malformed snapshots, same-owner transitions, failed
 sends and expiry. This is a deliberate accuracy fix to the old behavior,
 not proof of full state machine migration.
+
+
+## NPC/unowned attack registration parity
+
+The original BSOE runtime treats an explicitly observed Scryde ranking
+`owner: null` as an unowned/NPC fortress or castle and can notify when BSOE
+registers to attack it. The first read-only `ScrydeRankingAdapter` erroneously
+skipped all such rows, so a future cutover could miss those registrations.
+
+The adapter now emits an `observed` registration event when a **validated**
+row has an explicitly null owner, a future siege time and one or more named
+attackers. Its text says `NPC (unowned)` and the normalized owner clan field
+is `None`, not an invented NPC clan. A missing owner key or malformed owner
+record is rejected by the existing shared row validator. Duplicate IDs,
+unregistered or expired sieges remain non-events.
+
+This is limited to shadow/read-only parsing. It does **not** enable extra
+notifications from BSOE or imply that an unowned object is attacked by the
+configured clan; event consumers must still apply verified subscription
+filters. Nine offline tests compare this case against the legacy BSOE
+registration path and cover invalid owners, duplicates and event timing.
