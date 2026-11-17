@@ -113,3 +113,24 @@ On the tracked repository snapshot inspected on 2026-11-17, the forum checkpoint
 **Do not use this as permission for a production cutover.** Forum/TG checkpoints are only source identity guards. Gemini content adaptation, manual approvals, callback offsets, verified owner/attack decisions, exact publication and live-channel permission smoke are still missing from the new Community Bot. Both tools report `cutover_authorized=false`. The counts shown for the *other* legacy queue mean records not processed by that individual tool, even if a previous candidate file contains the other source's marker.
 
 Rollback: restore the pre-import candidate-state backup or remove only the new `legacy-forum-watermark:...` cursor. Preserve verified sent receipts and never rewrite tracked `site_state.json`.
+
+
+## One combined public-source candidate (P1-STATE, no cutover)
+
+The two separate read-only public-history bridges can now be prepared **together**, producing one candidate state for a single, explicitly selected Telegram destination. Both sources must be configured as enabled in `community.json`, with exact public Scryde x1000 origins and one unambiguous subscription each.
+
+```bash
+python3 scripts/prepare_bsoe_history.py \
+  --legacy site_state.json --config community.json \
+  --current community_deliveries.json \
+  --telegram-source telegram-source --forum-source forum-source \
+  --destination clan-channel
+```
+
+This **dry run** reads the old state, validates both source histories and prints only aggregate validation results. It does **not** save state. To create a **new, separate candidate JSON**, add `--output candidate_state.json --confirm`. That file must not already exist. Neither source state nor the current community state can be overwritten by this command.
+
+The operation fails entirely if *either* legacy source contains active/unknown moderation, inconsistent IDs, a missing last-seen cursor, conflicting existing watermarks, or if a destination/source is invalid. The candidate preserves existing delivered hashes and cursors, and adds at most **two hashed source/world/destination watermark markers**; no messages, usernames, private chat IDs, moderator actions, website credentials or callback offsets are copied. The bridge does not read GitHub Actions Secrets.
+
+A dry run on the tracked legacy state on 2026-11-17 accepted both histories and showed two new markers, **without writing files**. This only verifies structural eligibility of the tracked snapshot, not the current live data or whether old posts were actually delivered.
+
+**Important:** `cutover_authorized=false` always. This cannot replace pending-approval moderation, event/castle ownership state, exact Gemini text, or the verification of real Telegram chat permissions. It is not a signal to enable BSOE production. Rollback: preserve the original state, discard the separate candidate JSON and revert the bridge code if needed. A real controlled migration must still compare source events and delivery decisions on authorized test channels.

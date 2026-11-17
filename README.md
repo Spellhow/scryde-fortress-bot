@@ -65,6 +65,8 @@ The opt-in `community/` Python package now provides a typed world/event model, d
 
 **Public forum adapter:** the Community Bot now has an experimental source for the official Scryde forum updates thread, with stable post IDs and explicit world-keyword filters. It is opt-in and does not replace BSOE moderation. See [supported sources](docs/SOURCES.md).
 
+**Unified BSOE history preflight:** a dry-run-only-by-default tool prepares Telegram and Scryde forum source watermarks in one separate candidate. It does not authorize a production cutover. See [migration requirements](docs/LEGACY_STATE_MIGRATION.md).
+
 **Scryde migration checkpoint:** an opt-in, dry-run-first tool can prepare a hashed public Telegram source watermark for one destination without modifying BSOE state. The bridge is partial and does not authorize production cutover. See [legacy migration notes](docs/LEGACY_STATE_MIGRATION.md).
 
 **News queue replay:** inspect saved BSOE moderation decisions without sending anything: `python3 scripts/replay_legacy_news.py --state site_state.json --mode prod`. Details in [migration notes](docs/LEGACY_STATE_MIGRATION.md).
