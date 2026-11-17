@@ -29,3 +29,13 @@ Other workflow environment settings are fixed on purpose for backward-compatible
 ## Next migration
 
 Create a validated `network/world/chronicle/clan/sources/destinations` model without changing current defaults. Keep secrets in GitHub Actions secrets or an encrypted/authorized store. Per-destination user IDs and moderation queues must not be committed publicly.
+
+
+
+## Legacy news moderation permissions
+
+`TG_CHAT_DEBUG` is the only authorized chat for the legacy `news:*` callback buttons, `/news_*` commands and `+/-/delay` reply shortcuts. Empty or mismatched chat IDs fail closed. Both legacy News and Siege workflows may consume moderation callbacks; both receive the same optional Actions Secret `NEWS_ADMIN_USER_IDS`.
+
+If `NEWS_ADMIN_USER_IDS` is a comma-separated list of decimal user IDs, only those users may issue moderation actions **inside the trusted chat**. Example format: `111111111,222222222` (illustrative IDs). Invalid or empty entries in a nonblank allowlist deny all moderation actions rather than opening access.
+
+Without `NEWS_ADMIN_USER_IDS`, all members who can interact in the dedicated debug chat may moderate, as before. The recommended setup is a restricted debug chat plus a user allowlist. Store IDs as GitHub **Secrets**, never as literals in workflow YAML or in public state.

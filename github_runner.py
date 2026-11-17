@@ -48,6 +48,9 @@ except Exception as exc:
 TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT = os.environ["TG_CHAT"]
 TG_CHAT_DEBUG = os.environ.get("TG_CHAT_DEBUG", "")
+# Optional comma-separated Telegram user IDs allowed to moderate within
+# TG_CHAT_DEBUG. Kept in Actions Secrets; never print or persist user IDs.
+NEWS_ADMIN_USER_IDS = os.environ.get("NEWS_ADMIN_USER_IDS", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 # Fail-closed model policy: these exact stable model IDs are explicitly listed
 # by Google with free input/output on the Gemini API Free Tier (2026-08-25).
@@ -345,7 +348,7 @@ def answer_callback_query(callback_query_id, text):
         r.raise_for_status()
         return True
     except Exception as exc:
-        log("answer callback failed: {}".format(exc))
+        log("answer callback failed: {}".format(type(exc).__name__))
         return False
 
 
@@ -1204,6 +1207,26 @@ def send_news_list(state, chat_id):
     return True
 
 
+def authorized_news_moderator(chat_id, actor_id=None):
+    """Only the configured moderator chat can issue news actions.
+
+    When NEWS_ADMIN_USER_IDS is provided, also require an exact Telegram
+    user-ID match. A malformed allowlist fails closed; missing chat settings
+    never grant blanket access.
+    """
+    if not TG_CHAT_DEBUG or chat_id is None or str(chat_id) != str(TG_CHAT_DEBUG):
+        return False
+    if not NEWS_ADMIN_USER_IDS.strip():
+        return True
+    identifiers = [part.strip() for part in NEWS_ADMIN_USER_IDS.split(",")]
+    if not identifiers or any(
+        not candidate.isascii() or not candidate.isdecimal()
+        or candidate == "0" for candidate in identifiers
+    ):
+        return False
+    return actor_id is not None and str(actor_id) in identifiers
+
+
 def handle_news_callback(state, callback):
     data = callback.get("data") or ""
     if not data.startswith("news:"):
@@ -1211,6 +1234,15 @@ def handle_news_callback(state, callback):
 
     callback_id = callback.get("id")
     message = callback.get("message") or {}
+    chat = message.get("chat") if isinstance(message, dict) else None
+    actor = callback.get("from") or {}
+    if not authorized_news_moderator(
+        chat.get("id") if isinstance(chat, dict) else None,
+        actor.get("id") if isinstance(actor, dict) else None,
+    ):
+        if callback_id:
+            answer_callback_query(callback_id, "Недостатньо прав")
+        return True
     parts = data.split(":", 3)
     if len(parts) != 4 or not parts[3].isdigit():
         answer_callback_query(callback_id, "Некоректна дія")
@@ -1252,8 +1284,17 @@ def handle_news_command(state, message):
     if not text.startswith("/news_"):
         return False
 
+    chat = message.get("chat") or {}
+    actor = message.get("from") or {}
+    if not authorized_news_moderator(
+        chat.get("id") if isinstance(chat, dict) else None,
+        actor.get("id") if isinstance(actor, dict) else None,
+    ):
+        # No information about the moderation queue to unrelated chats.
+        return False
+
     parts = text.split()
-    chat_id = str(message.get("chat", {}).get("id"))
+    chat_id = str(chat.get("id"))
     command = parts[0].split("@", 1)[0]
 
     if command == "/news_list":
@@ -1322,9 +1363,14 @@ def handle_news_reply_action(state, message):
     text = (message.get("text") or "").strip().lower()
     if not text:
         return False
-    chat_id = str(message.get("chat", {}).get("id"))
-    if TG_CHAT_DEBUG and chat_id != str(TG_CHAT_DEBUG):
+    chat = message.get("chat") or {}
+    actor = message.get("from") or {}
+    if not authorized_news_moderator(
+        chat.get("id") if isinstance(chat, dict) else None,
+        actor.get("id") if isinstance(actor, dict) else None,
+    ):
         return False
+    chat_id = str(chat.get("id"))
     reply_to = message.get("reply_to_message") or {}
     replied_message_id = reply_to.get("message_id")
     state_key, item = find_pending_by_debug_message_id(state, replied_message_id)
@@ -1361,7 +1407,7 @@ def acknowledge_telegram_updates(url, next_offset):
         response.raise_for_status()
         return True
     except Exception as exc:
-        log("getUpdates acknowledgement failed: {}".format(exc))
+        log("getUpdates acknowledgement failed: {}".format(type(exc).__name__))
         return False
 
 
@@ -1382,7 +1428,7 @@ def process_callback_updates(state):
         response.raise_for_status()
         updates = response.json().get("result", [])
     except Exception as exc:
-        log("getUpdates callback fetch failed: {}".format(exc))
+        log("getUpdates callback fetch failed: {}".format(type(exc).__name__))
         return False
 
     if not updates:

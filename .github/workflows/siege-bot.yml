@@ -77,6 +77,7 @@ jobs:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
           TG_CHAT_DEBUG: ${{ secrets.TG_CHAT_DEBUG }}
+          NEWS_ADMIN_USER_IDS: ${{ secrets.NEWS_ADMIN_USER_IDS }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NEWS_TARGET_CHAT: prod
           NEWS_AUTO_PUBLISH_GRACE_MIN: 30
