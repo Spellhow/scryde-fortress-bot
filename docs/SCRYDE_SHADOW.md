@@ -50,3 +50,13 @@ This eliminates one significant source of drift: a missing owner field cannot be
 The optional `SCRYDE_SHADOW_DIAGNOSTICS=true` flag now logs **only event-type counters** alongside the previous read-only ownership counts, and remains **disabled by default**. No owner/clan names, chat identifiers or source content are included in these candidate summaries.
 
 `test_scryde_decision_parity.py` compares predicted candidate categories against real (mocked, no network) legacy `process_defence` and `process_our_attacks` send attempts across deterministic cases. This is stronger than count-only shadowing, but **not equivalent to proving exact message copy, Gemini moderation parity or live event delivery**. A production cutover remains blocked until recorded real inputs and a dual-run replay confirm exact outcomes.
+
+
+
+## Retry guarantee for failed negative alerts
+
+The legacy BSOE decision engine now keeps an outstanding **defence cancellation** or **ownership loss** pending when `send_notification` returns false. It does **not** clear the siege/ownership flags before Telegram confirms success. The next valid ranking snapshot retries the negative notification. Once confirmed it updates state and does not send again for the same observed transition.
+
+For an attack that has already reached its scheduled start time, cancelling the prior alert is no longer relevant: the old state expires silently, preserving the existing behavior.
+
+This is verified with offline transport mocks across both fortresses and castles (`test_scryde_delivery_retry.py`). A real Telegram confirmation and production delivery smoke remain unverified. A crash between platform acceptance and saving Git state can still create a duplicate, as described in the delivery contract.

@@ -1994,15 +1994,20 @@ def process_defence(state_section, items, obj_key, page_url):
         elif not attackers and s.get("notified_siege"):
             now = int(time.time())
             last_siege_at = s.get("last_siege_at", 0)
-            if not (last_siege_at and now >= last_siege_at):
+            acknowledged = bool(last_siege_at and now >= last_siege_at)
+            if not acknowledged:
                 msg = SIEGE_CANCELLED.format(our_acc=o["our_acc"], nom=o["nom"], name=fort_name, url=page_url)
                 image = build_event_card(obj_type, fort_name, "Атаку відмінено", (60, 60, 80), OUR_CLAN, s.get("owner_image"), [], None, page_url)
-                send_notification(msg, image)
-            s["notified_siege"] = False
-            s["last_attackers"] = []
-            s["last_siege_at"] = 0
-            s["siege_first_notify"] = 0
-            s["notified_reminder"] = False
+                acknowledged = bool(send_notification(msg, image))
+            # Preserve the previous siege evidence if Telegram did not accept
+            # the cancellation. A later run must retry while the row still
+            # proves the attackers have withdrawn.
+            if acknowledged:
+                s["notified_siege"] = False
+                s["last_attackers"] = []
+                s["last_siege_at"] = 0
+                s["siege_first_notify"] = 0
+                s["notified_reminder"] = False
         processed.append((our, s, bool(attackers and siege_at)))
 
     for fort_key, s in list(tracked.items()):
@@ -2044,7 +2049,9 @@ def process_defence(state_section, items, obj_key, page_url):
                 s["siege_first_notify"] = 0
                 s["notified_reminder"] = False
             else:
-                s["had"] = False
+                # A failed loss notification must remain retryable: marking
+                # had=False before delivery would suppress all future attempts.
+                log("ownership loss notification not confirmed; will retry")
 
     if processed:
         preferred = next((entry for entry in processed if entry[2]), processed[0])
