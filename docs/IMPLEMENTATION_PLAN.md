@@ -57,7 +57,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 
 ### P1-STATE: durable state without required hosting
 - [ ] Define a versioned state schema and atomic update strategy for GitHub-only (workflow concurrency + conflict-aware commits). Community v1 JSON and atomic local writes exist; state persistence now three-way merges independent receipts on concurrent Git advances and refuses incompatible cursors. Offline bare-Git race tests verify this. Legacy migration and crash limitations remain.
-- [ ] Preserve sent/pending IDs and latest observed ownership through migration; include migration and rollback scripts with dry-run mode. Added read-only `scripts/legacy_state_preflight.py` with no-secret aggregate inventory, explicit blockers and tests. Real identity mapping, import, full moderation parity and rollback implementation remain.
+- [ ] Preserve sent/pending IDs and latest observed ownership through migration; include migration and rollback scripts with dry-run mode. Added read-only `scripts/legacy_state_preflight.py` with no-secret aggregate inventory, explicit blockers and tests. Legacy active pending/approved news entries now survive history rotation; finished history remains capped at 50, and new ingestion pauses at 200 active items to avoid silent data loss. Real identity mapping, import, full moderation parity and rollback implementation remain.
 - [ ] Prevent repeated AI processing and repeated sends across retries, crashes and concurrent deliveries.
 - [ ] For optional always-on mode, offer SQLite with a single writer; later PostgreSQL only when operationally justified.
 - [ ] Eliminate per-run Git commits when there are no changes; measure Git churn and retention.

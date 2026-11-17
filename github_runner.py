@@ -14,6 +14,10 @@ from bs4 import BeautifulSoup
 from google import genai
 from google.genai import types
 
+from community.legacy_news_queue import (
+    MAX_ACTIVE_NEWS_ITEMS, active_moderation_count, retain_news_queue,
+)
+
 from messages import (
     OBJ,
     SIEGE_ATTACK,
@@ -976,6 +980,13 @@ def process_feed_posts(state, posts, state_key, source_label):
                 news_state.get("last_seen_id", 0), post["id"]
             )
             continue
+        if active_moderation_count(news_state.get("pending", [])) >= MAX_ACTIVE_NEWS_ITEMS:
+            # Keep unprocessed source IDs retryable. Never drop old pending or
+            # approved moderator decisions merely to admit newer content.
+            log("{} moderation queue full ({} active); deferring new source posts".format(
+                source_label, MAX_ACTIVE_NEWS_ITEMS
+            ))
+            break
         rewritten = gemini_rewrite_x1000_news(
             post["text"],
             source_label=source_label,
@@ -1038,7 +1049,7 @@ def process_feed_posts(state, posts, state_key, source_label):
         sent_ids.add(post["id"])
 
     news_state["sent_ids"] = sorted(sent_ids)[-50:]
-    news_state["pending"] = news_state.get("pending", [])[-50:]
+    news_state["pending"] = retain_news_queue(news_state.get("pending", []))
 
 
 def process_pending_news_queue(state):
