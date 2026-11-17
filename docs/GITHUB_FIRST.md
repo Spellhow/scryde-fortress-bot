@@ -145,3 +145,11 @@ This creates a self-service test workflow; **the maintainer has not yet performe
 Before enabling a new public source for delivery, run **Actions → Preview Community Sources (manual)** in your own repository with `COMMUNITY_MODE=true`. Choose a source alias or leave it blank to preview up to five enabled feeds. It validates the source/parser and existing keyword filters without Telegram/Discord credentials, without sending messages, and without modifying state.
 
 For politeness and GitHub Actions cost control, a single Community Bot run fetches no more than six distinct public URLs from any one domain. Shared URLs are fetched once regardless of how many worlds or destinations subscribe. Extra sources are reported as deferred; reduce or spread out source URLs rather than raising the limit arbitrarily.
+
+
+
+## If public sources temporarily fail
+
+The Community Bot automatically retries a failed public HTTPS source with persistent bounded backoff: 20, 40, 80, then at most 120 minutes. Its health markers contain only hashed URL identifiers and numeric retry times in `community_deliveries.json`. This works in GitHub-only mode with no additional database.
+
+The Actions summary now includes `deferred_sources`. A deferred source is not interpreted as a game event, nor as a fresh failed network request. For a voluntary immediate check that does not alter state, set `COMMUNITY_DRY_RUN=true` and run the Community Bot manually, or use the dedicated source-preview workflow.

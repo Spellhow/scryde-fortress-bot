@@ -16,7 +16,8 @@ from .router import dispatch_events
 from .state import DeliveryState
 from .schedules import due_reminders
 from .relevance import filter_events
-from .source_limits import FetchBudget
+from .source_limits import FetchBudget, FetchUnavailable
+from .source_health import SourceHealth
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,7 @@ class RunSummary:
     attempts: int
     sent: int
     errors: tuple = ()
+    deferred_sources: int = 0
 
 
 def _init_key(source, subscription):
@@ -47,9 +49,11 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
     now = now or datetime.now(timezone.utc)
     if now.utcoffset() is None:
         raise ValueError("now must have timezone")
-    checked = seen = warmed = attempts = sent = 0
+    checked = seen = warmed = attempts = sent = deferred = 0
     errors = []
     fetch_budget = FetchBudget()
+    health = SourceHealth(state)
+    failed_urls_this_run = set()
     for source in config.sources:
         if not source.enabled:
             continue
@@ -59,6 +63,9 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
             errors.append(f"{source.id}: adapter unavailable")
             continue
         checked += 1
+        if not dry_run and not health.ready(source.url, now):
+            deferred += 1
+            continue
         snapshot_key = state_key(source.id, source.world, source.url) if is_l2dex else None
         candidate_snapshot = None
         try:
@@ -71,9 +78,16 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
             else:
                 events = filter_events(list(parser(payload, source, now)), source)
         except Exception as exc:
+            # Only genuine HTTP fetch failures receive a delayed retry;
+            # per-domain budgets and parser errors are handled separately.
+            if isinstance(exc, FetchUnavailable) and not dry_run and source.url not in failed_urls_this_run:
+                health.fail(source.url, now)
+                failed_urls_this_run.add(source.url)
             # Do not expose source URLs/tokens/response bodies in errors.
             errors.append(f"{source.id}: source failure ({type(exc).__name__})")
             continue
+        if not dry_run:
+            health.recover(source.url)
         seen += len(events)
         active_subs = []
         for sub in config.subscriptions:
@@ -121,4 +135,4 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
         attempts += outcome.attempted
         sent += outcome.sent
         errors.extend(outcome.errors)
-    return RunSummary(checked, seen, warmed, attempts, sent, tuple(errors))
+    return RunSummary(checked, seen, warmed, attempts, sent, tuple(errors), deferred)

@@ -306,7 +306,8 @@ class RunnerTests(unittest.TestCase):
                    send=lambda *args: self.fail("delivery never runs"),
                    credentials={},now=NOW)
         self.assertEqual(1,len(requests))
-        self.assertEqual(2,len(result.errors))
+        self.assertEqual(1,len(result.errors))
+        self.assertEqual(1,result.deferred_sources)
         self.assertNotIn("private credential",str(result.errors))
         self.assertEqual({},state.delivered)
 
@@ -417,6 +418,46 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(6,len(urls))
         self.assertEqual(2,len(result.errors))
         self.assertTrue(all("FetchBudgetExceeded" in error for error in result.errors))
+
+    def test_fetch_failure_backoff_skips_early_repeat_and_recovers(self):
+        from datetime import timedelta
+        from community.source_health import health_key
+        state=DeliveryState()
+        failures=[]
+        def fail(url):
+            failures.append(url)
+            raise RuntimeError("private token omitted")
+        first=run(self.cfg,state,fetch=fail,
+                  send=lambda *args:self.fail("no deliveries"),
+                  credentials={},now=NOW)
+        self.assertEqual(1,len(first.errors))
+        self.assertEqual(1,len(failures))
+        self.assertIn(health_key("https://example.com/feed"),state.cursors)
+
+        second=run(self.cfg,state,fetch=lambda *_:self.fail("backoff must not refetch"),
+                   send=lambda *args:self.fail("no sends"),
+                   credentials={},now=NOW+timedelta(minutes=5))
+        self.assertEqual(0,len(second.errors))
+        self.assertEqual(1,second.deferred_sources)
+
+        third=run(self.cfg,state,fetch=lambda _:NEWS,
+                  send=lambda *args:self.fail("first successful baseline is silent"),
+                  credentials={},now=NOW+timedelta(minutes=21))
+        self.assertEqual(0,third.deferred_sources)
+        self.assertEqual(2,third.subscriptions_initialized)
+        self.assertNotIn(health_key("https://example.com/feed"),state.cursors)
+
+    def test_dry_run_bypasses_existing_backoff_without_state_changes(self):
+        from datetime import timedelta
+        state=DeliveryState()
+        run(self.cfg,state,fetch=lambda _:(_ for _ in ()).throw(RuntimeError("offline")),
+            send=lambda *args:self.fail("never"),credentials={},now=NOW)
+        before=dict(state.cursors)
+        result=run(self.cfg,state,fetch=lambda _:NEWS,
+                   send=lambda *args:self.fail("dry-run never sends"),
+                   credentials={},now=NOW+timedelta(minutes=1),dry_run=True)
+        self.assertEqual(0,result.deferred_sources)
+        self.assertEqual(before,state.cursors)
 
     def test_initialization_state_roundtrip(self):
         state=DeliveryState()

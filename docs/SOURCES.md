@@ -69,3 +69,15 @@ In your template-based repository, set `COMMUNITY_MODE=true`, then open **Action
 Previews apply the configured source filters and show only a short sanitized title (or L2Dex castle name/observed owner), item counts, and safe error categories. They **never** send Telegram/Discord messages, contact AI models, read secrets or change delivery state. Check the preview before enabling an unfamiliar feed or scheduled alerts.
 
 Each Community Bot run limits fresh public HTTP requests to **six distinct URLs per domain**, including several source aliases sharing one domain. Identical URLs share a single fetch, even across game worlds. Over-budget URLs are deferred and reported as degraded rather than retried aggressively. This is an *in-run* limit; exponential backoff across runs and provider-specific limits are still future work.
+
+
+
+## Retry and source health between GitHub runs
+
+When a public HTTPS fetch fails, Community Bot stores only a hashed source URL key, the consecutive failure count and the next allowed retry time in `community_deliveries.json`. Subsequent scheduled runs **do not repeatedly hit the same failing URL** before its retry window.
+
+The backoff follows `20 → 40 → 80 → 120 minutes` (maximum two hours). A successful public fetch clears the failure record. Multiple world subscriptions to the same URL share one backoff decision, preventing repeated paid/network work.
+
+A skipped retry is reported as `deferred_sources` in the GitHub Actions log, not as a fresh transport failure. New HTTP failures still mark that run degraded. Manual `COMMUNITY_DRY_RUN=true` bypasses the cooldown to inspect a source without mutating backoff or delivery state.
+
+This policy does not imply that a temporarily unavailable webpage means a castle has been lost or a siege cancelled. A source with invalid but successfully fetched HTML is still rejected by its parser; parser-specific cross-run backoff remains future work.
