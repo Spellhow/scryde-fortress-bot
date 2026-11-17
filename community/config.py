@@ -11,6 +11,7 @@ from .schedules import ScheduledEvent, MAX_SCHEDULES
 SOURCE_KINDS = {"rss", "telegram_public", "json_api", "webpage", "l2dex_castles"}
 MAX_SOURCES = 30
 MAX_DESTINATIONS = 30
+MAX_SUBSCRIPTIONS = 100
 
 
 @dataclass(frozen=True)
@@ -95,8 +96,9 @@ def parse_config(data):
     scheduled = data.get("scheduled_events", [])
     if not all(isinstance(value, list) for value in (src, dest, subs, scheduled)):
         raise ValueError("sources, destinations, subscriptions and scheduled_events must be arrays")
-    if len(src) > MAX_SOURCES or len(dest) > MAX_DESTINATIONS or len(scheduled) > MAX_SCHEDULES:
-        raise ValueError("too many sources, destinations, or scheduled events")
+    if (len(src) > MAX_SOURCES or len(dest) > MAX_DESTINATIONS
+            or len(subs) > MAX_SUBSCRIPTIONS or len(scheduled) > MAX_SCHEDULES):
+        raise ValueError("too many sources, destinations, subscriptions or scheduled events")
     sources = []
     for item in src:
         if not isinstance(item, dict):
@@ -109,6 +111,7 @@ def parse_config(data):
             exclude_keywords=tuple(_strset(item.get("exclude_keywords", []))),
         ))
     destinations = {}
+    casefold_destinations = set()
     for item in dest:
         if not isinstance(item, dict):
             raise ValueError("destination entry must be an object")
@@ -117,8 +120,10 @@ def parse_config(data):
             address_env=item.get("address_env", ""),
             token_env=item.get("token_env", ""),
         )
-        if target.id in destinations:
-            raise ValueError("duplicate destination ID")
+        normalized_id = target.id.casefold()
+        if target.id != target.id.strip() or normalized_id in casefold_destinations:
+            raise ValueError("duplicate or whitespace-padded destination ID")
+        casefold_destinations.add(normalized_id)
         destinations[target.id] = target
     subscriptions = []
     for item in subs:
@@ -163,8 +168,8 @@ def parse_config(data):
     if len(schedule_ids) != len(set(schedule_ids)):
         raise ValueError("duplicate scheduled event ID within a world")
     ids = [source.id for source in sources]
-    if len(ids) != len(set(ids)):
-        raise ValueError("duplicate source ID")
+    if any(source_id != source_id.strip() for source_id in ids) or len({source_id.casefold() for source_id in ids}) != len(ids):
+        raise ValueError("duplicate or whitespace-padded source ID")
     allowed_worlds = {source.world.identity for source in sources} | {entry.world.identity for entry in schedules}
     if any(sub.world.identity not in allowed_worlds for sub in subscriptions):
         raise ValueError("subscription world has no configured source")
@@ -173,6 +178,28 @@ def parse_config(data):
         known_sources.add("manual_schedule")
     if any(sub.source_ids - known_sources for sub in subscriptions):
         raise ValueError("subscription references unknown source")
+    # Different translation requests for the same destination/event would
+    # otherwise silently depend on subscription declaration order.
+    def overlaps(filters_a, filters_b):
+        return not filters_a or not filters_b or bool(
+            {entry.casefold() for entry in filters_a} &
+            {entry.casefold() for entry in filters_b}
+        )
+
+    for i, first in enumerate(subscriptions):
+        for second in subscriptions[i+1:]:
+            if first.destination_id != second.destination_id:
+                continue
+            if first.world.identity != second.world.identity:
+                continue
+            if first.language == second.language:
+                continue
+            if all((
+                overlaps(first.source_ids, second.source_ids),
+                overlaps(first.event_types, second.event_types),
+                overlaps(first.clans, second.clans),
+            )):
+                raise ValueError("overlapping subscriptions require one language per destination and event")
     return CommunityConfig(tuple(sources), destinations, tuple(subscriptions), tuple(schedules))
 
 

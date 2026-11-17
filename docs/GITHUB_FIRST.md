@@ -162,3 +162,12 @@ The GitHub-only Community Bot now uses `ops/persist_community_state.sh` instead 
 The only staged commit file is `community_deliveries.json`. Original BSOE `site_state.json` and its persistence script are untouched. Offline tests with competing Git clones cover remote advances, untouched configuration, fresh template state and conflicting cursors. This is not a mathematical exactly-once delivery guarantee: a crash after remote acceptance but before persistence can still produce a duplicate.
 
 Rollback: revert the Community Bot persistence workflow change. This does not alter the state schema, but returning to the old script loses the new conflict-resolution safeguards.
+
+
+## Multi-channel delivery safety
+
+For multiple Telegram/Discord destinations, use distinct, stable aliases such as `clan-uk` and `clan-en`; aliases are case-insensitive for delivery receipts. Aliases differing only by case (for example `Clan` and `clan`), or with leading/trailing whitespace, are now rejected to prevent accidentally sharing one receipt across two different channels.
+
+One destination can have multiple subscriptions. When overlapping rules select the **same event**, the sender attempts that event only once per run even if the first attempt fails. It can retry on the next run after a failure. Overlapping subscriptions requesting **different languages for one destination and event** are rejected at configuration validation, rather than silently publishing whichever language happens to appear first in JSON.
+
+Different destinations remain independent: failure in one does not block the others. Up to 100 subscription rules are accepted per `community.json`. This is configuration hygiene and offline transport isolation, **not a real Telegram administrator-permission verification**.
