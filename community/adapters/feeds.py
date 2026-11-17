@@ -126,9 +126,66 @@ def parse_webpage(text, source, now=None):
     return events
 
 
+def parse_scryde_forum(text, source, now=None):
+    """Read-only official public XenForo thread parser with stable post IDs.
+
+    Does not fetch latest or follow redirects. A fixed page can become stale:
+    the administrator must update its URL after verifying a new public page.
+    """
+    now = now or datetime.now(timezone.utc)
+    soup = BeautifulSoup(text, "html.parser")
+    nodes = soup.select("article.message")
+    if not nodes:
+        # Empty/error/challenge pages must not be treated as a valid event
+        # snapshot and must never generate a synthetic cancellation.
+        raise ValueError("public forum post elements unavailable")
+    by_post = {}
+    duplicate = set()
+    for article in nodes[:120]:
+        attr = article.get("data-content") or article.get("id") or ""
+        match = re.search(r"post-?([0-9]+)", str(attr))
+        if not match:
+            continue
+        raw_id = match.group(1)
+        if len(raw_id) > 12 or not raw_id.isascii() or not raw_id.isdecimal():
+            continue
+        post_id = int(raw_id)
+        if post_id <= 0:
+            continue
+        content = article.select_one("div.bbWrapper")
+        if content is None:
+            continue
+        body = _plain(str(content))
+        if not body:
+            continue
+        if post_id in by_post:
+            duplicate.add(post_id)
+            continue
+        by_post[post_id] = body
+    if not by_post:
+        raise ValueError("public forum post identifiers unavailable")
+    events = []
+    for post_id, body in sorted(by_post.items()):
+        if post_id in duplicate:
+            # Conflicting/duplicate post IDs cannot safely select one article
+            # as the canonical event.
+            continue
+        event = _event(
+            source.world, source.id, f"forum-post:{post_id}",
+            body[:100], body,
+            source.url.rstrip("/") + f"#post-{post_id}", now,
+        )
+        if event:
+            events.append(event)
+    if not events:
+        raise ValueError("no trustworthy public forum messages in snapshot")
+    return events
+
+
 PARSERS = {
     "rss": parse_rss,
     "telegram_public": parse_telegram_public,
+    "scryde_forum": parse_scryde_forum,
     "json_api": parse_json_api,
     "webpage": parse_webpage,
 }
