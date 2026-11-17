@@ -24,7 +24,9 @@ class SourceTests(unittest.TestCase):
     def test_config_accepts_example(self):
         from pathlib import Path
         conf = parse_config(json.loads((Path(__file__).parent/"community.example.json").read_text()))
-        self.assertEqual(1, len(conf.sources))
+        self.assertEqual(2, len(conf.sources))
+        self.assertEqual({"scryde-official-news", "l2dex-new-interlude-castles"}, {s.id for s in conf.sources})
+        self.assertTrue(all(not s.enabled for s in conf.sources))
         self.assertEqual("clan-telegram", conf.subscriptions[0].destination_id)
 
     def test_reject_duplicate_sources(self):
