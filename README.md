@@ -61,6 +61,8 @@ The opt-in `community/` Python package now provides a typed world/event model, d
 
 **Legacy migration preflight:** `python3 scripts/legacy_state_preflight.py` inventories the old public state using counts only and explains why production cannot safely switch yet. [Migration preflight and rollback plan](docs/LEGACY_STATE_MIGRATION.md).
 
+**Moderation queue retention:** active pending/approved news items are preserved when historical entries rotate, and the legacy bot defers further ingestion once 200 active items await review. [State and migration notes](docs/LEGACY_STATE_MIGRATION.md).
+
 **Moderation delivery safety:** Telegram moderation updates are now processed before their local offset advances; a failed worker leaves unprocessed updates available for replay. See [legacy migration and callback details](docs/LEGACY_STATE_MIGRATION.md).
 
 **Scryde alert reliability:** failed Telegram sends no longer erase pending loss/cancellation alerts; state changes only after delivery acknowledgement. See [Scryde compatibility notes](docs/SCRYDE_SHADOW.md).

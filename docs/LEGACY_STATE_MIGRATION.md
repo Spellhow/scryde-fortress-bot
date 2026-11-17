@@ -45,3 +45,12 @@ The legacy runner now **handles each fetched batch before advancing** `meta.tg_u
 The updated offset is saved together with moderator state by the existing legacy state writer. A crash between a successful Telegram publication and the Git state commit can still replay the callback; the existing already-published state check mitigates subsequent duplicate sends when the state commit succeeded. This is best-effort processing, not a transactional exactly-once guarantee.
 
 Offline tests cover callback and command order, failure before local cursor advance, re-fetch on retry, unauthorized actions, empty batches and token-safe failures.
+
+
+## Preserving pending news during history rotation
+
+The legacy `process_feed_posts` previously retained only the last 50 queue entries regardless of moderation status. A busy feed could silently remove older `pending` or `approved` entries before the moderator acted.
+
+The queue now preserves **every active pending/approved entry** and only the most recent 50 finished/expired/cancelled historical entries, while keeping their original order. New source ingestion stops before Gemini when a queue already holds **200 active entries**; the source cursor stays unchanged so fresh posts remain eligible for later retry after the backlog is moderated. This limit applies independently to the Telegram and forum/wiki news queues.
+
+This is a conservative capacity gate. If an overloaded feed remains paused too long, the existing source backlog cap may still skip older public posts once processing resumes. Raise an operational alert and moderate the backlog; do not discard active entries to regain space. The current `site_state.json` is not rewritten by this refactor.
