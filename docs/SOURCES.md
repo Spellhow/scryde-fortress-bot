@@ -113,3 +113,21 @@ This forum mixes news about multiple servers. Explicit `include_keywords` is man
 For `scryde_forum`, changing the configured URL from one `page-N` to another inside the **same official thread** preserves the original subscription warm-start and delivery receipts. A source should not silently warm-start again and drop newly visible post numbers merely because the forum pagination advanced. Older handled IDs remain suppressed for the specific destination when a legacy forum migration marker has been installed.
 
 Moving to a new page remains a **manual** GitHub-only configuration action. Redirected, inaccessible or challenge pages generate a source error rather than invented news.
+
+
+## Forum page changes and existing warm-start state
+
+The Scryde forum has one public thread split across numbered pages. Community Bot now uses the thread's stable identity for subscription warm-start state, so updating `page-18` to `page-19` in `community.json` does **not** silently warm-start and discard the newly visible posts.
+
+An early Community Bot version stored a URL-specific `warm:...` marker. During normal operation, the runner now recognizes that previous marker **only when the current source URL, world, filters and destination still match** and its value is `initialized`. It promotes the marker to the canonical thread identity, preserving old receipt records and retaining the original marker for rollback.
+
+For upgrades from the original forum adapter, first run the updated code **without changing the configured page URL**. After the first healthy poll has saved the canonical marker, change the URL to the newly verified public page. If both code and URL change together, the old marker cannot be safely recovered from a hashed key and the new source will instead follow conservative silent warm-start behavior. No AI call or live message is made by this migration.
+
+
+## Forum page changes and existing warm-start state
+
+The Scryde forum has one public thread split across numbered pages. Community Bot now uses the thread's stable identity for subscription warm-start state, so updating `page-18` to `page-19` in `community.json` does **not** silently warm-start and discard the newly visible posts.
+
+An early Community Bot version stored a URL-specific `warm:...` marker. During normal operation, the runner now recognizes that previous marker **only when the current source URL, world, filters and destination still match** and its value is `initialized`. It promotes the marker to the canonical thread identity, preserving old receipt records and retaining the original marker for rollback.
+
+For upgrades from the original forum adapter, first run the updated code **without changing the configured page URL**. After the first healthy poll has saved the canonical marker, change the URL to the newly verified public page. If both code and URL change together, the old marker cannot be safely recovered from a hashed key and the new source will instead follow conservative silent warm-start behavior. No AI call or live message is made by this migration.

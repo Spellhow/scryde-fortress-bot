@@ -40,14 +40,17 @@ class RunSummary:
     deferred_sources: int = 0
 
 
-def _init_key(source, subscription):
-    """Changing a subscription's filters forces its own safe first-run warm start."""
-    # Numbered pages are the same official, validated forum thread. Changing
-    # page-17 to page-18 must NOT silently warm-start again and lose newly
-    # visible posts. A changed thread/domain/kind still requires a new source.
+def _init_key(source, subscription, *, legacy_page_identity=False):
+    """Changing subscription filters forces safe first-run warmup.
+
+    The original Scryde forum adapter keyed warmup by exact page URL.
+    Retain that key derivation for a one-way, no-message migration of old
+    GitHub-only states to the stable thread identity.
+    """
     source_identity = (
         "https://board.scryde.net/threads/obnovlenija.30694"
-        if source.kind == "scryde_forum" else source.url
+        if source.kind == "scryde_forum" and not legacy_page_identity
+        else source.url
     )
     return "warm:" + digest([
         source.id, source.world.identity, source.kind, source_identity, source.selector,
@@ -110,6 +113,15 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
             if sub.source_ids and source.id not in sub.source_ids:
                 continue
             marker = _init_key(source, sub)
+            if marker not in state.cursors and source.kind == "scryde_forum":
+                old_marker = _init_key(source, sub, legacy_page_identity=True)
+                if (not dry_run and old_marker in state.cursors
+                        and state.cursors[old_marker] == "initialized"):
+                    # Upgrade a previously warmed exact page (same config,
+                    # world, filters, destination) without silently ignoring
+                    # the first fresh post after a package update. Keep the old
+                    # marker for rollback compatibility.
+                    state.cursors[marker] = "initialized"
             if marker not in state.cursors:
                 warmed += 1
                 if not dry_run:
