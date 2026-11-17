@@ -1,0 +1,100 @@
+name: Set up Community Bot (one-time)
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Game network (for example L2Dex)'
+        required: true
+        default: L2Dex
+        type: string
+      world:
+        description: 'World and rate (for example New-Interlude x25)'
+        required: true
+        default: 'New-Interlude x25'
+        type: string
+      chronicle:
+        description: 'Chronicle or ruleset'
+        required: false
+        default: Interlude
+        type: string
+      source_kind:
+        description: 'Public data source type'
+        required: true
+        default: l2dex_castles
+        type: choice
+        options:
+          - l2dex_castles
+          - rss
+          - telegram_public
+          - json_api
+          - webpage
+      source_url:
+        description: 'Source URL (HTTPS only)'
+        required: true
+        default: 'https://lineage2dex.com/en/rating/new-interlude.343'
+        type: string
+      destination_kind:
+        description: 'Where to publish'
+        required: true
+        default: telegram
+        type: choice
+        options:
+          - telegram
+          - discord
+      destination_alias:
+        description: 'Public destination alias (not a chat ID)'
+        required: true
+        default: clan-channel
+        type: string
+      language:
+        description: 'Subscription language code (no automatic translation yet)'
+        required: true
+        default: uk
+        type: string
+      clan:
+        description: 'Optional exact-match owner-clan filter for L2Dex'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scryde-state
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    # Never rewrite the original owner's BSOE production repository.
+    if: github.repository != 'Spellhow/scryde-fortress-bot' && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Create validated community.json (no secrets)
+        env:
+          SETUP_NETWORK: ${{ inputs.network }}
+          SETUP_WORLD: ${{ inputs.world }}
+          SETUP_CHRONICLE: ${{ inputs.chronicle }}
+          SETUP_SOURCE_KIND: ${{ inputs.source_kind }}
+          SETUP_SOURCE_URL: ${{ inputs.source_url }}
+          SETUP_DESTINATION_KIND: ${{ inputs.destination_kind }}
+          SETUP_DESTINATION_ALIAS: ${{ inputs.destination_alias }}
+          SETUP_LANGUAGE: ${{ inputs.language }}
+          SETUP_CLAN: ${{ inputs.clan }}
+        run: python scripts/setup_community.py
+      - name: Commit setup configuration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add community.json
+          git commit -m "chore: initialize community bot configuration"
+          git push origin HEAD:${{ github.event.repository.default_branch }}

@@ -43,6 +43,7 @@ jobs:
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           COMMUNITY_SECRETS_JSON: ${{ secrets.COMMUNITY_SECRETS_JSON }}
         run: python community_runner.py
       - name: Persist delivery state

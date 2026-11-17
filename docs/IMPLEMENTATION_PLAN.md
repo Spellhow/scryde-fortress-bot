@@ -27,7 +27,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [x] Add explicit security and contributor/deployment notes.
 - [x] Add a license for repository code; audit dependency and asset licenses before redistributing bundled artifacts.
 - [x] Add workflow-contract regression test for schedule gating.
-- [ ] Audit tracked files and *history* for credentials and personal identifiers, document verified findings; if historical leakage is found, rotate first and coordinate removal.
+- [ ] Audit tracked files and *history* for credentials and personal identifiers, document verified findings; if historical leakage is found, rotate first and coordinate removal. **Pattern scans completed** (169 historical code/config blobs + 5,973 state versions, no regex matches); non-standard identifiers/human privacy review still pending (see security audit).
 - [ ] Add fixtures for malformed siege rows, multi-object ownership, re-registrations, pending news expiry and idempotent publication; reuse existing tests. (Malformed/multi-object fixtures added; re-registration and replay coverage still open.)
 - [x] Inventory configuration globals in `github_runner.py`, `fortress_bot.py` and both workflows; separate operational secrets from reusable defaults. See `docs/CONFIG_INVENTORY.md`; the next milestone introduces versioned multi-community config.
 - [ ] Verify production workflows after merging without enabling extra scheduled jobs for the VPS deployment. Note: as of 2026-11-16 the VPS dispatcher timer was disabled and the last News/Siege workflows ran on 2026-10-19; do not re-enable without checking the owner's intent.
@@ -37,7 +37,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 ### P0-SCHEDULE: self-contained GitHub-only starter
 - [x] Add an *opt-in* 10-minute scheduled trigger to both existing workflows. A repository variable `GITHUB_ONLY_MODE=true` enables jobs for schedule events, while manual/VPS `workflow_dispatch` remains available.
 - [ ] Exercise the opt-in path in a disposable/test repository and verify news/siege dedupe, secrets, workflow permissions, state persistence and recovery.
-- [ ] Document fork/template ownership, GitHub Actions enabling and repository secrets/variables; test the full setup with a clean account.
+- [ ] Document fork/template ownership, GitHub Actions enabling and repository secrets/variables; test the full setup with a clean account. Setup workflow and CLI generated config are implemented; clean independent repository smoke test still required.
 - [ ] Decide template vs fork (prefer template) and mark repository as template only after end-to-end onboarding is verified.
 - [ ] Investigate Git state persistence alternatives without adding required paid hosting. Existing BSOE `site_state.json` remains; GitHub-only forks use isolated `community_state.json` (implemented). Atomic/alternate state storage still open.
 - [x] Document default cadence, latency, rate limits and forked GitHub Actions quotas (see `docs/GITHUB_FIRST.md`).
@@ -68,7 +68,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 ### P1-CONFIG: multi-community Telegram setup
 - [x] Introduce a versioned YAML/JSON config and validate network/world/chronicle/clan independently. Versioned JSON parser and example implemented; interactive setup remains open.
 - [ ] Support multiple Telegram destinations with isolated subscription filters and correct publication permissions. JSON config and fan-out exist; live permission verification and end-to-end multi-channel test pending.
-- [ ] Add CLI / Telegram admin-only setup as a progressive enhancement; keep a secrets-based starter setup.
+- [ ] Add CLI / Telegram admin-only setup as a progressive enhancement; keep a secrets-based starter setup. One-time GitHub Actions and CLI setup generators now exist; Telegram chat-driven setup remains open.
 - [ ] Persist destination settings outside public state unless explicitly intended; do not commit secrets or private chat IDs.
 - [ ] Test a two-destination scenario: one source fetch, different language/filter, independent message IDs and failure handling.
 - [ ] Document least-privilege bot permissions and admin authorization.

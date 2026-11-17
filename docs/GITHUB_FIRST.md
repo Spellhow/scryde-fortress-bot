@@ -67,3 +67,20 @@ Select Actions → Community Bot (GitHub-only) → Run workflow to trigger once.
 The old News Bot and Siege Bot workflows are skipped when `COMMUNITY_MODE=true` so no duplicate legacy Scryde polling occurs. The new public feed runner **does not yet reproduce Scryde live siege alerts**. To run the original Scryde tracker, leave `COMMUNITY_MODE` unset/false.
 
 This feature is new and not yet end-to-end verified with a user's real Telegram/Discord credentials. Do not assume reliable delivery until a test channel and repeated runs have passed.
+
+
+
+## One-time GitHub Actions setup (new installation, no command line)
+
+A fresh fork/template copy can run **Actions → Set up Community Bot (one-time) → Run workflow**. Choose its public game network, world, chronicle, source URL, source type and Telegram/Discord output. The workflow validates them and commits a new `community.json` containing only public source metadata and **names of secret environment variables**. It refuses to overwrite an existing `community.json` or run in the original Spellhow/BSOE repository.
+
+After configuration, set the following in your own repository:
+
+1. Telegram: Actions secrets `TG_TOKEN` and `TG_CHAT`, or Discord: Actions secret `DISCORD_WEBHOOK`. For several destinations, use `COMMUNITY_SECRETS_JSON` with a flat mapping from environment names to secret values (never commit it to Git).
+2. Actions repository variables `COMMUNITY_MODE=true` and `GITHUB_ONLY_MODE=true`.
+3. Use `COMMUNITY_DRY_RUN=true` initially to check source accessibility without sending or saving alerts. Turn dry-run off for the first baseline, which intentionally sends no historical source events.
+4. Run **Actions → Community Bot (GitHub-only)** once, verify its logs, and check that state is persisted to `community_deliveries.json`. Scheduled checks thereafter are best-effort.
+
+The setup workflow does not request or handle actual Telegram chat IDs, bot tokens or Discord webhook secrets. It is intentionally one-time to avoid overwriting customized subscriptions.
+
+If you prefer a local shell, run `python scripts/setup_community.py --help`. Neither setup path needs a VPS, Docker or browser.
