@@ -27,3 +27,9 @@ Source adapters fetch/normalize once per source, the core decides relevance and 
     python3 -m unittest -v test_community_core
 
 Uses only the Python standard library. See the parent implementation plan for rollout gates.
+
+
+
+## Scryde shared row validation milestone
+
+The legacy BSOE runner now delegates only its safe ranking row validation and attacker extraction to `community.adapters.scryde_rows`, a pure Python module. Shadow projections and the Scryde event adapter reuse it. The *alert decision engine and publisher have not been cut over*: they retain their current production implementation and state file. This staged extraction has a small blast radius and is covered by legacy regression and new shared-adapter tests.

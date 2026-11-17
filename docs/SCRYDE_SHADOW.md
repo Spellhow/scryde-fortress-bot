@@ -31,3 +31,13 @@ The available renderer for new multi-community feeds is not yet a drop-in replac
 The authoritative legacy handler now validates Scryde ranking rows before interpreting them as defensive or offensive siege evidence. Invalid/missing owner fields, partial attacker arrays and duplicate IDs cannot cause an **immediate cancellation or castle loss**. Missing rows are deferred as before; valid explicit NPC owners and complete owner changes continue through the original notification path. The offensive attack processor delays cancellation when a snapshot has malformed rows, preserving tracked state for the next valid snapshot.
 
 These guards are independently tested in `test_scryde_fail_closed.py`, including valid negative and valid positive cases. Production remains on its original delivery/AI path. This is *not* an authorization to swap the current bot for the new core.
+
+
+
+## Shared ranking normalization extraction
+
+`community/adapters/scryde_rows.py` now defines the single **stdlib-only row validation** contract used by the authoritative legacy Scryde runner, read-only shadow projection, and the new read-only siege registration adapter. The existing public helper names in `github_runner.py` remain as compatibility wrappers.
+
+This eliminates one significant source of drift: a missing owner field cannot be interpreted as an explicit NPC owner in the shadow module while the legacy runner rejects it as malformed. Duplicate IDs are quarantined in the same way for both paths. Tests in `test_scryde_shared_rows.py` and existing legacy regressions verify the shared trust boundary.
+
+**Not yet migrated:** the actual BSOE alert state machine, siege reminder copy, news moderation/approvals, Telegram sending and existing `site_state.json` persistence. They remain under the legacy runner until event-by-event parity has been checked.

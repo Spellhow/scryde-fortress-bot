@@ -6,6 +6,7 @@ Never infer lost ownership from missing/invalid rows.
 from datetime import datetime, timezone
 
 from community.models import Event, Provenance
+from .scryde_rows import valid_scryde_ranking_rows, get_attackers
 
 
 class ScrydeRankingAdapter:
@@ -21,17 +22,14 @@ class ScrydeRankingAdapter:
             raise ValueError("ranking must contain a list")
         now = datetime.now(timezone.utc)
         events = []
-        for row in payload:
-            if not isinstance(row, dict):
-                continue
+        trusted_rows, _ = valid_scryde_ranking_rows(payload)
+        for row in trusted_rows:
             owner = row.get("owner")
             name = row.get("name")
             object_id = row.get("id")
             if not isinstance(owner, dict) or not owner.get("name") or not name or object_id is None:
                 continue
-            sides = row.get("siege_sides") or {}
-            attackers = sides.get("attackers", []) if isinstance(sides, dict) else []
-            names = sorted({a["name"].strip() for a in attackers if isinstance(a, dict) and isinstance(a.get("name"), str) and a["name"].strip()}) if isinstance(attackers, list) else []
+            names = sorted({name.strip() for name in get_attackers(row)})
             siege_at = row.get("siege_at")
             if not names or not isinstance(siege_at, (int, float)) or siege_at <= now.timestamp():
                 continue
