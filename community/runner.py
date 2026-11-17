@@ -31,7 +31,10 @@ class RunSummary:
 def _init_key(source, subscription):
     """Changing a subscription's filters forces its own safe first-run warm start."""
     return "warm:" + digest([
-        source.id, source.world.identity, subscription.destination_id,
+        # Changing URL/parser can select an entirely different news archive.
+        # A fresh silent baseline avoids flooding or misattributing old posts.
+        source.id, source.world.identity, source.kind, source.url, source.selector,
+        subscription.destination_id,
         sorted(subscription.event_types), sorted(subscription.source_ids),
         sorted(subscription.clans), subscription.language,
         sorted(source.include_keywords), sorted(source.exclude_keywords),
@@ -55,7 +58,7 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
             errors.append(f"{source.id}: adapter unavailable")
             continue
         checked += 1
-        snapshot_key = state_key(source.id, source.world) if is_l2dex else None
+        snapshot_key = state_key(source.id, source.world, source.url) if is_l2dex else None
         candidate_snapshot = None
         try:
             if source.url not in source_fetch_cache:

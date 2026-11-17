@@ -119,3 +119,9 @@ The test found and resolved two blockers: incorrectly scoped ignore rules for `c
 The one-time GitHub Actions setup includes an optional comma-separated **include_keywords** field for public sources. For a Scryde public Telegram source and world `x1000`, leaving this blank safely defaults to `["x1000"]` so x100-only news is not accidentally delivered. A post about all worlds that does not actually mention x1000 will be skipped; users can broaden the criteria by editing `community.json` afterward. Other feed types remain unfiltered unless keywords are explicitly provided.
 
 The feature is a deterministic Unicode keyword filter, **not Gemini/AI translation or classification**. The new Community Bot does not automatically translate a message when a subscription requests another language. A future optional review/AI step remains on the roadmap.
+
+
+
+## Changing source URLs safely
+
+The Community Bot automatically treats an edited source URL or parser selector as a new public feed. Its first successful observation only records the existing entries; it does not dump the new source's entire history into Telegram or Discord. Newly published events after that baseline are eligible for alerts. For L2Dex, the ranking URL is also part of the tracked castle snapshot identity, preventing a new ranking page from creating fictional castle ownership transitions.

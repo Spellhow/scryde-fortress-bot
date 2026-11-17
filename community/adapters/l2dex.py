@@ -111,8 +111,13 @@ def parse_castles(html_text: str) -> dict[str, Castle]:
     return castles
 
 
-def state_key(source_id: str, world: World) -> str:
-    return "l2dex-castles:" + digest([source_id, world.identity])
+def state_key(source_id: str, world: World, url: str = "") -> str:
+    """A new ranking URL is a new baseline, never a false castle transfer.
+
+    Empty URL preserves the helper's legacy two-argument call in tests; the
+    live runner always provides the verified, configured URL.
+    """
+    return "l2dex-castles:" + digest([source_id, world.identity, url])
 
 
 def load_snapshot(data: str | None) -> dict:
