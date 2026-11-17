@@ -71,7 +71,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [ ] Add CLI / Telegram admin-only setup as a progressive enhancement; keep a secrets-based starter setup. One-time GitHub Actions and CLI setup generators now exist; Telegram chat-driven setup remains open.
 - [ ] Persist destination settings outside public state unless explicitly intended; do not commit secrets or private chat IDs.
 - [ ] Test a two-destination scenario: one source fetch, different language/filter, independent message IDs and failure handling.
-- [ ] Document least-privilege bot permissions and admin authorization.
+- [ ] Document least-privilege bot permissions and admin authorization. Legacy BSOE moderation commands, callbacks and reply shortcuts now require the configured debug chat; an optional secret-based Telegram user-ID allowlist further restricts moderators. Interactive setup for independent community bots and live permissions tests remain.
 
 **Acceptance**: two test channels with different settings receive only relevant events; a failed destination cannot block another.
 

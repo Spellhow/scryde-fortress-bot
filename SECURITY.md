@@ -9,6 +9,7 @@ Use GitHub's private vulnerability reporting for this repository if enabled, or 
 - The current `site_state.json` is committed to this **public** repo. Do not add personal subscriber information, sensitive destination IDs or private content to it. A privacy-safe storage migration is tracked in `docs/IMPLEMENTATION_PLAN.md`.
 - Keep `RUN_GITHUB_SCHEDULE` disabled on a VPS-dispatched deployment unless its schedule is coordinated.
 - Give Telegram/Discord bots only required channel permissions.
+- For legacy BSOE news moderation, set a dedicated `TG_CHAT_DEBUG` chat. Commands, callback buttons and reply shortcuts are accepted only from that chat. Optionally configure the `NEWS_ADMIN_USER_IDS` GitHub Actions **secret** (comma-separated numeric Telegram user IDs) to restrict actions to named moderators within that chat. When unset, any participant who can post/use buttons in the trusted debug chat may moderate. Restrict debug-chat access.
 - New user-provided web feeds must validate URLs, redirects and destination IPs before fetching.
 - Never enable arbitrary execution from news posts or AI-generated content.
 - GitHub-only monitoring is best effort and not a safety-critical or guaranteed real-time alerting service.
