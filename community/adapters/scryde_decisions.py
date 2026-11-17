@@ -7,6 +7,11 @@ from collections import Counter
 from dataclasses import dataclass
 
 from .scryde_rows import get_attackers, valid_scryde_ranking_rows
+from .scryde_siege_rules import (
+    defence_attack_changed, defence_reminder_due,
+    defence_cancellation_action, own_attack_action,
+    missing_own_attack_action,
+)
 
 
 @dataclass(frozen=True)
@@ -37,13 +42,6 @@ def _previous_objects(defence):
     if old_id is not None and str(old_id) not in tracked:
         tracked[str(old_id)] = defence
     return tracked
-
-
-def _names(value):
-    if not isinstance(value, list):
-        return []
-    return sorted(x if isinstance(x, str) else x.get("name", "")
-                  for x in value if isinstance(x, (str, dict)))
 
 
 def project_scryde_decisions(items, *, clan, object_type, defence_state,
@@ -80,11 +78,7 @@ def project_scryde_decisions(items, *, clan, object_type, defence_state,
         attackers = get_attackers(row)
         siege_at = row.get("siege_at") or 0
         if attackers and siege_at:
-            changed = (
-                not previous.get("notified_siege")
-                or _names(previous.get("last_attackers", [])) != sorted(attackers)
-                or siege_at != previous.get("last_siege_at", 0)
-            )
+            changed = defence_attack_changed(previous, attackers, siege_at)
             sent_new_alert = False
             if changed:
                 key = "{}:{}:{}:{}".format(
@@ -94,17 +88,18 @@ def project_scryde_decisions(items, *, clan, object_type, defence_state,
                 if not last or now - last > 3*60*60:
                     result.append(Decision("defence_attack", object_id))
                     sent_new_alert = True
-            first = previous.get("siege_first_notify", 0)
-            if sent_new_alert and not previous.get("notified_siege"):
-                first = now
-            notified = bool(previous.get("notified_siege") or sent_new_alert)
-            mins_left = (siege_at-now)//60
-            if (notified and not previous.get("notified_reminder")
-                    and 0 < mins_left <= 25 and first
-                    and now-first >= 90*60):
+            # Simulate the success of the projected new alert before
+            # evaluating the same reminder gate as the legacy handler.
+            simulated = dict(previous)
+            if sent_new_alert:
+                if not previous.get("notified_siege"):
+                    simulated["siege_first_notify"] = now
+                    simulated["notified_reminder"] = False
+                simulated["notified_siege"] = True
+            if defence_reminder_due(simulated, siege_at, now):
                 result.append(Decision("defence_reminder", object_id))
         elif not attackers and previous.get("notified_siege"):
-            if not previous.get("last_siege_at") or now < previous["last_siege_at"]:
+            if defence_cancellation_action(previous, now) == "notify":
                 result.append(Decision("defence_cancelled", object_id))
 
     missing_owned = 0
@@ -127,22 +122,17 @@ def project_scryde_decisions(items, *, clan, object_type, defence_state,
         attacking_ids.add(object_id)
         previous = attack_state.get(object_id, {})
         siege_at = row.get("siege_at") or 0
-        if not previous.get("notified") or siege_at != previous.get("siege_at", 0):
+        action = own_attack_action(previous, siege_at, now)
+        if action == "register":
             result.append(Decision("our_attack", object_id))
-        else:
-            seconds = siege_at-now if siege_at else 0
-            notified_at = int(previous.get("notified_at", 0) or 0)
-            enough_gap = not notified_at or now-notified_at >= 30*60
-            if (not previous.get("notified_reminder") and
-                    0 < seconds <= 30*60 and enough_gap):
-                result.append(Decision("our_attack_reminder", object_id))
+        elif action == "remind":
+            result.append(Decision("our_attack_reminder", object_id))
 
     disappeared = set(attack_state) - attacking_ids
     if not (rejected and disappeared):
         for object_id in sorted(disappeared):
             previous = attack_state[object_id]
-            siege_at = previous.get("siege_at", 0)
-            if not siege_at or now < siege_at:
+            if missing_own_attack_action(previous, now) == "cancel":
                 result.append(Decision("our_attack_cancelled", object_id))
 
     return DecisionProjection(tuple(result), rejected, missing_owned)

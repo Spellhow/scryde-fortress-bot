@@ -1852,6 +1852,11 @@ def inspect_scryde_shadow(items, object_key, previous_section, previous_our_atta
 
 # Existing public helper names remain available to legacy tests and callers.
 # All row validation now shares one pure module with the new core.
+from community.adapters.scryde_siege_rules import (
+    defence_attack_changed, defence_reminder_due,
+    defence_cancellation_action, own_attack_action,
+    missing_own_attack_action,
+)
 from community.adapters.scryde_rows import (
     is_valid_scryde_ranking_row as _valid_ranking_row,
     valid_scryde_ranking_rows as _valid_ranking_rows,
@@ -1970,13 +1975,9 @@ def process_defence(state_section, items, obj_key, page_url):
             attackers_str = ", ".join(attackers)
             siege_time_str = format_time(siege_at)
             alert_key = build_siege_alert_key(obj_key, fort_id, siege_at, attackers)
-            cur_names = sorted(a if isinstance(a, str) else a.get("name", "") for a in attackers)
-            prev_names = sorted(a if isinstance(a, str) else a.get("name", "") for a in s.get("last_attackers", []))
-            new_attackers = cur_names != prev_names
-            new_siege_time = siege_at != s.get("last_siege_at", 0)
             mins_left = (siege_at - now) // 60
 
-            should_notify = (not s["notified_siege"]) or new_attackers or new_siege_time
+            should_notify = defence_attack_changed(s, attackers, siege_at)
             if should_notify and not should_send_siege_alert(root_state, alert_key, now):
                 log("skip duplicate siege alert {}".format(alert_key))
                 s["notified_siege"] = True
@@ -2015,9 +2016,7 @@ def process_defence(state_section, items, obj_key, page_url):
                     s["last_siege_at"] = siege_at
                     remember_siege_alert(root_state, alert_key, now)
 
-            first_notify = s.get("siege_first_notify", 0)
-            time_since_first = now - first_notify if first_notify else 0
-            if s["notified_siege"] and not s.get("notified_reminder") and 0 < mins_left <= 25 and time_since_first >= 90 * 60:
+            if defence_reminder_due(s, siege_at, now):
                 msg = SIEGE_REMINDER.format(
                     our_acc=o["our_acc"],
                     nom=o["nom"],
@@ -2043,9 +2042,9 @@ def process_defence(state_section, items, obj_key, page_url):
 
         elif not attackers and s.get("notified_siege"):
             now = int(time.time())
-            last_siege_at = s.get("last_siege_at", 0)
-            acknowledged = bool(last_siege_at and now >= last_siege_at)
-            if not acknowledged:
+            cancellation = defence_cancellation_action(s, now)
+            acknowledged = cancellation == "expire"
+            if cancellation == "notify":
                 msg = SIEGE_CANCELLED.format(our_acc=o["our_acc"], nom=o["nom"], name=fort_name, url=page_url)
                 image = build_event_card(obj_type, fort_name, "Атаку відмінено", (60, 60, 80), OUR_CLAN, s.get("owner_image"), [], None, page_url)
                 acknowledged = bool(send_notification(msg, image))
@@ -2143,8 +2142,8 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
         current_ids.add(obj_id)
         prev = attack_state.get(obj_id, {})
 
-        is_new_siege = (not prev.get("notified")) or siege_at != prev.get("siege_at", 0)
-        if is_new_siege:
+        action = own_attack_action(prev, siege_at, now)
+        if action == "register":
             msg = WE_ATTACK.format(acc=o["acc"], nom=o["nom"], name=obj_name, owner=owner_name, time=siege_time_str, url=page_url)
             image = build_event_card(
                 obj_type,
@@ -2167,40 +2166,31 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
                     "owner_icon": (item.get("owner") or {}).get("image"),
                 }
                 prev = attack_state[obj_id]
-        else:
+        elif action == "remind":
             secs_left = siege_at - now if siege_at else 0
             mins_left = max(0, secs_left // 60)
-            notified_at = int(prev.get("notified_at", 0) or 0)
-            enough_gap = (not notified_at) or (now - notified_at >= 30 * 60)
-            should_remind = (
-                prev.get("notified")
-                and not prev.get("notified_reminder")
-                and 0 < secs_left <= 30 * 60
-                and enough_gap
+            msg = WE_ATTACK_REMINDER.format(
+                mins=max(1, mins_left),
+                nom=o["nom"],
+                name=obj_name,
+                owner=owner_name,
+                time=siege_time_str,
+                url=page_url,
             )
-            if should_remind:
-                msg = WE_ATTACK_REMINDER.format(
-                    mins=max(1, mins_left),
-                    nom=o["nom"],
-                    name=obj_name,
-                    owner=owner_name,
-                    time=siege_time_str,
-                    url=page_url,
-                )
-                image = build_event_card(
-                    obj_type,
-                    obj_name,
-                    "Наша облога через {} хв!".format(max(1, mins_left)),
-                    C_GOLD,
-                    owner_name,
-                    (item.get("owner") or {}).get("image"),
-                    attacker_rows,
-                    siege_time_str,
-                    page_url,
-                )
-                if send_notification(msg, image):
-                    prev["notified_reminder"] = True
-                    attack_state[obj_id] = prev
+            image = build_event_card(
+                obj_type,
+                obj_name,
+                "Наша облога через {} хв!".format(max(1, mins_left)),
+                C_GOLD,
+                owner_name,
+                (item.get("owner") or {}).get("image"),
+                attacker_rows,
+                siege_time_str,
+                page_url,
+            )
+            if send_notification(msg, image):
+                prev["notified_reminder"] = True
+                attack_state[obj_id] = prev
 
     disappeared = set(attack_state.keys()) - current_ids
     # A partially broken source response cannot prove cancellation of a
@@ -2214,8 +2204,7 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
     for obj_id in disappeared:
         prev = attack_state[obj_id]
         obj_name = prev.get("name", "невідомо")
-        siege_at = prev.get("siege_at", 0)
-        if siege_at and now >= siege_at:
+        if missing_own_attack_action(prev, now) == "expire":
             to_delete.append(obj_id)
         else:
             msg = WE_CANCELLED.format(nom=o["nom"], name=obj_name)
