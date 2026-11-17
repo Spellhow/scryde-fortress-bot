@@ -14,9 +14,9 @@ class WorkflowContractTests(unittest.TestCase):
                 content = (WORKFLOW_DIR / name).read_text(encoding="utf-8")
                 self.assertIn("workflow_dispatch:", content)
                 self.assertIn("schedule:", content)
-                self.assertIn("GITHUB_ONLY_MODE", content)
+                self.assertIn("RUN_GITHUB_SCHEDULE", content)
                 self.assertIn(
-                    "github.event_name != 'schedule' || vars.GITHUB_ONLY_MODE == 'true'",
+                    "github.event_name != 'schedule' || vars.RUN_GITHUB_SCHEDULE == 'true'",
                     content,
                 )
                 self.assertIn("group: scryde-state", content)
@@ -56,6 +56,15 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("SETUP_SOURCE_URL: ", config)
         self.assertIn("git add community.json", config)
         self.assertNotIn("git add .", config)
+
+    def test_supported_schedule_variable_name_across_workflows(self):
+        # GitHub refuses creation of repository variables beginning GITHUB_.
+        # A real clean-install smoke test caught the legacy GITHUB_ONLY_MODE.
+        for name in ("news-bot.yml", "siege-bot.yml", "community-bot.yml"):
+            with self.subTest(name=name):
+                data=(WORKFLOW_DIR / name).read_text(encoding="utf-8")
+                self.assertIn("vars.RUN_GITHUB_SCHEDULE", data)
+                self.assertNotIn("vars.GITHUB_ONLY_MODE", data)
 
     def test_news_and_siege_have_distinct_10_minute_offsets(self):
         news = (WORKFLOW_DIR / "news-bot.yml").read_text(encoding="utf-8")
