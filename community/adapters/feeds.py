@@ -38,6 +38,14 @@ def parse_rss(text, source, now=None):
         raise ValueError("RSS external entities are forbidden")
     now = now or datetime.now(timezone.utc)
     root = ET.fromstring(text)
+    if root.tag not in {
+        "rss",
+        "{http://www.w3.org/2005/Atom}feed",
+        "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF",
+    }:
+        # A challenge/error page can be well-formed XML or XHTML. Treat it
+        # as a broken source, never as an empty successful feed baseline.
+        raise ValueError("not an RSS or Atom document")
     events = []
     for item in root.findall(".//item"):
         title = (item.findtext("title") or "").strip()
@@ -59,22 +67,46 @@ def parse_rss(text, source, now=None):
 
 
 def parse_telegram_public(text, source, now=None):
+    """Require trustworthy public channel post IDs before warming a source.
+
+    Successful HTTP does not prove the returned page is an actual Telegram
+    channel: anti-bot/login/error HTML may contain no messages at all.
+    """
     now = now or datetime.now(timezone.utc)
     soup = BeautifulSoup(text, "html.parser")
-    events = []
-    for node in soup.select(".tgme_widget_message[data-post]"):
-        eid = node.get("data-post", "").strip()
+    nodes = soup.select(".tgme_widget_message[data-post]")
+    if not nodes:
+        raise ValueError("public Telegram message elements unavailable")
+    channel = urlsplit(source.url).path.rsplit("/", 1)[-1].casefold()
+    events = {}
+    ambiguous_ids = set()
+    for node in nodes[:200]:
+        raw_id = node.get("data-post", "").strip()
+        match = re.fullmatch(r"([A-Za-z0-9_]{4,})/([1-9][0-9]{0,12})", raw_id)
+        if not match or match.group(1).casefold() != channel:
+            continue
+        eid = f"{channel}/{match.group(2)}"
         content = node.select_one(".tgme_widget_message_text")
-        if not eid or content is None:
+        if content is None:
             continue
         body = _plain(str(content))
         if not body:
             continue
-        link_node = node.select_one(".tgme_widget_message_date")
-        link = link_node.get("href") if link_node and link_node.get("href") else source.url
+        # The official channel/post identifier is the source of the link;
+        # HTML-supplied hrefs must not redirect a post to another domain.
+        link = f"https://t.me/{channel}/{match.group(2)}"
         result = _event(source.world, source.id, eid, body[:100], body, link, now)
-        if result: events.append(result)
-    return events
+        if result is None:
+            continue
+        if eid in events:
+            ambiguous_ids.add(eid)
+            continue
+        events[eid] = result
+    for eid in ambiguous_ids:
+        del events[eid]
+    if not events:
+        raise ValueError("no trustworthy public Telegram posts in snapshot")
+    return list(events.values())
 
 
 def parse_json_api(text, source, now=None):
@@ -112,7 +144,9 @@ def parse_webpage(text, source, now=None):
     selector = source.selector or "article, main"
     nodes = soup.select(selector, limit=10)
     if not nodes:
-        return []
+        # Misconfigured CSS and anti-bot/error pages must be retried rather
+        # than marking a live source's warmup as successful with no posts.
+        raise ValueError("webpage selector not present")
     events = []
     for index, node in enumerate(nodes):
         body = _plain(str(node))
