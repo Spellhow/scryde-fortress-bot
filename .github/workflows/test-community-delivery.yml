@@ -36,4 +36,5 @@ jobs:
           TG_CHAT: ${{ secrets.TG_CHAT }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           COMMUNITY_SECRETS_JSON: ${{ secrets.COMMUNITY_SECRETS_JSON }}
+          COMMUNITY_DISCORD_EMBEDS: ${{ vars.COMMUNITY_DISCORD_EMBEDS || 'false' }}
         run: python scripts/test_delivery.py
