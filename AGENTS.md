@@ -27,7 +27,7 @@ Read `docs/IMPLEMENTATION_PLAN.md` before starting feature work. The user has ch
 ```bash
 TG_TOKEN=test TG_CHAT=test TG_CHAT_DEBUG=test python -m unittest -v \
   test_dispatch_watchdog test_fortress_loss_signal test_pending_news_queue \
-  test_wiki_patch_notes test_workflow_contract test_p0_hardening test_state_persistence test_community_core test_community_sources test_community_runner test_l2dex_adapter test_community_schedules test_setup_community test_template_gitignore test_scryde_shadow
+  test_wiki_patch_notes test_workflow_contract test_p0_hardening test_state_persistence test_community_core test_community_sources test_community_runner test_l2dex_adapter test_community_schedules test_setup_community test_template_gitignore test_scryde_shadow test_scryde_fail_closed
 python -m compileall -q github_runner.py fortress_bot.py wiki_patch_notes.py messages.py card_builder.py
 ```
 These tests require packages in `requirements-actions.txt` but do **not** require installing the Chromium browser. Use real secrets only in the protected runtime workflows.
