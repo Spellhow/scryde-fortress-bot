@@ -26,16 +26,19 @@ def safe_public_link(url):
     try:
         parts = urlsplit(url)
         host = parts.hostname
+        # Fully qualified DNS names may have a terminal root dot, which
+        # must not bypass the local/private-host display policy.
+        domain = host.rstrip(".") if host else ""
         if (
-            parts.scheme != "https" or not host or "." not in host
-            or host.endswith((".localhost", ".local", ".internal", ".lan"))
-            or host in {"localhost"}
+            parts.scheme != "https" or not domain or "." not in domain
+            or domain.endswith((".localhost", ".local", ".internal", ".lan"))
+            or domain in {"localhost"}
             or parts.username or parts.password
             or parts.port not in (None, 443)
         ):
             return None
         try:
-            ipaddress.ip_address(host)
+            ipaddress.ip_address(domain)
             return None
         except ValueError:
             pass
