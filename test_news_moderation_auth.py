@@ -172,7 +172,6 @@ class LegacyNewsAuthorizationTests(unittest.TestCase):
         with patch.object(bot.requests,"get",side_effect=fail), \
              patch.object(bot,"log") as log:
             self.assertFalse(bot.process_callback_updates(sample_state()))
-            self.assertFalse(bot.acknowledge_telegram_updates("private-url",15))
         logged=" ".join(str(c) for c in log.call_args_list)
         self.assertNotIn("TEST_PRIVATE_TOKEN",logged)
         self.assertIn("RuntimeError",logged)

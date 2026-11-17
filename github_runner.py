@@ -1408,25 +1408,6 @@ def handle_news_reply_action(state, message):
     return True
 
 
-def acknowledge_telegram_updates(url, next_offset):
-    try:
-        response = requests.get(
-            url,
-            params={
-                "offset": next_offset,
-                "limit": 1,
-                "timeout": 0,
-                "allowed_updates": json.dumps(["callback_query", "message"]),
-            },
-            timeout=20,
-        )
-        response.raise_for_status()
-        return True
-    except Exception as exc:
-        log("getUpdates acknowledgement failed: {}".format(type(exc).__name__))
-        return False
-
-
 def process_callback_updates(state):
     url = "https://api.telegram.org/bot{}/getUpdates".format(TG_TOKEN)
     meta = state.setdefault("meta", {})
@@ -1452,11 +1433,12 @@ def process_callback_updates(state):
 
     max_update_id = max(int(update.get("update_id", 0) or 0) for update in updates)
     next_offset = max_update_id + 1
-    if not acknowledge_telegram_updates(url, next_offset):
-        log("Telegram updates not processed because acknowledgement failed")
-        return False
-    meta["tg_update_offset"] = next_offset
 
+    # Telegram acknowledges updates when the NEXT getUpdates request uses an
+    # offset above their IDs. Do not pre-acknowledge before processing actions:
+    # if the runner crashes before saving state, unacknowledged updates should
+    # remain available for replay. The main runner persists this cursor after
+    # all handlers finish; the following poll performs the network ack.
     handled_any = False
     for update in updates:
         callback = update.get("callback_query")
@@ -1469,6 +1451,7 @@ def process_callback_updates(state):
             elif handle_news_command(state, message):
                 handled_any = True
 
+    meta["tg_update_offset"] = next_offset
     return handled_any
 
 def build_siege_alert_key(obj_key, obj_id, siege_at, attackers):
