@@ -54,3 +54,22 @@ The legacy `process_feed_posts` previously retained only the last 50 queue entri
 The queue now preserves **every active pending/approved entry** and only the most recent 50 finished/expired/cancelled historical entries, while keeping their original order. New source ingestion stops before Gemini when a queue already holds **200 active entries**; the source cursor stays unchanged so fresh posts remain eligible for later retry after the backlog is moderated. This limit applies independently to the Telegram and forum/wiki news queues.
 
 This is a conservative capacity gate. If an overloaded feed remains paused too long, the existing source backlog cap may still skip older public posts once processing resumes. Raise an operational alert and moderate the backlog; do not discard active entries to regain space. The current `site_state.json` is not rewritten by this refactor.
+
+
+## Read-only replay of moderation decisions
+
+The old News Bot and the new pure module `community/legacy_news_decisions.py` now share the same decision boundary: hold until publish time, expire aged pending posts, enforce the auto-publication grace window, or attempt publication. Explicitly approved news still bypasses automatic-expiry restrictions after its scheduled time.
+
+To inspect a trusted copy of the current legacy state without any API calls or state writes:
+
+```bash
+python3 scripts/replay_legacy_news.py --state site_state.json --mode prod
+python3 scripts/replay_legacy_news.py --state site_state.json --mode debug
+python3 scripts/replay_legacy_news.py --state site_state.json --now 2000000000 --mode prod
+```
+
+Output contains only **counts per fixed action category** for `news` and `forum_news`. The `publish` category represents a candidate send, never a confirmed delivery. This script does not load bot tokens, call Gemini or Telegram, and never changes the state file. It never authorizes a production cutover.
+
+On 2026-11-17, the tracked repository snapshot held **50 news entries and 34 forum entries**. All 84 are historical and require no action according to the replay; no active pending or approved entries are present in that snapshot. That is useful evidence for the saved state only: it does not prove parity for a live moderation queue or for newer game events.
+
+The automated comparison includes publish/expiry boundaries, debug mode, approved posts, failed delivery and repeat runs. We still need a real authorized test destination and recorded before/after decisions for active moderator actions. A crash between an accepted Telegram message and a successful Git commit can still cause a duplicate on retry.
