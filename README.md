@@ -81,6 +81,8 @@ Community owners can preview up to five enabled public sources without publishin
 
 **Multi-channel guardrails:** the new Community Bot rejects alias collisions and conflicting language rules for overlapping subscriptions, and attempts an event only once per destination per run. See [configuration and channel safety](docs/GITHUB_FIRST.md).
 
+**Discord formatting:** optional native rich embeds can be enabled with GitHub Actions variable `COMMUNITY_DISCORD_EMBEDS=true`. Plain text remains the default; role mentions are disabled. [Discord setup and limitations](docs/DISCORD.md).
+
 ## Per-world news relevance (opt-in)
 
 Public Telegram/RSS/HTML/JSON sources can now use `include_keywords` and `exclude_keywords` in `community.json`. The installer for public Telegram news defaults to the chosen world name, so a channel for x1000 will not automatically receive x100-only posts. Matching is simple Unicode-aware keyword/phrase matching, not AI semantic classification or translation. Multiple world subscriptions sharing one feed URL reuse the same fetch. Details: [source filtering](docs/SOURCES.md).

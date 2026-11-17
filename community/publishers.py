@@ -1,9 +1,11 @@
 """Outbound Telegram and Discord transports. No incoming bot gateway required."""
+import ipaddress
 import json
 import os
 import re
+from datetime import timezone
 from urllib import request
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlsplit
 
 from .models import Destination, Event, Provenance
 
@@ -104,6 +106,57 @@ def _official_discord_webhook(address):
     )
 
 
+def _safe_discord_source_url(url):
+    """Only attach source links that are clearly public HTTPS pages."""
+    if not isinstance(url, str) or len(url) > 500 or any(ch.isspace() for ch in url):
+        return None
+    try:
+        parts = urlsplit(url)
+        host = parts.hostname
+        if (parts.scheme != "https" or not host or "." not in host
+                or parts.port not in (None, 443)
+                or parts.username or parts.password or parts.fragment):
+            return None
+        try:
+            ipaddress.ip_address(host)
+            return None
+        except ValueError:
+            pass
+        sensitive = {"token", "key", "secret", "password", "api_key", "access_token"}
+        if any(key.casefold() in sensitive for key, _ in parse_qsl(parts.query)):
+            return None
+    except ValueError:
+        return None
+    return url
+
+
+def render_discord_embed(event):
+    """One bounded Discord rich embed, with honest manual/scheduled provenance."""
+    title = _truncate(
+        f"{event.world.network} / {event.world.name}: {event.title}", 240
+    )
+    body = _truncate(event.body, 3500) if event.body else ""
+    if not body:
+        body = "No additional details provided."
+    timestamp = event.observed_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    embed = {
+        "title": title,
+        "description": body,
+        "footer": {"text": f"{event.provenance.value} · checked {timestamp}"},
+    }
+    if event.provenance == Provenance.OBSERVED:
+        source = _safe_discord_source_url(event.source_url)
+        if source:
+            embed["url"] = source
+    if event.occurs_at is not None:
+        embed["fields"] = [{
+            "name": "Event time (UTC)",
+            "value": event.occurs_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+            "inline": False,
+        }]
+    return embed
+
+
 def send_event(destination: Destination, event: Event, language: str,
                credential_env=None, post_json=None) -> bool:
     """Send a preformatted source event without AI translation.
@@ -133,10 +186,11 @@ def send_event(destination: Destination, event: Event, language: str,
             if not _official_discord_webhook(address):
                 return False
             url = address + "?wait=true"
-            payload = {
-                "content": render_plain_event(event, DISCORD_MAX_CHARS),
-                "allowed_mentions": {"parse": []},
-            }
+            payload = {"allowed_mentions": {"parse": []}}
+            if env.get("COMMUNITY_DISCORD_EMBEDS") == "true":
+                payload["embeds"] = [render_discord_embed(event)]
+            else:
+                payload["content"] = render_plain_event(event, DISCORD_MAX_CHARS)
             status, response = post(url, payload)
             return _confirmed_discord_message(status, response)
         return False

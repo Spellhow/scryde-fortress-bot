@@ -96,7 +96,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 
 ### P1-DISCORD: optional publisher and commands
 - [x] Separate Discord webhook delivery from interactive Discord bot commands. Outbound webhook transport implemented; interactive commands not implemented.
-- [ ] Add channel mapping, role mention controls, permission checks, embeds and slash commands.
+- [ ] Add channel mapping, role mention controls, permission checks, embeds and slash commands. Optional Discord rich embeds now supported behind `COMMUNITY_DISCORD_EMBEDS=true` (disabled by default), with explicit event provenance, UTC timestamp and disabled mentions. Thread/channel role mapping, permission checks and slash commands remain.
 - [ ] Reuse the event store and source poller; do not run another crawler per destination.
 - [ ] Document that full-time interactive commands may require an always-on process; GitHub-only supports scheduled outbound notifications first.
 - [ ] Test missing permissions, rate limits, duplicates and stale token behavior. Offline Telegram/Discord response contracts (2xx with message ID, 429/permission/malformed failures) and restart/replay tests added; live authorized channel/webhook smoke remains.
