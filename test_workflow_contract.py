@@ -66,6 +66,11 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertIn("vars.RUN_GITHUB_SCHEDULE", data)
                 self.assertNotIn("vars.GITHUB_ONLY_MODE", data)
 
+    def test_setup_keyword_input_preserves_github_dispatch_limit(self):
+        text=(WORKFLOW_DIR/"setup-community.yml").read_text(encoding="utf-8")
+        self.assertIn("SETUP_INCLUDE_KEYWORDS:",text)
+        self.assertIn("      include_keywords:",text)
+
     def test_news_and_siege_have_distinct_10_minute_offsets(self):
         news = (WORKFLOW_DIR / "news-bot.yml").read_text(encoding="utf-8")
         siege = (WORKFLOW_DIR / "siege-bot.yml").read_text(encoding="utf-8")

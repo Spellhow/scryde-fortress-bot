@@ -15,6 +15,7 @@ from .publishers import send_event
 from .router import dispatch_events
 from .state import DeliveryState
 from .schedules import due_reminders
+from .relevance import filter_events
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,7 @@ def _init_key(source, subscription):
         source.id, source.world.identity, subscription.destination_id,
         sorted(subscription.event_types), sorted(subscription.source_ids),
         sorted(subscription.clans), subscription.language,
+        sorted(source.include_keywords), sorted(source.exclude_keywords),
     ])
 
 
@@ -43,6 +45,7 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
         raise ValueError("now must have timezone")
     checked = seen = warmed = attempts = sent = 0
     errors = []
+    source_fetch_cache = {}
     for source in config.sources:
         if not source.enabled:
             continue
@@ -55,14 +58,23 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
         snapshot_key = state_key(source.id, source.world) if is_l2dex else None
         candidate_snapshot = None
         try:
-            payload = fetch(source.url)
+            if source.url not in source_fetch_cache:
+                try:
+                    source_fetch_cache[source.url] = (True, fetch(source.url))
+                except Exception as fetch_exc:
+                    # Cache failure for this run; do not retry a failing public
+                    # endpoint once per subscribing world/community.
+                    source_fetch_cache[source.url] = (False, type(fetch_exc).__name__)
+            fetched, payload = source_fetch_cache[source.url]
+            if not fetched:
+                raise ValueError("cached source fetch failure")
             if is_l2dex:
                 parsed_castles = parse_castles(payload)
                 events, candidate_snapshot = diff_castles(
                     state.cursors.get(snapshot_key), parsed_castles, source, now
                 )
             else:
-                events = list(parser(payload, source, now))
+                events = filter_events(list(parser(payload, source, now)), source)
         except Exception as exc:
             # Do not expose source URLs/tokens/response bodies in errors.
             errors.append(f"{source.id}: source failure ({type(exc).__name__})")

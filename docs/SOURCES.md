@@ -35,3 +35,27 @@ The new public multi-community runner is available as an experimental opt-in wor
 ## Manual schedules (no external source)
 
 The optional `scheduled_events` configuration enables custom reminders without fetching a website. These events are labeled `manual` provenance and need an explicit timestamp with UTC offset, a stable ID, a game world, title, and one or more `remind_before_minutes`. Subscribe to `manual_schedule` and `event_reminder` for the matching world. See [details and examples](REMINDERS.md). GitHub Actions timing remains best-effort.
+
+
+
+## Source world relevance without paid AI
+
+Public game feeds may mix announcements about many game worlds. The new optional source configuration supports:
+
+```json
+{
+  "id": "scryde-x1000-news",
+  "kind": "telegram_public",
+  "world": {"network": "Scryde", "name": "x1000"},
+  "url": "https://t.me/s/scryde",
+  "enabled": true,
+  "include_keywords": ["x1000"],
+  "exclude_keywords": ["x50"]
+}
+```
+
+Here `include_keywords` means the title or body must contain **at least one** listed phrase; `exclude_keywords` takes precedence and suppresses a matching post. Case-folding is Unicode-aware and matches complete words/phrases, so `x100` will not match `x1000`. This is a conservative text filter, **not semantic AI classification**; it can miss posts not mentioning a world and cannot guarantee perfect relevance.
+
+A new one-time GitHub setup for a **public Telegram source** defaults to requiring the configured world name, unless explicit comma-separated `include_keywords` are supplied. For RSS, HTML, JSON sources with no keyword settings, all public entries still pass through as in previous versions. Edit `community.json` to add explicit include/exclude filters to those sources too. L2Dex castle snapshots reject keyword filtering: use destination/subscription filters instead.
+
+If two sources have the same URL but different worlds, the runner fetches that URL only **once per job**, normalizes it for each world and applies each source's keyword settings independently. Changing keyword settings warm-starts that subscription again (silent snapshot) rather than posting a backlog of old news. The legacy BSOE Gemini moderation flow is separate and unchanged.

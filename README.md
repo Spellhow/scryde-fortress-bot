@@ -64,6 +64,10 @@ The opt-in `community/` Python package now provides a typed world/event model, d
 
 The `community/` package can now parse a versioned [example configuration](community.example.json), read public RSS/Atom, Telegram pages, JSON and selected HTML, and format outbound Telegram or Discord webhook messages. All credential references are environment-variable names. The library now has an **opt-in Community Bot workflow** for public feeds and Telegram/Discord webhooks (20-minute best-effort schedule). It does not replace live Scryde siege monitoring. Configure it from [community.example.json](community.example.json), keeping all credentials in GitHub Secrets. First runs warm-start to avoid a flood of historical posts. See [GitHub-first setup](docs/GITHUB_FIRST.md). Documentation: [source and destination design](docs/SOURCES.md).
 
+## Per-world news relevance (opt-in)
+
+Public Telegram/RSS/HTML/JSON sources can now use `include_keywords` and `exclude_keywords` in `community.json`. The installer for public Telegram news defaults to the chosen world name, so a channel for x1000 will not automatically receive x100-only posts. Matching is simple Unicode-aware keyword/phrase matching, not AI semantic classification or translation. Multiple world subscriptions sharing one feed URL reuse the same fetch. Details: [source filtering](docs/SOURCES.md).
+
 ## L2Dex castle tracking (opt-in)
 
 The new community runner can also monitor the public **L2Dex New-Interlude x25** castle table. It compares ownership and newly registered attacker clans, then sends only changes after an initial silent baseline. It does not claim live combat or convert the site's unverified local siege time into UTC. The source is **disabled by default** in `community.example.json`. The live page layout was checked against nine castles, but a real ownership change has not yet been observed by the adapter; see [L2Dex integration notes](docs/L2DEX.md).

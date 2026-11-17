@@ -66,6 +66,22 @@ class SetupTests(unittest.TestCase):
                 source_url="https://example.com/rss?api_key=private-value",
             ))
 
+    def test_public_telegram_defaults_to_its_world_gate(self):
+        document=build_document(**self.args(
+            network="Scryde",world="x1000",
+            source_kind="telegram_public", source_url="https://t.me/s/scryde"))
+        self.assertEqual(["x1000"],document["sources"][0]["include_keywords"])
+        parse_config(document)
+
+    def test_setup_supports_override_keyword_and_rejects_l2dex_filters(self):
+        document=build_document(**self.args(
+            network="Scryde",world="x1000",
+            source_kind="telegram_public",source_url="https://t.me/s/scryde",
+            include_keywords="x1000, High Five"))
+        self.assertEqual(["x1000","High Five"],document["sources"][0]["include_keywords"])
+        with self.assertRaises(ValueError):
+            build_document(**self.args(include_keywords="x1000"))
+
     def test_exclusive_file_does_not_overwrite(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/"community.json"

@@ -21,6 +21,8 @@ class SourceConfig:
     url: str
     selector: str = ""
     enabled: bool = True
+    include_keywords: tuple[str, ...] = ()
+    exclude_keywords: tuple[str, ...] = ()
 
     def __post_init__(self):
         required(self.id, "source id")
@@ -50,6 +52,17 @@ class SourceConfig:
             raise ValueError("enabled must be true or false")
         if not isinstance(self.selector, str) or len(self.selector) > 120:
             raise ValueError("CSS selector must be text of at most 120 characters")
+        for group in (self.include_keywords, self.exclude_keywords):
+            if not isinstance(group, tuple) or len(group) > 12:
+                raise ValueError("source keyword filters must contain at most 12 terms")
+            if any(
+                not isinstance(term, str) or not 1 <= len(term.strip()) <= 80
+                or any(ord(ch) < 32 for ch in term)
+                for term in group
+            ):
+                raise ValueError("keyword terms must be nonempty strings up to 80 characters")
+        if self.kind == "l2dex_castles" and (self.include_keywords or self.exclude_keywords):
+            raise ValueError("L2Dex castle events cannot be filtered by news keywords; use subscriptions")
 
 
 @dataclass(frozen=True)
@@ -92,6 +105,8 @@ def parse_config(data):
             id=item.get("id"), kind=item.get("kind"), world=_world(item.get("world")),
             url=item.get("url", ""), selector=item.get("selector", ""),
             enabled=item.get("enabled", True),
+            include_keywords=tuple(_strset(item.get("include_keywords", []))),
+            exclude_keywords=tuple(_strset(item.get("exclude_keywords", []))),
         ))
     destinations = {}
     for item in dest:
@@ -143,6 +158,8 @@ def parse_config(data):
             remind_before_minutes=tuple(times),
             clan=item.get("clan"),
             enabled=item.get("enabled", True),
+            include_keywords=tuple(_strset(item.get("include_keywords", []))),
+            exclude_keywords=tuple(_strset(item.get("exclude_keywords", []))),
         ))
     schedule_ids = [(entry.world.identity, entry.identifier) for entry in schedules]
     if len(schedule_ids) != len(set(schedule_ids)):

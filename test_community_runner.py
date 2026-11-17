@@ -235,6 +235,106 @@ class RunnerTests(unittest.TestCase):
                     credentials={}, now=NOW)
         self.assertEqual(1, again.sent)
 
+    def test_shared_public_feed_two_worlds_fetched_once_with_isolated_keywords(self):
+        config = parse_config({
+            "version": 1,
+            "sources": [
+                {"id":"scryde100","kind":"rss","world":{"network":"Scryde","name":"x100"},
+                 "url":"https://example.com/news","include_keywords":["x100"]},
+                {"id":"scryde1000","kind":"rss","world":{"network":"Scryde","name":"x1000"},
+                 "url":"https://example.com/news","include_keywords":["x1000"]},
+            ],
+            "destinations":[
+                {"id":"low","kind":"telegram","address_env":"CHAT_LOW","token_env":"TOKEN"},
+                {"id":"high","kind":"telegram","address_env":"CHAT_HIGH","token_env":"TOKEN"},
+            ],
+            "subscriptions":[
+                {"destination_id":"low","world":{"network":"Scryde","name":"x100"}},
+                {"destination_id":"high","world":{"network":"Scryde","name":"x1000"}},
+            ],
+        })
+        def payload(items):
+            return "<rss><channel>" + "".join(
+                f"<item><guid>{ident}</guid><title>{title}</title><description>{title} info</description>"
+                f"<link>https://example.com/{ident}</link></item>"
+                for ident,title in items
+            ) + "</channel></rss>"
+        state=DeliveryState()
+        calls=[]
+        requests=[]
+        def fetch(url):
+            requests.append(url)
+            return payload([("1","News x100"),("2","News x1000")])
+        first=run(config,state,fetch=fetch,send=lambda *args: True,credentials={},now=NOW)
+        self.assertEqual(0,first.sent)
+        self.assertEqual(1,len(requests))
+        self.assertEqual(2,len(state.cursors))
+        requests.clear()
+        def fetch_next(url):
+            requests.append(url)
+            return payload([
+                ("1","News x100"),("2","News x1000"),("3","x100 upcoming event"),
+                ("4","x1000 upcoming event"),
+            ])
+        result=run(config,state,fetch=fetch_next,
+                   send=lambda dest,event,*_:calls.append((dest.id,event.external_id)) or True,
+                   credentials={},now=NOW)
+        self.assertEqual(2,result.sent)
+        self.assertEqual([("low","3"),("high","4")],calls)
+        self.assertEqual(1,len(requests))
+
+    def test_shared_failed_source_url_is_not_refetched_or_exposed(self):
+        worlds = [
+            {"network":"Scryde","name":"x100"},
+            {"network":"Scryde","name":"x1000"},
+        ]
+        config=parse_config({
+            "version":1,
+            "sources":[
+                {"id":"s1","kind":"rss","url":"https://example.com/news","world":worlds[0]},
+                {"id":"s2","kind":"rss","url":"https://example.com/news","world":worlds[1]},
+            ],
+            "destinations":[{"id":"clan","kind":"telegram","address_env":"CHAT","token_env":"TOKEN"}],
+            "subscriptions":[{"destination_id":"clan","world":worlds[0]}],
+        })
+        requests=[]
+        def fail(url):
+            requests.append(url)
+            raise RuntimeError("private credential must not reach logs")
+        state=DeliveryState()
+        result=run(config,state,fetch=fail,
+                   send=lambda *args: self.fail("delivery never runs"),
+                   credentials={},now=NOW)
+        self.assertEqual(1,len(requests))
+        self.assertEqual(2,len(result.errors))
+        self.assertNotIn("private credential",str(result.errors))
+        self.assertEqual({},state.delivered)
+
+    def test_adjusting_source_keywords_restarts_baseline_silently(self):
+        from copy import deepcopy
+        baseline = parse_config({
+            "version":1,
+            "sources":[{"id":"feed","kind":"rss","world":{"network":"Scryde","name":"x1000"},
+                        "url":"https://example.com/feed","include_keywords":["x1000"]}],
+            "destinations":[{"id":"clan","kind":"telegram","address_env":"CHAT","token_env":"TOKEN"}],
+            "subscriptions":[{"destination_id":"clan","world":{"network":"Scryde","name":"x1000"}}],
+        })
+        state = DeliveryState()
+        rss='<rss><channel><item><guid>1</guid><title>x1000 patch</title><description>x1000 update</description><link>https://example.com/1</link></item></channel></rss>'
+        run(baseline,state,fetch=lambda _:rss,send=lambda *args:True,credentials={},now=NOW)
+        modified = parse_config({
+            "version":1,
+            "sources":[{"id":"feed","kind":"rss","world":{"network":"Scryde","name":"x1000"},
+                        "url":"https://example.com/feed","include_keywords":["patch"]}],
+            "destinations":[{"id":"clan","kind":"telegram","address_env":"CHAT","token_env":"TOKEN"}],
+            "subscriptions":[{"destination_id":"clan","world":{"network":"Scryde","name":"x1000"}}],
+        })
+        sent=[]
+        updated=run(modified,state,fetch=lambda _:rss,
+                    send=lambda *args:sent.append(1) or True,credentials={},now=NOW)
+        self.assertEqual(0,updated.sent)
+        self.assertEqual([],sent)
+
     def test_initialization_state_roundtrip(self):
         state=DeliveryState()
         run(self.cfg,state,fetch=lambda _:NEWS,send=lambda *args:True,credentials={},now=NOW)

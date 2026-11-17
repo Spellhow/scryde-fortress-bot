@@ -10,7 +10,11 @@
         "chronicle": "High Five"
       },
       "url": "https://t.me/s/scryde",
-      "enabled": false
+      "enabled": false,
+      "include_keywords": [
+        "x1000"
+      ],
+      "exclude_keywords": []
     },
     {
       "id": "l2dex-new-interlude-castles",

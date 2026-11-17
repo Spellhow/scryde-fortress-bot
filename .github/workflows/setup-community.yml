@@ -57,6 +57,11 @@ on:
         required: false
         default: ''
         type: string
+      include_keywords:
+        description: 'Optional comma-separated news terms; Telegram defaults to world name'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -90,6 +95,7 @@ jobs:
           SETUP_DESTINATION_ALIAS: ${{ inputs.destination_alias }}
           SETUP_LANGUAGE: ${{ inputs.language }}
           SETUP_CLAN: ${{ inputs.clan }}
+          SETUP_INCLUDE_KEYWORDS: ${{ inputs.include_keywords }}
         run: python scripts/setup_community.py
       - name: Commit setup configuration
         run: |
