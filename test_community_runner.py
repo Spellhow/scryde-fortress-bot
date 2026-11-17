@@ -167,7 +167,15 @@ class RunnerTests(unittest.TestCase):
         failed = run(conf, state, fetch=lambda _: "<html>challenge</html>",
                      send=lambda *args: self.fail("must not publish"), credentials={}, now=NOW)
         self.assertEqual(1, len(failed.errors))
-        self.assertEqual(before, state.cursors)
+        # The castle snapshot must remain identical; the new *parser health*
+        # cursor deliberately records a bounded retry cooldown on bad HTML.
+        from community.source_health import health_key, parser_identity
+        parser_health = health_key(parser_identity(conf.sources[0]))
+        self.assertEqual(before, {
+            key: value for key, value in state.cursors.items()
+            if key != parser_health
+        })
+        self.assertIn(parser_health, state.cursors)
 
     def test_manual_reminder_without_network_and_no_repeat(self):
         from datetime import timedelta

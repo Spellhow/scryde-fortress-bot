@@ -16,6 +16,20 @@ def health_key(url):
     return "health:" + digest(["public-source", url])
 
 
+def parser_identity(source):
+    """Distinct retry key per validated parser configuration, no raw URL in state.
+
+    Fetch failures still share an URL-wide backoff; a malformed source's
+    HTML/parser must not block another source using the same public URL.
+    Changing a selector or keyword scope starts a new parser identity.
+    """
+    return "parser:" + digest((
+        source.id.casefold(), source.world.identity, source.kind,
+        source.url, source.selector,
+        sorted(source.include_keywords), sorted(source.exclude_keywords),
+    ))
+
+
 class SourceHealth:
     def __init__(self, state):
         self.state = state

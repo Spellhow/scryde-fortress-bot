@@ -171,3 +171,24 @@ For multiple Telegram/Discord destinations, use distinct, stable aliases such as
 One destination can have multiple subscriptions. When overlapping rules select the **same event**, the sender attempts that event only once per run even if the first attempt fails. It can retry on the next run after a failure. Overlapping subscriptions requesting **different languages for one destination and event** are rejected at configuration validation, rather than silently publishing whichever language happens to appear first in JSON.
 
 Different destinations remain independent: failure in one does not block the others. Up to 100 subscription rules are accepted per `community.json`. This is configuration hygiene and offline transport isolation, **not a real Telegram administrator-permission verification**.
+
+
+## Automatic parser-failure cooldown
+
+The Community Bot distinguishes **HTTP failures** from **parser failures**.
+An inaccessible public URL receives the existing shared per-URL
+exponential cooldown. A successfully fetched but malformed RSS, JSON,
+forum HTML, or castle table now receives its own **parser-specific** retry
+delay of 20, then 40, then 80, up to 120 minutes, persisted in the ordinary
+GitHub-only JSON state. A different healthy source using the **same public URL**
+still processes normally.
+
+The parser cooldown key is a hash of the source alias, world, kind, URL,
+selector and keyword filters. It does **not** expose response content,
+tokens or source addresses in public state. Editing the relevant parser
+configuration starts a fresh retry identity. A successful parse clears its
+cooldown; dry runs and source previews never mutate these markers.
+
+These delays are **only source retry throttles**, not a promise about
+GitHub Actions cron accuracy or the availability of a site. Other sources,
+destinations, and scheduled/manual reminders continue running.
