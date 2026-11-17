@@ -398,6 +398,26 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(1,followup.sent)
         self.assertEqual(["castle_owner_change"],calls)
 
+    def test_per_host_fetch_budget_defers_extra_sources_safely(self):
+        world={"network":"Scryde","name":"x1000"}
+        cfg=parse_config({
+            "version":1,
+            "sources":[{"id":"feed"+str(i),"kind":"rss",
+                        "url":"https://example.com/page/"+str(i),"world":world}
+                       for i in range(8)],
+            "destinations":[{"id":"clan","kind":"telegram","address_env":"CHAT","token_env":"TOKEN"}],
+            "subscriptions":[{"destination_id":"clan","world":world}],
+        })
+        urls=[]
+        result=run(
+            cfg,DeliveryState(),fetch=lambda url:urls.append(url) or "<rss><channel/></rss>",
+            send=lambda *args: self.fail("first snapshot never sends"),
+            credentials={},now=NOW,
+        )
+        self.assertEqual(6,len(urls))
+        self.assertEqual(2,len(result.errors))
+        self.assertTrue(all("FetchBudgetExceeded" in error for error in result.errors))
+
     def test_initialization_state_roundtrip(self):
         state=DeliveryState()
         run(self.cfg,state,fetch=lambda _:NEWS,send=lambda *args:True,credentials={},now=NOW)

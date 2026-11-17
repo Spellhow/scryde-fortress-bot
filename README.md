@@ -67,6 +67,8 @@ The `community/` package can now parse a versioned [example configuration](commu
 
 Community output now requires a confirmed Telegram or Discord message ID before marking an event as sent, and limits long/emoji-heavy posts. See [delivery and retry contract](docs/DELIVERY_CONTRACT.md). A real authorized-channel delivery smoke test is still outstanding.
 
+Community owners can preview up to five enabled public sources without publishing anything: **Actions → Preview Community Sources (manual)**. Each job shares HTTP fetches and caps new requests at six distinct URLs per domain. See [source preview and safety limits](docs/SOURCES.md).
+
 ## Per-world news relevance (opt-in)
 
 Public Telegram/RSS/HTML/JSON sources can now use `include_keywords` and `exclude_keywords` in `community.json`. The installer for public Telegram news defaults to the chosen world name, so a channel for x1000 will not automatically receive x100-only posts. Matching is simple Unicode-aware keyword/phrase matching, not AI semantic classification or translation. Multiple world subscriptions sharing one feed URL reuse the same fetch. Details: [source filtering](docs/SOURCES.md).

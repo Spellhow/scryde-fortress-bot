@@ -59,3 +59,13 @@ Here `include_keywords` means the title or body must contain **at least one** li
 A new one-time GitHub setup for a **public Telegram source** defaults to requiring the configured world name, unless explicit comma-separated `include_keywords` are supplied. For RSS, HTML, JSON sources with no keyword settings, all public entries still pass through as in previous versions. Edit `community.json` to add explicit include/exclude filters to those sources too. L2Dex castle snapshots reject keyword filtering: use destination/subscription filters instead.
 
 If two sources have the same URL but different worlds, the runner fetches that URL only **once per job**, normalizes it for each world and applies each source's keyword settings independently. Changing keyword settings warm-starts that subscription again (silent snapshot) rather than posting a backlog of old news. The legacy BSOE Gemini moderation flow is separate and unchanged.
+
+
+
+## Preview configured sources safely
+
+In your template-based repository, set `COMMUNITY_MODE=true`, then open **Actions → Preview Community Sources (manual)**. Leave the source alias blank to preview up to the first **five enabled** sources, or provide an existing source alias. This action is disabled on the original BSOE repository.
+
+Previews apply the configured source filters and show only a short sanitized title (or L2Dex castle name/observed owner), item counts, and safe error categories. They **never** send Telegram/Discord messages, contact AI models, read secrets or change delivery state. Check the preview before enabling an unfamiliar feed or scheduled alerts.
+
+Each Community Bot run limits fresh public HTTP requests to **six distinct URLs per domain**, including several source aliases sharing one domain. Identical URLs share a single fetch, even across game worlds. Over-budget URLs are deferred and reported as degraded rather than retried aggressively. This is an *in-run* limit; exponential backoff across runs and provider-specific limits are still future work.

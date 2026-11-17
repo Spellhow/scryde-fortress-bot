@@ -137,3 +137,11 @@ Open **Actions → Test Community Delivery (manual)**, provide the exact destina
 If permissions or secrets are missing, the run fails without printing a token, chat ID or webhook URL. Repeat the test only after correcting credentials and explicitly confirming again. Once your authorized channel receives the message, turn on `RUN_GITHUB_SCHEDULE=true` to enable regular best-effort polling.
 
 This creates a self-service test workflow; **the maintainer has not yet performed live delivery testing with an authorized external channel**.
+
+
+
+## Source preview and request limits
+
+Before enabling a new public source for delivery, run **Actions → Preview Community Sources (manual)** in your own repository with `COMMUNITY_MODE=true`. Choose a source alias or leave it blank to preview up to five enabled feeds. It validates the source/parser and existing keyword filters without Telegram/Discord credentials, without sending messages, and without modifying state.
+
+For politeness and GitHub Actions cost control, a single Community Bot run fetches no more than six distinct public URLs from any one domain. Shared URLs are fetched once regardless of how many worlds or destinations subscribe. Extra sources are reported as deferred; reduce or spread out source URLs rather than raising the limit arbitrarily.
