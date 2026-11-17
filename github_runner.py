@@ -969,6 +969,13 @@ def process_feed_posts(state, posts, state_key, source_label):
     log("{} processing {} new posts after last_seen_id={}".format(source_label, len(new_posts), last_seen_id))
 
     for post in new_posts:
+        if post["id"] in sent_ids:
+            # A previously handled source post must not consume another
+            # Gemini call or re-enter moderation after a stale cursor replay.
+            news_state["last_seen_id"] = max(
+                news_state.get("last_seen_id", 0), post["id"]
+            )
+            continue
         rewritten = gemini_rewrite_x1000_news(
             post["text"],
             source_label=source_label,
@@ -1179,6 +1186,15 @@ def execute_news_retry(state, state_key, post_id, feedback_chat_id=None):
     if not item:
         if feedback_chat_id:
             send_telegram("Пост не знайдено", chat_id=str(feedback_chat_id))
+        return True
+    if item.get("status") == "published":
+        # Reopening a confirmed publication can create duplicate channel posts
+        # after the next queue cycle. Use in-place repair for existing posts.
+        if feedback_chat_id:
+            send_telegram(
+                "Пост уже опубліковано. Для виправлення редагуйте існуюче повідомлення.",
+                chat_id=str(feedback_chat_id),
+            )
         return True
     item["status"] = "pending"
     item["publish_after"] = int(time.time())
