@@ -101,12 +101,12 @@ class ScrydeFailClosedTests(unittest.TestCase):
 
     @patch.object(bot, "send_telegram", return_value=True)
     @patch.object(bot, "send_notification", return_value=True)
-    def test_valid_disappearance_preserves_legacy_cancellation(self, notify, telegram):
+    def test_missing_attack_row_defers_without_unverified_cancellation(self, notify, telegram):
         previous=prev_attack()
         result=bot.process_our_attacks(previous, [row(identifier=117, owner="BSOE")],
                                        "fortress",bot.FORTRESS_URL)
-        self.assertNotIn("116",result)
-        telegram.assert_called_once()
+        self.assertIn("116",result)
+        telegram.assert_not_called()
         notify.assert_not_called()
 
     @patch.object(bot, "build_event_card", return_value=None)

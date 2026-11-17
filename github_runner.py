@@ -2193,6 +2193,7 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
                 attack_state[obj_id] = prev
 
     disappeared = set(attack_state.keys()) - current_ids
+    verified_by_id = {str(item["id"]): item for item in valid_items}
     # A partially broken source response cannot prove cancellation of a
     # previously registered attack. Retain the old state and retry next run.
     if rejected and disappeared:
@@ -2204,8 +2205,17 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
     for obj_id in disappeared:
         prev = attack_state[obj_id]
         obj_name = prev.get("name", "невідомо")
-        if missing_own_attack_action(prev, now) == "expire":
+        action = missing_own_attack_action(
+            prev, now,
+            observed_row=verified_by_id.get(obj_id),
+            clan=OUR_CLAN,
+        )
+        if action in {"expire", "owner_changed"}:
             to_delete.append(obj_id)
+        elif action == "defer":
+            # A missing or temporarily incomplete ranking cannot prove that
+            # the clan chose to withdraw its registration.
+            log("{} our-attacks: registration absent from verified ranking; defer".format(obj_key))
         else:
             msg = WE_CANCELLED.format(nom=o["nom"], name=obj_name)
             if send_telegram(msg):

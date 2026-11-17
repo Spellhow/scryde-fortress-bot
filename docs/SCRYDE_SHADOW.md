@@ -72,3 +72,27 @@ The authoritative BSOE sender and the read-only Community Bot projector now use 
 The module has no network, AI, state writes or platform dependencies. It does not decide whether Telegram accepted a message. Legacy BSOE still owns publication, exact Ukrainian copy, last-alert timestamps, and the authoritative `site_state.json`. The read-only projection can now compare decisions against the same boundary conditions in offline regression tests.
 
 This is **not a production cutover**: full state transition/replay parity, real ranking evidence and authorized delivery tests remain required. If a regression appears, revert this shared-rule refactor; the file state schema and GitHub schedule have not changed.
+
+
+## Verifying our attack registration cancellation
+
+The legacy BSOE offensive siege handler formerly treated *absence of the
+previously attacked object from a ranking page* as proof that the clan had
+withdrawn. That can be misleading when the page is incomplete or an object
+temporarily disappears.
+
+A cancellation notice now requires a **present, valid, same-object ranking
+row** where BSOE is not listed among the attackers and the current owner is
+not BSOE. A missing/invalid/duplicated row is not evidence of withdrawal;
+the old registration state remains retryable. If the row explicitly names
+BSOE as the new owner, the old offensive registration is retired **without**
+announcing a withdrawal or inventing a victory event. Registrations that have
+reached their scheduled siege time expire silently, even if their row is no
+longer present.
+
+These conditions are shared by the legacy sender and the pure read-only
+candidate projector. The sender still requires a confirmed Telegram send
+before deleting a cancellation registration. Offline tests cover both
+castles and fortresses, malformed snapshots, same-owner transitions, failed
+sends and expiry. This is a deliberate accuracy fix to the old behavior,
+not proof of full state machine migration.
