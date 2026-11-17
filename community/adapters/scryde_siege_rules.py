@@ -66,7 +66,22 @@ def own_attack_action(previous, siege_at, now):
     return "none"
 
 
-def missing_own_attack_action(previous, now):
-    """Trusted absent attack row: expire silently if siege time has arrived."""
+def missing_own_attack_action(previous, now, *, observed_row=None,
+                              clan=None):
+    """Decide how to resolve a vanished registration, not a missing row.
+
+    Observed_row must be a trusted, validated row with the same object ID.
+    A missing row cannot prove the clan explicitly cancelled an attack.
+    Already-ended attack records expire quietly regardless of source gaps.
+    When the row explicitly names our clan as owner, do not falsely claim
+    that the clan withdrew from the siege.
+    """
     siege_at = previous.get("siege_at", 0)
-    return "expire" if siege_at and now >= siege_at else "cancel"
+    if siege_at and now >= siege_at:
+        return "expire"
+    if observed_row is None:
+        return "defer"
+    owner = observed_row.get("owner")
+    if isinstance(owner, dict) and owner.get("name") == clan:
+        return "owner_changed"
+    return "cancel"

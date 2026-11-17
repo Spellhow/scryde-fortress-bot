@@ -79,6 +79,8 @@ The opt-in `community/` Python package now provides a typed world/event model, d
 
 **Scryde alert reliability:** failed Telegram sends no longer erase pending loss/cancellation alerts; state changes only after delivery acknowledgement. See [Scryde compatibility notes](docs/SCRYDE_SHADOW.md).
 
+**Verified attack cancellations:** BSOE no longer claims the clan withdrew merely because an attack row disappeared; it requires a valid same-object source row, and silently resolves a previous registration when BSOE is the verified owner. See [Scryde transition safeguards](docs/SCRYDE_SHADOW.md).
+
 **Scryde decision parity:** opt-in, read-only prediction now compares candidate siege notifications against the legacy handler; deterministic offline cases cover registration, cancellation, reminders and verified owner changes. Live production switching remains disabled.
 
 **Shared parser milestone:** legacy BSOE and new Scryde adapters now validate ranking owner/attacker rows using one pure module; actual alert decisions and state remain legacy until parity is proven. See [Scryde shadow plan](docs/SCRYDE_SHADOW.md).

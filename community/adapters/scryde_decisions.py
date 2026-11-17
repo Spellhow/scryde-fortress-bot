@@ -132,7 +132,11 @@ def project_scryde_decisions(items, *, clan, object_type, defence_state,
     if not (rejected and disappeared):
         for object_id in sorted(disappeared):
             previous = attack_state[object_id]
-            if missing_own_attack_action(previous, now) == "cancel":
+            if missing_own_attack_action(
+                previous, now,
+                observed_row=by_id.get(object_id),
+                clan=clan,
+            ) == "cancel":
                 result.append(Decision("our_attack_cancelled", object_id))
 
     return DecisionProjection(tuple(result), rejected, missing_owned)

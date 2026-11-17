@@ -68,10 +68,16 @@ class PureSiegeRuleTests(unittest.TestCase):
         self.assertEqual("none",own_attack_action(
             dict(previous,notified_reminder=True),NOW+1800,NOW))
 
-    def test_disappeared_registration_end_time(self):
-        self.assertEqual("cancel",missing_own_attack_action({"siege_at":0},NOW))
-        self.assertEqual("cancel",missing_own_attack_action(
+    def test_disappeared_registration_requires_observed_evidence(self):
+        other_owner={"owner":{"name":"Enemy"}}
+        own_owner={"owner":{"name":"BSOE"}}
+        self.assertEqual("defer",missing_own_attack_action({"siege_at":0},NOW))
+        self.assertEqual("defer",missing_own_attack_action(
             {"siege_at":NOW+1},NOW))
+        self.assertEqual("cancel",missing_own_attack_action(
+            {"siege_at":NOW+1},NOW,observed_row=other_owner,clan="BSOE"))
+        self.assertEqual("owner_changed",missing_own_attack_action(
+            {"siege_at":NOW+1},NOW,observed_row=own_owner,clan="BSOE"))
         self.assertEqual("expire",missing_own_attack_action(
             {"siege_at":NOW},NOW))
         self.assertEqual("expire",missing_own_attack_action(
@@ -121,15 +127,16 @@ class ActualLegacySharedRuleTests(unittest.TestCase):
                       "notified":True,"notified_at":NOW-3600}}
         before=copy.deepcopy(state)
         notifications=[]
+        confirmed_absence=[row(owner="Enemy",attackers=(),siege_at=NOW+3600)]
         with patch.object(bot.time,"time",return_value=NOW), \
              patch.object(bot,"send_telegram",
                           side_effect=lambda msg:notifications.append(msg) or False):
-            bot.process_our_attacks(state,[],"fortress",URL)
+            bot.process_our_attacks(state,confirmed_absence,"fortress",URL)
         self.assertEqual(before,state)
         self.assertEqual(1,len(notifications))
         with patch.object(bot.time,"time",return_value=NOW), \
              patch.object(bot,"send_telegram",return_value=True):
-            bot.process_our_attacks(state,[],"fortress",URL)
+            bot.process_our_attacks(state,confirmed_absence,"fortress",URL)
         self.assertEqual({},state)
 
 
