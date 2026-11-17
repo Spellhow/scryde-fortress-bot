@@ -60,3 +60,15 @@ The legacy BSOE decision engine now keeps an outstanding **defence cancellation*
 For an attack that has already reached its scheduled start time, cancelling the prior alert is no longer relevant: the old state expires silently, preserving the existing behavior.
 
 This is verified with offline transport mocks across both fortresses and castles (`test_scryde_delivery_retry.py`). A real Telegram confirmation and production delivery smoke remain unverified. A crash between platform acceptance and saving Git state can still create a duplicate, as described in the delivery contract.
+
+
+## Shared decision rules (incremental P1-CORE)
+
+The authoritative BSOE sender and the read-only Community Bot projector now use the same pure module, `community/adapters/scryde_siege_rules.py`, for the following alert eligibility decisions:
+
+- defence registration changes (attacking clans or siege time), early defence reminders, and cancellation versus already-finished siege;
+- our outbound attack registration/date changes, early reminders, and vanished registrations that either expire silently after the scheduled start or require an actual cancellation notice.
+
+The module has no network, AI, state writes or platform dependencies. It does not decide whether Telegram accepted a message. Legacy BSOE still owns publication, exact Ukrainian copy, last-alert timestamps, and the authoritative `site_state.json`. The read-only projection can now compare decisions against the same boundary conditions in offline regression tests.
+
+This is **not a production cutover**: full state transition/replay parity, real ranking evidence and authorized delivery tests remain required. If a regression appears, revert this shared-rule refactor; the file state schema and GitHub schedule have not changed.
