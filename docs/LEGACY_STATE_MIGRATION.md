@@ -36,3 +36,12 @@ These are aggregate counts from the repository snapshot, **not live server statu
 The legacy `/news_retry` command cannot reopen an item marked `published`: doing so would allow a duplicate channel post on the next queue cycle. The operator should use the existing manual in-place news repair workflow when changing already published content. Expired or cancelled entries can still be deliberately retried.
 
 When the source fetch returns a post ID already recorded in `sent_ids` but the source cursor is stale, the runner now advances that cursor without issuing another Gemini request or inserting a duplicate pending item. Failures on *new* posts still leave the cursor positioned for retry.
+
+
+## Telegram moderator update acknowledgement
+
+The legacy runner now **handles each fetched batch before advancing** `meta.tg_update_offset`. It does not issue an extra `getUpdates` call to acknowledge the batch before commands run. Telegram acknowledges the processed updates on the next poll when that stored higher offset is sent. This makes an interrupted worker more likely to replay a command instead of silently losing it before it was handled.
+
+The updated offset is saved together with moderator state by the existing legacy state writer. A crash between a successful Telegram publication and the Git state commit can still replay the callback; the existing already-published state check mitigates subsequent duplicate sends when the state commit succeeded. This is best-effort processing, not a transactional exactly-once guarantee.
+
+Offline tests cover callback and command order, failure before local cursor advance, re-fetch on retry, unauthorized actions, empty batches and token-safe failures.
