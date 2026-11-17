@@ -169,6 +169,72 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(1, len(failed.errors))
         self.assertEqual(before, state.cursors)
 
+    def test_manual_reminder_without_network_and_no_repeat(self):
+        from datetime import timedelta
+        world = {"network":"Scryde", "name":"x1000"}
+        scheduled = parse_config({
+            "version": 1, "sources": [],
+            "scheduled_events": [{
+                "id": "community-meetup", "world": world,
+                "title": "Clan meeting", "body": "Meet the clan",
+                "starts_at": (NOW + timedelta(minutes=60)).isoformat(),
+                "remind_before_minutes": [60],
+            }],
+            "destinations": [
+                {"id":"a", "kind":"telegram", "address_env":"CHAT_A", "token_env":"BOT_TOKEN"},
+                {"id":"b", "kind":"discord", "address_env":"DISCORD_WEBHOOK"},
+            ],
+            "subscriptions": [
+                {"destination_id":"a", "world":world, "source_ids":["manual_schedule"]},
+                {"destination_id":"b", "world":world, "source_ids":["manual_schedule"]},
+            ]
+        })
+        state = DeliveryState()
+        calls = []
+        def send(target, event, lang, credentials):
+            calls.append(target.id)
+            return True
+        first = run(scheduled, state, fetch=lambda *_: self.fail("schedule must not fetch"),
+                    send=send, credentials={}, now=NOW)
+        self.assertEqual((0, 2), (first.sources_checked, first.sent))
+        self.assertEqual(["a", "b"], calls)
+        repeat = run(scheduled, state, fetch=lambda *_: self.fail("unexpected fetch"),
+                     send=send, credentials={}, now=NOW)
+        self.assertEqual(0, repeat.sent)
+
+    def test_manual_reminder_failed_delivery_is_retriable(self):
+        from datetime import timedelta
+        world = {"network":"Scryde", "name":"x1000"}
+        scheduled = parse_config({
+            "version": 1, "sources": [],
+            "scheduled_events": [{
+                "id": "weekly-meeting", "world": world,
+                "title": "Community meeting", "body": "Join us",
+                "starts_at": (NOW + timedelta(minutes=60)).isoformat(),
+                "remind_before_minutes": [60],
+            }],
+            "destinations": [
+                {"id":"a","kind":"telegram","address_env":"CHAT_A","token_env":"BOT_TOKEN"},
+                {"id":"b","kind":"telegram","address_env":"CHAT_B","token_env":"BOT_TOKEN"},
+            ],
+            "subscriptions": [
+                {"destination_id":"a","world":world},
+                {"destination_id":"b","world":world},
+            ]
+        })
+        state = DeliveryState()
+        first = run(scheduled, state,
+                    fetch=lambda *_: self.fail("network"),
+                    send=lambda target, *_: target.id == "a",
+                    credentials={}, now=NOW)
+        self.assertEqual(1, first.sent)
+        self.assertEqual(1, len(first.errors))
+        again = run(scheduled, state,
+                    fetch=lambda *_: self.fail("network"),
+                    send=lambda *args: True,
+                    credentials={}, now=NOW)
+        self.assertEqual(1, again.sent)
+
     def test_initialization_state_roundtrip(self):
         state=DeliveryState()
         run(self.cfg,state,fetch=lambda _:NEWS,send=lambda *args:True,credentials={},now=NOW)

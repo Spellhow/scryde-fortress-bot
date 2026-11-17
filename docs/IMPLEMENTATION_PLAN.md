@@ -104,8 +104,8 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 **Acceptance**: identical event semantics in Telegram and Discord, with platform-native formatting.
 
 ### P1-TIMERS / P2-EXTENSIONS
-- [ ] Support `observed` boss respawns only with trustworthy source data; otherwise manual/scheduled timers are explicitly labeled.
-- [ ] Optional reminders before sieges and recurring events with world timezone conversion.
+- [ ] Support `observed` boss respawns only with trustworthy source data; otherwise manual/scheduled timers are explicitly labeled. **Manual schedule-only reminders are implemented**, but observed boss respawns require a separately verified source.
+- [ ] Optional reminders before sieges and recurring events with world timezone conversion. One-off, offset-aware manual reminder windows are implemented; verified siege schedules, recurrence and time zone ID handling remain.
 - [ ] Evaluate L2 Reborn, Masterwork/MW Essence, Warland and Asterios only after validating legal and technical access to live data.
 - [ ] Add optional read-only status dashboards and server/community analytics after the core is stable.
 - [ ] Prepare template release, screenshots, example configs, issue templates, contributor guide and tagged version.

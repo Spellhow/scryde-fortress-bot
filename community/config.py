@@ -1,10 +1,12 @@
 """Versioned public configuration. Private addresses/tokens come from env only."""
 from dataclasses import dataclass
+from datetime import datetime
 import json
 import os
 import re
 from urllib.parse import urlsplit
 from .models import World, Destination, Subscription, required
+from .schedules import ScheduledEvent, MAX_SCHEDULES
 
 SOURCE_KINDS = {"rss", "telegram_public", "json_api", "webpage", "l2dex_castles"}
 MAX_SOURCES = 30
@@ -49,6 +51,7 @@ class CommunityConfig:
     sources: tuple
     destinations: dict
     subscriptions: tuple
+    schedules: tuple = ()
     version: int = 1
 
 
@@ -70,10 +73,11 @@ def parse_config(data):
     src = data.get("sources", [])
     dest = data.get("destinations", [])
     subs = data.get("subscriptions", [])
-    if not all(isinstance(value, list) for value in (src, dest, subs)):
-        raise ValueError("sources, destinations and subscriptions must be arrays")
-    if len(src) > MAX_SOURCES or len(dest) > MAX_DESTINATIONS:
-        raise ValueError("too many sources or destinations")
+    scheduled = data.get("scheduled_events", [])
+    if not all(isinstance(value, list) for value in (src, dest, subs, scheduled)):
+        raise ValueError("sources, destinations, subscriptions and scheduled_events must be arrays")
+    if len(src) > MAX_SOURCES or len(dest) > MAX_DESTINATIONS or len(scheduled) > MAX_SCHEDULES:
+        raise ValueError("too many sources, destinations, or scheduled events")
     sources = []
     for item in src:
         if not isinstance(item, dict):
@@ -110,16 +114,45 @@ def parse_config(data):
         if subscription.destination_id not in destinations:
             raise ValueError("subscription references missing destination")
         subscriptions.append(subscription)
+    schedules = []
+    for item in scheduled:
+        if not isinstance(item, dict):
+            raise ValueError("scheduled event entry must be an object")
+        start_text = item.get("starts_at")
+        if not isinstance(start_text, str):
+            raise ValueError("scheduled event starts_at must be an ISO date with offset")
+        try:
+            starts_at = datetime.fromisoformat(start_text)
+        except ValueError as exc:
+            raise ValueError("invalid scheduled event start time") from exc
+        times = item.get("remind_before_minutes", [60])
+        if not isinstance(times, list):
+            raise ValueError("remind_before_minutes must be an array")
+        schedules.append(ScheduledEvent(
+            identifier=item.get("id"),
+            world=_world(item.get("world")),
+            title=item.get("title"),
+            body=item.get("body", ""),
+            starts_at=starts_at,
+            remind_before_minutes=tuple(times),
+            clan=item.get("clan"),
+            enabled=item.get("enabled", True),
+        ))
+    schedule_ids = [(entry.world.identity, entry.identifier) for entry in schedules]
+    if len(schedule_ids) != len(set(schedule_ids)):
+        raise ValueError("duplicate scheduled event ID within a world")
     ids = [source.id for source in sources]
     if len(ids) != len(set(ids)):
         raise ValueError("duplicate source ID")
-    allowed_worlds = {source.world.identity for source in sources}
+    allowed_worlds = {source.world.identity for source in sources} | {entry.world.identity for entry in schedules}
     if any(sub.world.identity not in allowed_worlds for sub in subscriptions):
         raise ValueError("subscription world has no configured source")
     known_sources = set(ids)
+    if schedules:
+        known_sources.add("manual_schedule")
     if any(sub.source_ids - known_sources for sub in subscriptions):
         raise ValueError("subscription references unknown source")
-    return CommunityConfig(tuple(sources), destinations, tuple(subscriptions))
+    return CommunityConfig(tuple(sources), destinations, tuple(subscriptions), tuple(schedules))
 
 
 def load_config(path):
