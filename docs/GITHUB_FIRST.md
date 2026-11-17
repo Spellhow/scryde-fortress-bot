@@ -111,3 +111,11 @@ A temporary private repository constructed from a clean Git archive passed the f
 The test found and resolved two blockers: incorrectly scoped ignore rules for `community/config.py` (PR #12), and the invalid `GITHUB_ONLY_MODE` variable prefix (PR #13). The main repository is now marked as a GitHub template.
 
 **Still pending:** real new-event delivery to an authorized Telegram/Discord destination, a recurring cron-cycle check and fully independent-account onboarding. The private test repository was archived instead of deleted because the available GitHub OAuth grant lacks `delete_repo` scope.
+
+
+
+## Avoid cross-world news in the Community Bot
+
+The one-time GitHub Actions setup includes an optional comma-separated **include_keywords** field for public sources. For a Scryde public Telegram source and world `x1000`, leaving this blank safely defaults to `["x1000"]` so x100-only news is not accidentally delivered. A post about all worlds that does not actually mention x1000 will be skipped; users can broaden the criteria by editing `community.json` afterward. Other feed types remain unfiltered unless keywords are explicitly provided.
+
+The feature is a deterministic Unicode keyword filter, **not Gemini/AI translation or classification**. The new Community Bot does not automatically translate a message when a subscription requests another language. A future optional review/AI step remains on the roadmap.
