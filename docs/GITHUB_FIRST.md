@@ -153,3 +153,12 @@ For politeness and GitHub Actions cost control, a single Community Bot run fetch
 The Community Bot automatically retries a failed public HTTPS source with persistent bounded backoff: 20, 40, 80, then at most 120 minutes. Its health markers contain only hashed URL identifiers and numeric retry times in `community_deliveries.json`. This works in GitHub-only mode with no additional database.
 
 The Actions summary now includes `deferred_sources`. A deferred source is not interpreted as a game event, nor as a fresh failed network request. For a voluntary immediate check that does not alter state, set `COMMUNITY_DRY_RUN=true` and run the Community Bot manually, or use the dedicated source-preview workflow.
+
+
+## Community state concurrency and rollback
+
+The GitHub-only Community Bot now uses `ops/persist_community_state.sh` instead of the legacy `ops/persist_state_with_retry.sh`. It compares the state at workflow start with the latest remote commit: independently confirmed delivery hashes are unioned and unrelated cursor updates retained. If both sides changed the same castle/source cursor incompatibly, persistence **fails closed** instead of overwriting an observation.
+
+The only staged commit file is `community_deliveries.json`. Original BSOE `site_state.json` and its persistence script are untouched. Offline tests with competing Git clones cover remote advances, untouched configuration, fresh template state and conflicting cursors. This is not a mathematical exactly-once delivery guarantee: a crash after remote acceptance but before persistence can still produce a duplicate.
+
+Rollback: revert the Community Bot persistence workflow change. This does not alter the state schema, but returning to the old script loses the new conflict-resolution safeguards.

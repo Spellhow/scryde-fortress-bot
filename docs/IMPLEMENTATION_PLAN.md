@@ -56,7 +56,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 **Acceptance**: identical BSOE event decisions and news publication policies, full offline tests, rollback by configuration.
 
 ### P1-STATE: durable state without required hosting
-- [ ] Define a versioned state schema and atomic update strategy for GitHub-only (workflow concurrency + conflict-aware commits). Community v1 JSON and atomic local writes exist; source URL is now part of the warm-start and L2Dex snapshot identity so URL changes cannot publish historical backlogs/fictional transfers. Multi-writer conflict recovery and schema migration are pending.
+- [ ] Define a versioned state schema and atomic update strategy for GitHub-only (workflow concurrency + conflict-aware commits). Community v1 JSON and atomic local writes exist; state persistence now three-way merges independent receipts on concurrent Git advances and refuses incompatible cursors. Offline bare-Git race tests verify this. Legacy migration and crash limitations remain.
 - [ ] Preserve sent/pending IDs and latest observed ownership through migration; include migration and rollback scripts with dry-run mode.
 - [ ] Prevent repeated AI processing and repeated sends across retries, crashes and concurrent deliveries.
 - [ ] For optional always-on mode, offer SQLite with a single writer; later PostgreSQL only when operationally justified.

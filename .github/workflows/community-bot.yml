@@ -48,7 +48,7 @@ jobs:
         run: python community_runner.py
       - name: Persist delivery state
         if: ${{ always() && vars.COMMUNITY_DRY_RUN != 'true' }}
-        run: ./ops/persist_state_with_retry.sh community_deliveries.json
+        run: bash ./ops/persist_community_state.sh
       - name: Report any degraded polling or delivery
         if: ${{ steps.community_run.outcome == 'failure' }}
         run: exit 1

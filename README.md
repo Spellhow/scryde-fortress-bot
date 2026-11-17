@@ -69,6 +69,8 @@ The `community/` package can now parse a versioned [example configuration](commu
 
 Community output now requires a confirmed Telegram or Discord message ID before marking an event as sent, and limits long/emoji-heavy posts. See [delivery and retry contract](docs/DELIVERY_CONTRACT.md). A real authorized-channel delivery smoke test is still outstanding.
 
+GitHub-only delivery receipts now use conflict-aware persistence: independently confirmed sends are merged if the Git branch advances, while incompatible castle/source cursor edits fail closed. See [state concurrency](docs/GITHUB_FIRST.md).
+
 Failed public HTTPS fetches now use persistent 20–120-minute backoff across GitHub Actions runs. Cooldown skips appear in logs without generating false game alerts. See [source retry policy](docs/SOURCES.md).
 
 Community owners can preview up to five enabled public sources without publishing anything: **Actions → Preview Community Sources (manual)**. Each job shares HTTP fetches and caps new requests at six distinct URLs per domain. See [source preview and safety limits](docs/SOURCES.md).
