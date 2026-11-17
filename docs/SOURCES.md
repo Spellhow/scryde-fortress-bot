@@ -11,7 +11,7 @@ Supported source kinds:
 - telegram_public: public t.me/s/<channel> pages only; not Telegram private groups.
 - json_api: public JSON array or {"events":[...]} with id/title/body/url/kind.
 - webpage: selected article/main HTML nodes; optional short CSS selector.
-- l2dex_castles: reserved for a dedicated verified adapter; do not enable until the adapter exists.
+- l2dex_castles: dedicated L2Dex castle ranking parser for verified public ranking URLs. Tracks owner and attacker-registration **changes**, not live combat. [Integration details](L2DEX.md); disabled in the example.
 
 Every source is scoped to a specific network and world. A subscription references an existing destination alias and the same game world; optional event_types, source_ids and clans restrict delivery.
 

@@ -33,6 +33,11 @@ class SourceConfig:
             raise ValueError("telegram public source requires https://t.me/s/<channel>")
         if self.kind == "telegram_public" and parts.hostname not in {"t.me", "telegram.me"}:
             raise ValueError("Telegram source host must be t.me or telegram.me")
+        if self.kind == "l2dex_castles":
+            if parts.hostname not in {"lineage2dex.com", "www.lineage2dex.com"}:
+                raise ValueError("L2Dex castle source must use the official domain")
+            if not re.fullmatch(r"/(?:en|ru)/rating/[a-z0-9-]+\.\d+", parts.path) or parts.query:
+                raise ValueError("L2Dex castle source must point to a game world's ranking page")
         if type(self.enabled) is not bool:
             raise ValueError("enabled must be true or false")
         if not isinstance(self.selector, str) or len(self.selector) > 120:
