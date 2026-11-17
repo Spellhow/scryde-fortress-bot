@@ -49,7 +49,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [ ] Build `SourceAdapter` interface: `fetch/parse/normalize`, source IDs, revision and normalized event keys. Stateless parse/normalize Protocol exists; common fetching and health remain.
 - [ ] Extract Scryde fortress/castle parsing to a module without changing event semantics. Freeze representative HTML/JSON fixtures first.
 - [ ] Extract news ingestion, Gemini formatting, moderation, template rendering and delivery into tested modules.
-- [ ] Enforce shared source polling, publication idempotency per destination and safe retries. Pure fanout+hashed delivery keys exist; live source polling/remote retries remain.
+- [ ] Enforce shared source polling, publication idempotency per destination and safe retries. New community runner fetches each source once, isolates failed destinations and retries unsent items on later snapshots; legacy BSOE cutover and idempotent remote edits remain.
 - [ ] Add source-level backoff/health and check that anti-bot challenges do not imply a lost fortress.
 - [ ] Compare old and new Scryde outputs in read-only shadow mode on representative cases before cutover.
 
@@ -67,7 +67,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 
 ### P1-CONFIG: multi-community Telegram setup
 - [x] Introduce a versioned YAML/JSON config and validate network/world/chronicle/clan independently. Versioned JSON parser and example implemented; interactive setup remains open.
-- [ ] Support multiple Telegram destinations with isolated subscription filters and correct publication permissions.
+- [ ] Support multiple Telegram destinations with isolated subscription filters and correct publication permissions. JSON config and fan-out exist; live permission verification and end-to-end multi-channel test pending.
 - [ ] Add CLI / Telegram admin-only setup as a progressive enhancement; keep a secrets-based starter setup.
 - [ ] Persist destination settings outside public state unless explicitly intended; do not commit secrets or private chat IDs.
 - [ ] Test a two-destination scenario: one source fetch, different language/filter, independent message IDs and failure handling.
@@ -90,7 +90,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [ ] Cap response size, timeouts, browser usage and per-domain rate.
 - [ ] Provide source preview, formatting, provenance, per-server filtering and moderation choices.
 - [ ] Treat private Telegram and Discord sources as authenticated opt-in integrations, never scrape inaccessible data.
-- [ ] Cache normalized article content and optional translations across recipients.
+- [ ] Cache normalized article content and optional translations across recipients. Shared fetch/normalization now exists, but translation caching is pending.
 
 **Acceptance**: a new public source can be configured without changing Python source; a malicious source URL is rejected.
 

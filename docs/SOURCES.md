@@ -1,6 +1,6 @@
 # Community sources and destinations (P1 library)
 
-Status: reusable parsers, public HTTPS client, configuration and outbound publishers are implemented; automated GitHub-only community workflow is still a separate milestone. Existing BSOE production is unchanged.
+Status: reusable parsers, public HTTPS client, configuration and outbound publishers are implemented; an opt-in GitHub-only workflow is present for new community feeds. Existing BSOE production is unchanged.
 
 ## Configuration
 
@@ -30,4 +30,4 @@ The publisher sends plain source text (no HTML interpreted by Telegram), disable
 
 ## Operational status
 
-The public multi-community runner, moderation workflow, fresh installation smoke test, and Scryde-to-core production cutover remain open milestones. GitHub-only schedule is best effort.
+The new public multi-community runner is available as an experimental opt-in workflow. Cross-world AI filtering, moderation, fresh real-credential smoke test, and Scryde-to-core production cutover remain open milestones. GitHub-only schedule is best effort.

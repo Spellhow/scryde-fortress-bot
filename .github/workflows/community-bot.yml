@@ -1,0 +1,53 @@
+name: Community Bot (GitHub-only)
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  schedule:
+    - cron: '3,23,43 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scryde-state
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: vars.COMMUNITY_MODE == 'true' && (github.event_name != 'schedule' || vars.GITHUB_ONLY_MODE == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      COMMUNITY_CONFIG_FILE: community.json
+      COMMUNITY_STATE_FILE: community_deliveries.json
+      COMMUNITY_DRY_RUN: ${{ vars.COMMUNITY_DRY_RUN || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-community.txt
+      - name: Install lightweight dependencies (no browser)
+        run: python -m pip install -r requirements-community.txt
+      - name: Validate configuration
+        run: python community_runner.py --validate
+      - name: Poll public sources and deliver
+        id: community_run
+        continue-on-error: true
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          COMMUNITY_SECRETS_JSON: ${{ secrets.COMMUNITY_SECRETS_JSON }}
+        run: python community_runner.py
+      - name: Persist delivery state
+        if: ${{ always() && vars.COMMUNITY_DRY_RUN != 'true' }}
+        run: ./ops/persist_state_with_retry.sh community_deliveries.json
+      - name: Report any degraded polling or delivery
+        if: ${{ steps.community_run.outcome == 'failure' }}
+        run: exit 1
