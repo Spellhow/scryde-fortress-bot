@@ -119,6 +119,23 @@ def compact_text(value, limit=500):
     return value
 
 
+def normalize_visible_newline_escapes(text):
+    """Repair model-generated textual newline escapes in Telegram news.
+
+    Gemini sometimes returns literal backslash-n sequences after decoding its
+    JSON. Convert them before formatting, but preserve already formatted
+    multiline content and literal Windows-style paths.
+    """
+    value = str(text or "")
+    if not value or "\\n" not in value and "\\r" not in value:
+        return value
+    if "\n" in value or "\r" in value:
+        return value
+    if re.search(r"(?:^|\s)[A-Za-z]:\\[^\s]+", value):
+        return value
+    return re.sub(r"(?<!\\)\\(?:r\\n|n|r)", "\n", value)
+
+
 def repair_news_layout(body):
     """Restore list layout when Gemini returns an entire formatted post on one line."""
     body = (body or "").strip()
@@ -162,7 +179,8 @@ def html_to_plain_text(text, limit=TELEGRAM_SAFE_LIMIT):
 
 
 def sanitize_telegram_html(text, limit=TELEGRAM_SAFE_LIMIT):
-    soup = BeautifulSoup(text or "", "html.parser")
+    # Guard previously saved pending posts too, not only fresh Gemini JSON.
+    soup = BeautifulSoup(normalize_visible_newline_escapes(text), "html.parser")
 
     for br in soup.find_all("br"):
         br.replace_with("\n")
@@ -368,7 +386,7 @@ def normalize_gemini_news_json(parsed):
     except Exception:
         parsed["target_post_id"] = 0
     parsed["title"] = str(parsed.get("title", "") or "").strip()
-    parsed["text"] = str(parsed.get("text", "") or "").strip()
+    parsed["text"] = normalize_visible_newline_escapes(parsed.get("text", "")).strip()
     return parsed
 
 
