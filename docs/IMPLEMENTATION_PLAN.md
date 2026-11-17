@@ -87,8 +87,8 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 ### P1-FEEDS: configurable sources
 - [x] Add RSS/Atom then public Telegram feeds, JSON APIs and permitted HTML pages. Stateless parsers and safe HTTP reader implemented; live scheduling/integration still open.
 - [x] Require URL allowlisting/SSRF prevention (private IP, redirects, DNS rebinding, credentials in URLs, local file/metadata services). HTTPS-only public DNS verification with connection IP pinning; no redirects.
-- [ ] Cap response size, timeouts, browser usage and per-domain rate.
-- [ ] Provide source preview, formatting, provenance, per-server filtering and moderation choices. Deterministic per-source include/exclude keyword filtering (Unicode and world-token safe), shared URL fetch and auto world gate for new public Telegram setup are implemented. Preview, semantic classification and moderation choices remain.
+- [ ] Cap response size, timeouts, browser usage and per-domain rate. Per-request body/timeout bounds already exist; fresh in-run requests now limited to six unique URLs per host. Cross-run/provider-specific backoff and rate policy still pending.
+- [ ] Provide source preview, formatting, provenance, per-server filtering and moderation choices. Read-only preview workflow and deterministic per-world source filters implemented, no sends/state mutation. Semantic classification and per-community moderation controls remain.
 - [ ] Treat private Telegram and Discord sources as authenticated opt-in integrations, never scrape inaccessible data.
 - [ ] Cache normalized article content and optional translations across recipients. Identical URLs now share one HTTP fetch per run, with per-world parsing and filters. Persistent normalization/translation caching remains pending.
 

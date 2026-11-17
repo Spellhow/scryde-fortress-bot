@@ -16,6 +16,7 @@ from .router import dispatch_events
 from .state import DeliveryState
 from .schedules import due_reminders
 from .relevance import filter_events
+from .source_limits import FetchBudget
 
 
 @dataclass(frozen=True)
@@ -48,7 +49,7 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
         raise ValueError("now must have timezone")
     checked = seen = warmed = attempts = sent = 0
     errors = []
-    source_fetch_cache = {}
+    fetch_budget = FetchBudget()
     for source in config.sources:
         if not source.enabled:
             continue
@@ -61,16 +62,7 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
         snapshot_key = state_key(source.id, source.world, source.url) if is_l2dex else None
         candidate_snapshot = None
         try:
-            if source.url not in source_fetch_cache:
-                try:
-                    source_fetch_cache[source.url] = (True, fetch(source.url))
-                except Exception as fetch_exc:
-                    # Cache failure for this run; do not retry a failing public
-                    # endpoint once per subscribing world/community.
-                    source_fetch_cache[source.url] = (False, type(fetch_exc).__name__)
-            fetched, payload = source_fetch_cache[source.url]
-            if not fetched:
-                raise ValueError("cached source fetch failure")
+            payload = fetch_budget.read(source.url, fetch)
             if is_l2dex:
                 parsed_castles = parse_castles(payload)
                 events, candidate_snapshot = diff_castles(
