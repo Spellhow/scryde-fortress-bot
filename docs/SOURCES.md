@@ -159,3 +159,27 @@ subscription warm-start markers or acknowledge empty source data when it
 cannot establish that a trustworthy feed was parsed. This check does not
 guarantee detecting every possible antibot/error response; live preview
 and regular review of chosen sources are still required.
+
+
+## Public URLs shown in outbound messages
+
+Untrusted RSS, JSON or HTML posts can include source URLs that differ from
+the configured feed address. The Community Bot now uses one conservative
+display-link rule for *both* Telegram and Discord. A public source link must
+be HTTPS, reasonably short, free of credentials and obvious local/private
+hosts, with no credential-like query parameters (such as `token`,
+`access_token`, `api_key`, `session_id` or `client_secret`). Arbitrary URL
+fragments are rejected; the official Scryde `#post-123` forum anchor is
+preserved.
+
+During feed normalization, entries with unsafe links are skipped rather
+than advertising an untrusted endpoint. At the outbound boundary, the
+message body can still be sent, but unsafe source URLs are omitted even if
+an integration constructs an Event directly. Discord rich embeds and
+ordinary Telegram/Discord texts now agree on this policy.
+
+This is **display validation, not link fetching**. It cannot establish that
+a remote HTTPS domain is honest or that its content will never change, and
+it cannot reliably inspect secrets inside arbitrary body text. The HTTP
+fetcher has separate DNS/IP/redirect security controls. Configure only
+public sources with permission to repost their content.

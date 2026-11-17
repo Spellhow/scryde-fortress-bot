@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
 
 from community.models import Event, Provenance
+from community.public_links import safe_public_link
 
 
 def _plain(value, limit=3200):
@@ -25,8 +26,7 @@ def _event(world, source_id, external_id, title, body, link, now, kind="news"):
         return None
     # Feed links are displayed, never fetched. Avoid publishing javascript,
     # file, or credential-containing links as if they were official sources.
-    parts = urlsplit(link)
-    if parts.scheme != "https" or not parts.hostname or parts.username or parts.password:
+    if safe_public_link(link) is None:
         return None
     return Event(world=world, source_id=source_id, external_id=external_id,
                  kind=kind, title=title[:160], body=body[:3200],

@@ -1,13 +1,13 @@
 """Outbound Telegram and Discord transports. No incoming bot gateway required."""
-import ipaddress
 import json
 import os
 import re
 from datetime import timezone
 from urllib import request
-from urllib.parse import parse_qsl, urlsplit
+from urllib.parse import urlsplit
 
 from .models import Destination, Event, Provenance
+from .public_links import safe_public_link
 
 TELEGRAM_MAX_CHARS = 3900
 DISCORD_MAX_CHARS = 1900
@@ -47,7 +47,8 @@ def render_plain_event(event, max_chars):
     scope = f"{event.world.network} / {event.world.name}"
     heading = f"[{scope} · {event.provenance.value}] {event.title}"
     heading = _truncate(heading, max_chars // 3)
-    suffix = "" if event.provenance == Provenance.MANUAL else f"\n\n{event.source_url}"
+    link = safe_public_link(event.source_url)
+    suffix = "" if event.provenance == Provenance.MANUAL or not link else f"\n\n{link}"
     # A huge URL cannot be rendered usefully. Keep message valid instead of
     # allowing every run to fail the same Telegram/Discord length limit.
     if _units(suffix) > max_chars // 3:
@@ -107,27 +108,8 @@ def _official_discord_webhook(address):
 
 
 def _safe_discord_source_url(url):
-    """Only attach source links that are clearly public HTTPS pages."""
-    if not isinstance(url, str) or len(url) > 500 or any(ch.isspace() for ch in url):
-        return None
-    try:
-        parts = urlsplit(url)
-        host = parts.hostname
-        if (parts.scheme != "https" or not host or "." not in host
-                or parts.port not in (None, 443)
-                or parts.username or parts.password or parts.fragment):
-            return None
-        try:
-            ipaddress.ip_address(host)
-            return None
-        except ValueError:
-            pass
-        sensitive = {"token", "key", "secret", "password", "api_key", "access_token"}
-        if any(key.casefold() in sensitive for key, _ in parse_qsl(parts.query)):
-            return None
-    except ValueError:
-        return None
-    return url
+    """Backward-compatible wrapper around the shared public link policy."""
+    return safe_public_link(url)
 
 
 def render_discord_embed(event):
