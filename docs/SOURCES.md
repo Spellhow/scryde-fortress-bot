@@ -9,6 +9,7 @@ Copy community.example.json to a private/community-specific configuration file i
 Supported source kinds:
 - rss: public RSS or Atom feed, news text and article links.
 - telegram_public: public t.me/s/<channel> pages only; not Telegram private groups.
+- scryde_forum: read-only public posts in the official Scryde updates thread on board.scryde.net. Stable numeric post IDs, no login. Requires explicit keywords to avoid broadcasting unrelated game worlds. Experimental opt-in; see limitations below.
 - json_api: public JSON array or {"events":[...]} with id/title/body/url/kind.
 - webpage: selected article/main HTML nodes; optional short CSS selector.
 - l2dex_castles: dedicated L2Dex castle ranking parser for verified public ranking URLs. Tracks owner and attacker-registration **changes**, not live combat. [Integration details](L2DEX.md); disabled in the example.
@@ -81,3 +82,26 @@ The backoff follows `20 → 40 → 80 → 120 minutes` (maximum two hours). A su
 A skipped retry is reported as `deferred_sources` in the GitHub Actions log, not as a fresh transport failure. New HTTP failures still mark that run degraded. Manual `COMMUNITY_DRY_RUN=true` bypasses the cooldown to inspect a source without mutating backoff or delivery state.
 
 This policy does not imply that a temporarily unavailable webpage means a castle has been lost or a siege cancelled. A source with invalid but successfully fetched HTML is still rejected by its parser; parser-specific cross-run backoff remains future work.
+
+
+## Experimental Scryde forum source
+
+To preview the existing public updates thread (not the legacy BSOE moderation queue), add a disabled source to a Community Bot configuration and select a verified current page:
+
+```json
+{
+  "id": "scryde-forum-x1000",
+  "kind": "scryde_forum",
+  "world": {"network": "Scryde", "name": "x1000"},
+  "url": "https://board.scryde.net/threads/obnovlenija.30694/page-18",
+  "enabled": false,
+  "include_keywords": ["x1000"],
+  "exclude_keywords": ["x50"]
+}
+```
+
+This example page number is a **verified public reference as of 2026-11-17**, not a permanent latest-page endpoint. Site page counts change; a page can redirect when removed/renumbered. The GitHub-only HTTP client deliberately refuses redirects for safety and therefore will not automatically follow the thread's latest-page redirect. Inspect the current public page and update the URL manually before enabling the source. The parser does not bypass CAPTCHA or authentication.
+
+The adapter reads public XenForo article post IDs, normalizes them as stable `forum-post:<id>` identities and marks them as `observed`. Missing/malformed content, duplicate conflicting IDs and challenge/error HTML cannot generate synthetic events. Initial subscriber activation silently warms existing posts; subsequent visible new IDs can be sent independently to authorized Telegram/Discord destinations.
+
+This forum mixes news about multiple servers. Explicit `include_keywords` is mandatory until verified semantic filtering is available. Matching one keyword is an **approximation**, and general updates applying to every server may be omitted. No Gemini adaptation, moderator approval, private forum access, live-source delivery smoke test, or mapping of legacy `forum_news` IDs is implemented yet. The existing BSOE News Bot continues on its original parser.

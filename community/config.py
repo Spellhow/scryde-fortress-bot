@@ -8,7 +8,7 @@ from urllib.parse import urlsplit, parse_qsl
 from .models import World, Destination, Subscription, required
 from .schedules import ScheduledEvent, MAX_SCHEDULES
 
-SOURCE_KINDS = {"rss", "telegram_public", "json_api", "webpage", "l2dex_castles"}
+SOURCE_KINDS = {"rss", "telegram_public", "json_api", "webpage", "l2dex_castles", "scryde_forum"}
 MAX_SOURCES = 30
 MAX_DESTINATIONS = 30
 MAX_SUBSCRIPTIONS = 100
@@ -44,6 +44,13 @@ class SourceConfig:
             raise ValueError("telegram public source requires https://t.me/s/<channel>")
         if self.kind == "telegram_public" and parts.hostname not in {"t.me", "telegram.me"}:
             raise ValueError("Telegram source host must be t.me or telegram.me")
+        if self.kind == "scryde_forum":
+            if parts.hostname != "board.scryde.net":
+                raise ValueError("Scryde forum source must use the official public forum")
+            if not re.fullmatch(r"/threads/obnovlenija\.30694(?:/page-[1-9][0-9]*)?/?", parts.path) or parts.query:
+                raise ValueError("only the public Scryde updates thread is supported")
+            if not self.include_keywords:
+                raise ValueError("Scryde mixed-server forum requires explicit world keywords")
         if self.kind == "l2dex_castles":
             if parts.hostname not in {"lineage2dex.com", "www.lineage2dex.com"}:
                 raise ValueError("L2Dex castle source must use the official domain")
