@@ -101,7 +101,8 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
                 warmed += 1
                 if not dry_run:
                     for event in events:
-                        if sub.matches(event):
+                        if (sub.matches(event) and not suppress_legacy_public_news(
+                                state, source, sub.destination_id, event)):
                             state.mark_delivered(sub.destination_id, event.event_id, int(now.timestamp()))
                     state.cursors[marker] = "initialized"
             else:
