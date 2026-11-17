@@ -18,6 +18,7 @@ from .schedules import due_reminders
 from .relevance import filter_events
 from .source_limits import FetchBudget, FetchUnavailable
 from .source_health import SourceHealth
+from .legacy_telegram_bridge import suppress_legacy_public_news
 
 
 @dataclass(frozen=True)
@@ -100,16 +101,22 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
                 warmed += 1
                 if not dry_run:
                     for event in events:
-                        if sub.matches(event):
+                        if (sub.matches(event) and not suppress_legacy_public_news(
+                                state, source, sub.destination_id, event)):
                             state.mark_delivered(sub.destination_id, event.event_id, int(now.timestamp()))
                     state.cursors[marker] = "initialized"
             else:
                 active_subs.append(sub)
         if dry_run:
             continue
-        outcome = dispatch_events(events, active_subs, config.destinations, state,
-                                  lambda dest, ev, lang: send(dest, ev, lang, credentials),
-                                  now=now)
+        outcome = dispatch_events(
+            events, active_subs, config.destinations, state,
+            lambda dest, ev, lang: send(dest, ev, lang, credentials),
+            now=now,
+            suppress=lambda destination_id, event: suppress_legacy_public_news(
+                state, source, destination_id, event
+            ),
+        )
         attempts += outcome.attempted
         sent += outcome.sent
         errors.extend(outcome.errors)
