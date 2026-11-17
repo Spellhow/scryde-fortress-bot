@@ -18,3 +18,11 @@ GitHub-only Community Bot uses the same source snapshot and per-destination deli
 `test_transport_delivery.py` exercises the transport with fabricated, offline API responses and an end-to-end scenario in which Telegram accepts a new post, Discord returns HTTP 429, state is saved, the worker restarts, and only Discord is retried. No real Telegram or Discord messages are sent during tests.
 
 **Next operational gate:** use an owner-authorized dedicated test channel and webhook. Validate that one new synthetic/fixture event appears, survives an intentional failure/retry, and does not duplicate on the next schedule tick. Never send a synthetic event to the current BSOE production channel without explicit authorization.
+
+
+
+## One-message user-authorized test workflow
+
+`.github/workflows/test-community-delivery.yml` exposes a one-time manual test. It requires an explicit confirmation checkbox and destination alias, is blocked in the source BSOE repository, and calls a separate no-state/no-scraping diagnostic sender. A successful run confirms a real API-assigned message ID; a failed run never claims success or displays secret values. The workflow is not scheduled.
+
+Administrators should run this on a dedicated authorized test destination before enabling regular polling. Automated unit tests use mock API responses only; no live message was sent during development.
