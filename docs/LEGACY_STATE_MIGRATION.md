@@ -94,3 +94,22 @@ When a candidate state is installed by an authorized test operator, the Communit
 **Do not activate production BSOE based on this bridge.** It does not import forum/wiki post identities, news text, pending approvals, exact moderation decisions, owner/attack flags or Telegram callback offsets. The script always returns `cutover_authorized=false`. It also cannot verify that a destination alias resolves to the original production Telegram chat, because addresses are kept in GitHub Secrets. That must be checked independently with an authorized test channel before any deployment.
 
 Rollback for a test copy: remove the single `legacy-tg-watermark:...` cursor entry from the candidate state, keeping the original receipt records intact; restoring the pre-test candidate backup is safer. The original tracked legacy state is never modified. Automatic cutover, forum ID mapping and per-message exact delivery provenance remain P1-STATE blockers.
+
+
+## Partial public forum checkpoint bridge (manual only)
+
+The new experimental `scryde_forum` parser can now identify official updates-thread posts as `forum-post:<post-id>`. A second opt-in checkpoint tool prepares the original legacy `forum_news.last_seen_id` for **one Telegram destination** without modifying the old state:
+
+```bash
+python3 scripts/prepare_legacy_forum_watermark.py   --legacy site_state.json   --config community.json   --current community_deliveries.json   --source-alias scryde-forum-x1000   --destination-alias clan-channel
+```
+
+This only works for the public official `board.scryde.net/threads/obnovlenija.30694` topic, a configured `Scryde/x1000` world, exactly one matching Telegram news subscription, and fully finished historical moderation records. Missing/ambiguous source IDs, pending approvals, unexpected statuses or invalid cursors **fail closed**. A different official page number keeps the same source/thread watermark identity, which prevents re-sending old IDs when an administrator updates the page URL.
+
+Forum page-number changes preserve the source's warm-start identity too, so a new page does not silently drop its first batch of newer IDs. The default is **read-only dry run**. An explicit `--output candidate_state.json --confirm` creates a *new* candidate schema-v1 state file without overwriting any input. It preserves existing delivery receipts and source cursors, adding a distinct `legacy-forum-watermark:...` hashed key and a public integer post number. Existing Telegram-source markers can coexist in the same candidate state. No forum post texts, moderator chat/user identifiers, credentials, or source URLs are copied into the newly added marker.
+
+On the tracked repository snapshot inspected on 2026-11-17, the forum checkpoint validated, including **36 processed forum source IDs and 34 completed queue records**. It still does not prove that posts were *delivered* rather than rejected or expired; therefore the new runner suppresses these old posts as handled without falsely acknowledging delivery. New post IDs above the saved checkpoint are eligible for normal destination-specific delivery.
+
+**Do not use this as permission for a production cutover.** Forum/TG checkpoints are only source identity guards. Gemini content adaptation, manual approvals, callback offsets, verified owner/attack decisions, exact publication and live-channel permission smoke are still missing from the new Community Bot. Both tools report `cutover_authorized=false`. The counts shown for the *other* legacy queue mean records not processed by that individual tool, even if a previous candidate file contains the other source's marker.
+
+Rollback: restore the pre-import candidate-state backup or remove only the new `legacy-forum-watermark:...` cursor. Preserve verified sent receipts and never rewrite tracked `site_state.json`.
