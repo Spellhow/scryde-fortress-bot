@@ -117,7 +117,7 @@ class SourceTests(unittest.TestCase):
         calls = []
         def fake(url, payload):
             calls.append((url, payload))
-            return (200, b'{"ok":true}')
+            return (200, b'{"ok":true,"result":{"message_id":42}}')
         self.assertTrue(send_event(d, e, "uk", {"CHAT_ID":"123","BOT_TOKEN":"secret"},fake))
         self.assertIn("secret", calls[0][0])
         self.assertEqual("123", calls[0][1]["chat_id"])

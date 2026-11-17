@@ -64,6 +64,8 @@ The opt-in `community/` Python package now provides a typed world/event model, d
 
 The `community/` package can now parse a versioned [example configuration](community.example.json), read public RSS/Atom, Telegram pages, JSON and selected HTML, and format outbound Telegram or Discord webhook messages. All credential references are environment-variable names. The library now has an **opt-in Community Bot workflow** for public feeds and Telegram/Discord webhooks (20-minute best-effort schedule). It does not replace live Scryde siege monitoring. Configure it from [community.example.json](community.example.json), keeping all credentials in GitHub Secrets. First runs warm-start to avoid a flood of historical posts. See [GitHub-first setup](docs/GITHUB_FIRST.md). Documentation: [source and destination design](docs/SOURCES.md).
 
+Community output now requires a confirmed Telegram or Discord message ID before marking an event as sent, and limits long/emoji-heavy posts. See [delivery and retry contract](docs/DELIVERY_CONTRACT.md). A real authorized-channel delivery smoke test is still outstanding.
+
 ## Per-world news relevance (opt-in)
 
 Public Telegram/RSS/HTML/JSON sources can now use `include_keywords` and `exclude_keywords` in `community.json`. The installer for public Telegram news defaults to the chosen world name, so a channel for x1000 will not automatically receive x100-only posts. Matching is simple Unicode-aware keyword/phrase matching, not AI semantic classification or translation. Multiple world subscriptions sharing one feed URL reuse the same fetch. Details: [source filtering](docs/SOURCES.md).
