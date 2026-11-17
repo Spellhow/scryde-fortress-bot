@@ -84,3 +84,9 @@ After configuration, set the following in your own repository:
 The setup workflow does not request or handle actual Telegram chat IDs, bot tokens or Discord webhook secrets. It is intentionally one-time to avoid overwriting customized subscriptions.
 
 If you prefer a local shell, run `python scripts/setup_community.py --help`. Neither setup path needs a VPS, Docker or browser.
+
+
+
+### Clean archive/fork portability
+
+The legacy root `config.py`, `state.json` and `test.py` files remain ignored, while reusable modules such as `community/config.py` must be committed to new repositories. Scoped ignore rules and `test_template_gitignore.py` prevent Git archive / fresh Git init copies from accidentally omitting the new community configuration parser.
