@@ -41,7 +41,8 @@ def main(argv=None):
         f"Community {'DRY-RUN ' if dry_run else ''}completed: "
         f"sources={summary.sources_checked}, events={summary.events_seen}, "
         f"subscriptions_initialized={summary.subscriptions_initialized}, "
-        f"attempted={summary.attempts}, sent={summary.sent}, errors={len(summary.errors)}"
+        f"attempted={summary.attempts}, sent={summary.sent}, "
+        f"deferred_sources={summary.deferred_sources}, errors={len(summary.errors)}"
     )
     for error in summary.errors:
         print(f"warning: {error}")
