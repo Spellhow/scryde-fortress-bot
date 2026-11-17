@@ -61,6 +61,8 @@ The opt-in `community/` Python package now provides a typed world/event model, d
 
 **Legacy migration preflight:** `python3 scripts/legacy_state_preflight.py` inventories the old public state using counts only and explains why production cannot safely switch yet. [Migration preflight and rollback plan](docs/LEGACY_STATE_MIGRATION.md).
 
+**Scryde migration checkpoint:** an opt-in, dry-run-first tool can prepare a hashed public Telegram source watermark for one destination without modifying BSOE state. The bridge is partial and does not authorize production cutover. See [legacy migration notes](docs/LEGACY_STATE_MIGRATION.md).
+
 **News queue replay:** inspect saved BSOE moderation decisions without sending anything: `python3 scripts/replay_legacy_news.py --state site_state.json --mode prod`. Details in [migration notes](docs/LEGACY_STATE_MIGRATION.md).
 
 **Moderation queue retention:** active pending/approved news items are preserved when historical entries rotate, and the legacy bot defers further ingestion once 200 active items await review. [State and migration notes](docs/LEGACY_STATE_MIGRATION.md).

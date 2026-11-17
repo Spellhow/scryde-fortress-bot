@@ -11,7 +11,8 @@ class DispatchOutcome:
     errors: tuple
 
 
-def dispatch_events(events, subscriptions, destinations, state, sender, now=None):
+def dispatch_events(events, subscriptions, destinations, state, sender, now=None,
+                    suppress=None):
     """Return dispatch counters; caller persists state.
 
     Not exactly-once across process death after a remote send and before
@@ -33,6 +34,9 @@ def dispatch_events(events, subscriptions, destinations, state, sender, now=None
             continue
         for event in source_events:
             if not subscription.matches(event):
+                continue
+            if suppress is not None and suppress(target.id, event):
+                skipped += 1
                 continue
             if state.was_delivered(target.id, event.event_id):
                 skipped += 1

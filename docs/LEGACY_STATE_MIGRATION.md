@@ -73,3 +73,24 @@ Output contains only **counts per fixed action category** for `news` and `forum_
 On 2026-11-17, the tracked repository snapshot held **50 news entries and 34 forum entries**. All 84 are historical and require no action according to the replay; no active pending or approved entries are present in that snapshot. That is useful evidence for the saved state only: it does not prove parity for a live moderation queue or for newer game events.
 
 The automated comparison includes publish/expiry boundaries, debug mode, approved posts, failed delivery and repeat runs. We still need a real authorized test destination and recorded before/after decisions for active moderator actions. A crash between an accepted Telegram message and a successful Git commit can still cause a duplicate on retry.
+
+
+## Partial public Telegram checkpoint bridge (manual only)
+
+A narrowly scoped checkpoint bridge is now available for the original **public Scryde x1000 Telegram channel** `https://t.me/s/scryde`. It is deliberately narrower than a full migration: a legacy post number is treated as a *previously handled source post*, not proof that the old bot successfully delivered it.
+
+In a separately configured **test repository** with one `telegram_public` source whose URL is exactly the channel above and with a Telegram destination alias, inspect the existing legacy snapshot using:
+
+```bash
+python3 scripts/prepare_legacy_telegram_watermark.py   --legacy site_state.json   --config community.json   --current community_deliveries.json   --source-alias telegram-feed   --destination-alias clan-channel
+```
+
+Replace the source and destination aliases with the actual aliases in your test configuration. The command defaults to **dry run**, reads only the files and prints a redacted aggregate. It refuses an active or unknown-status moderation entry, a missing/invalid source cursor, an inconsistent sent ID, ambiguous subscriptions, the wrong world/network, or any source other than the exact original public channel.
+
+To create a **separate candidate file for offline inspection**, explicitly add `--output candidate_state.json --confirm`. The output must not exist; the script cannot overwrite the old `site_state.json`, existing `community_deliveries.json`, or `community.json`. It preserves the current state and adds a hashed source+world+destination checkpoint key with a public integer post watermark. It contains no raw news content, chat ID, moderator identity, URLs, or bot tokens.
+
+When a candidate state is installed by an authorized test operator, the Community Bot suppresses old `scryde/<post-number>` news events up through that watermark **only for the selected destination**. Other destinations are unaffected. A newer source post beyond the checkpoint can still be delivered. Suppressed items are counted as skipped, never as successful sends. No marker exists by default, so fresh installations behave exactly as before.
+
+**Do not activate production BSOE based on this bridge.** It does not import forum/wiki post identities, news text, pending approvals, exact moderation decisions, owner/attack flags or Telegram callback offsets. The script always returns `cutover_authorized=false`. It also cannot verify that a destination alias resolves to the original production Telegram chat, because addresses are kept in GitHub Secrets. That must be checked independently with an authorized test channel before any deployment.
+
+Rollback for a test copy: remove the single `legacy-tg-watermark:...` cursor entry from the candidate state, keeping the original receipt records intact; restoring the pre-test candidate backup is safer. The original tracked legacy state is never modified. Automatic cutover, forum ID mapping and per-message exact delivery provenance remain P1-STATE blockers.
