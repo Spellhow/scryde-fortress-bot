@@ -28,7 +28,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [x] Add a license for repository code; audit dependency and asset licenses before redistributing bundled artifacts.
 - [x] Add workflow-contract regression test for schedule gating.
 - [ ] Audit tracked files and *history* for credentials and personal identifiers, document verified findings; if historical leakage is found, rotate first and coordinate removal. **Pattern scans completed** (169 historical code/config blobs + 5,973 state versions, no regex matches); non-standard identifiers/human privacy review still pending (see security audit).
-- [ ] Add fixtures for malformed siege rows, multi-object ownership, re-registrations, pending news expiry and idempotent publication; reuse existing tests. (Malformed/multi-object fixtures added; re-registration and replay coverage still open.)
+- [ ] Add fixtures for malformed siege rows, multi-object ownership, re-registrations, pending news expiry and idempotent publication; reuse existing tests. Malformed/duplicate rows, multi-object fixtures and false cancellation/loss regressions now covered; complete all re-registration/news replay parity before closing.
 - [x] Inventory configuration globals in `github_runner.py`, `fortress_bot.py` and both workflows; separate operational secrets from reusable defaults. See `docs/CONFIG_INVENTORY.md`; the next milestone introduces versioned multi-community config.
 - [ ] Verify production workflows after merging without enabling extra scheduled jobs for the VPS deployment. Note: as of 2026-11-16 the VPS dispatcher timer was disabled and the last News/Siege workflows ran on 2026-10-19; do not re-enable without checking the owner's intent.
 

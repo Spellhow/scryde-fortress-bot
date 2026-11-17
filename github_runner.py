@@ -1766,11 +1766,82 @@ def inspect_scryde_shadow(items, object_key, previous_section):
         log("Scryde read-only shadow failed ({})".format(type(exc).__name__))
 
 
+def is_valid_scryde_ranking_row(item):
+    """Reject partial/malformed ranking rows rather than inferring a lost siege.
+
+    An explicit owner=None is a valid unowned/NPC row. A missing owner field
+    is *unknown* data, not proof of lost ownership. A missing siege_sides field
+    is tolerated for backward compatibility with non-siege ranking variants.
+    """
+    if not isinstance(item, dict):
+        return False
+    identifier = item.get("id")
+    if isinstance(identifier, bool) or not isinstance(identifier, (str, int)) or not str(identifier).strip():
+        return False
+    if not isinstance(item.get("name"), str) or not item["name"].strip():
+        return False
+    if "owner" not in item:
+        return False
+    owner = item["owner"]
+    if owner is not None and (
+        not isinstance(owner, dict)
+        or not isinstance(owner.get("name"), str)
+        or not owner["name"].strip()
+    ):
+        return False
+    sides = item.get("siege_sides", [])
+    if sides in (None, []):
+        pass
+    elif not isinstance(sides, dict):
+        return False
+    else:
+        attackers = sides.get("attackers", [])
+        if not isinstance(attackers, list):
+            return False
+        for attacker in attackers:
+            if not isinstance(attacker, dict) or not isinstance(attacker.get("name"), str):
+                return False
+    siege_at = item.get("siege_at") or 0
+    if isinstance(siege_at, bool) or not isinstance(siege_at, (int, float)) or siege_at < 0:
+        return False
+    return True
+
+
+def valid_scryde_ranking_rows(items):
+    """Skip all competing rows for the same ID, not just the later duplicate."""
+    valid = {}
+    competing = set()
+    rejected = 0
+    for item in items:
+        if not is_valid_scryde_ranking_row(item):
+            rejected += 1
+            continue
+        key = str(item["id"])
+        if key in valid or key in competing:
+            rejected += 1
+            competing.add(key)
+            valid.pop(key, None)
+            continue
+        valid[key] = item
+    return list(valid.values()), rejected
+
+
 def get_attackers(item):
-    siege_sides = item.get("siege_sides", [])
-    if not siege_sides or isinstance(siege_sides, list):
+    """Return only safely parsed clan names; never crash on an invalid row."""
+    if not isinstance(item, dict):
         return []
-    return [a["name"] for a in siege_sides.get("attackers", []) if "name" in a]
+    sides = item.get("siege_sides")
+    if not isinstance(sides, dict):
+        return []
+    attackers = sides.get("attackers", [])
+    if not isinstance(attackers, list):
+        return []
+    return [
+        attacker["name"]
+        for attacker in attackers
+        if isinstance(attacker, dict) and isinstance(attacker.get("name"), str)
+        and attacker["name"].strip()
+    ]
 
 
 def format_time(ts):
@@ -1834,13 +1905,13 @@ def process_defence(state_section, items, obj_key, page_url):
             for key in default_object_state().keys()
         }
 
-    our_items = []
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        owner = item.get("owner")
-        if owner and isinstance(owner, dict) and owner.get("name") == OUR_CLAN:
-            our_items.append(item)
+    valid_items, rejected = valid_scryde_ranking_rows(items)
+    if rejected:
+        log("{} defence: {} partial or duplicate ranking rows ignored".format(obj_key, rejected))
+    our_items = [
+        item for item in valid_items
+        if isinstance(item.get("owner"), dict) and item["owner"].get("name") == OUR_CLAN
+    ]
 
     current_ids = set()
     processed = []
@@ -1962,7 +2033,7 @@ def process_defence(state_section, items, obj_key, page_url):
             continue
         if s["had"] and not s.get("notified_lost"):
             fort_name = s.get("name") or "невідомий об'єкт"
-            our_old = next((f for f in items if f.get("id") == s.get("id")), None)
+            our_old = next((f for f in valid_items if str(f["id"]) == str(s.get("id"))), None)
             if not our_old:
                 log(
                     "ownership transition deferred {}".format(
@@ -2016,9 +2087,11 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
     current_ids = set()
     now = int(time.time())
 
-    for item in items:
-        if not isinstance(item, dict):
-            continue
+    valid_items, rejected = valid_scryde_ranking_rows(items)
+    if rejected:
+        log("{} our-attacks: {} partial or duplicate ranking rows ignored".format(obj_key, rejected))
+
+    for item in valid_items:
         attackers = get_attackers(item)
         if OUR_CLAN not in attackers:
             continue
@@ -2096,6 +2169,13 @@ def process_our_attacks(attack_state, items, obj_key, page_url):
                     attack_state[obj_id] = prev
 
     disappeared = set(attack_state.keys()) - current_ids
+    # A partially broken source response cannot prove cancellation of a
+    # previously registered attack. Retain the old state and retry next run.
+    if rejected and disappeared:
+        log("{} our-attacks: defer {} missing registrations while ranking rows are malformed".format(
+            obj_key, len(disappeared)
+        ))
+        return attack_state
     to_delete = []
     for obj_id in disappeared:
         prev = attack_state[obj_id]
