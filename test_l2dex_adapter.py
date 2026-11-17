@@ -143,6 +143,12 @@ class CastleFixtureTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             load_snapshot('{"version":2,"castles":{}}')
 
+    def test_same_world_new_ranking_url_has_independent_baseline(self):
+        self.assertNotEqual(
+            state_key(SRC.id, WORLD, "https://lineage2dex.com/en/rating/new-interlude.343"),
+            state_key(SRC.id, WORLD, "https://lineage2dex.com/en/rating/new-interlude.344"),
+        )
+
     def test_different_worlds_use_different_state_cursors(self):
         self.assertNotEqual(state_key(SRC.id, WORLD),state_key(SRC.id,World("L2Dex","Skadi x100")))
 

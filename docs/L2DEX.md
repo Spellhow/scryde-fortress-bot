@@ -34,3 +34,9 @@ For other L2Dex worlds, inspect the public ranking and confirm that the same cas
 The parser was run read-only against the live public page on 2026-11-17 and identified nine castle rows, nine displayed owners and siege timestamps; no messages were sent. `test_l2dex_adapter.py` verifies DOM layout and safe transitions. `test_community_runner.py` checks retries, two destinations and malformed-source handling with offline fixtures.
 
 Outstanding: verify actual change notifications with an authorized test channel, collect a real sample of multi-clan registration markup, check the provider's acceptable monitoring rate, and complete the clean GitHub-only template install smoke test. Until then, prefer testing with `COMMUNITY_DRY_RUN=true` and leave the example disabled by default.
+
+
+
+## Ranking URL changes
+
+A change to the configured L2Dex ranking URL starts a **new silent baseline**. The old state is retained for rollback, but never compared with castles from another ranking page. This avoids inventing owner transfers when an administrator changes server URLs without changing the source alias or world display name. The first run after updating the adapter to URL-scoped state keys also warms silently; no notifications are sent for historical ownership on that run.

@@ -335,6 +335,69 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(0,updated.sent)
         self.assertEqual([],sent)
 
+    def test_feed_url_change_warms_new_archive_without_backlog(self):
+        world={"network":"Scryde","name":"x1000"}
+        def config(url):
+            return parse_config({
+                "version":1,
+                "sources":[{"id":"feed","kind":"rss","url":url,"world":world}],
+                "destinations":[{"id":"clan","kind":"telegram","address_env":"CHAT","token_env":"TOKEN"}],
+                "subscriptions":[{"destination_id":"clan","world":world}],
+            })
+        def rss(*ids):
+            return "<rss><channel>" + "".join(
+                "<item><guid>post-{0}</guid><title>News {0}</title>"
+                "<description>News details</description><link>https://example.com/p{0}</link></item>".format(i)
+                for i in ids
+            ) + "</channel></rss>"
+        state=DeliveryState()
+        old=config("https://example.com/old-feed")
+        new=config("https://example.com/new-feed")
+        first=run(old,state,fetch=lambda _:rss(1),
+                  send=lambda *args:self.fail("first snapshot must not send"),
+                  credentials={},now=NOW)
+        self.assertEqual(1,first.subscriptions_initialized)
+        self.assertEqual(0,first.sent)
+        redirected=run(new,state,fetch=lambda _:rss(50,51),
+                       send=lambda *args:self.fail("different archive must warm silently"),
+                       credentials={},now=NOW)
+        self.assertEqual(1,redirected.subscriptions_initialized)
+        self.assertEqual(0,redirected.sent)
+        calls=[]
+        later=run(new,state,fetch=lambda _:rss(50,51,52),
+                  send=lambda dest,event,*_:calls.append(event.external_id) or True,
+                  credentials={},now=NOW)
+        self.assertEqual(1,later.sent)
+        self.assertEqual(["post-52"],calls)
+
+    def test_l2dex_source_url_switch_resets_castle_baseline(self):
+        from test_l2dex_adapter import page, castle_row, NOW
+        world={"network":"L2Dex","name":"New-Interlude x25","chronicle":"Interlude"}
+        def config(url):
+            return parse_config({
+                "version":1,
+                "sources":[{"id":"dex","kind":"l2dex_castles","url":url,"world":world}],
+                "destinations":[{"id":"clan","kind":"telegram","address_env":"CHAT","token_env":"TOKEN"}],
+                "subscriptions":[{"destination_id":"clan","world":world}],
+            })
+        original=config("https://lineage2dex.com/en/rating/new-interlude.343")
+        alternate=config("https://lineage2dex.com/en/rating/new-interlude.344")
+        state=DeliveryState()
+        run(original,state,fetch=lambda _:page(castle_row(1,"Gludio Castle","ClanA")),
+            send=lambda *args:True,credentials={},now=NOW)
+        result=run(alternate,state,fetch=lambda _:page(castle_row(1,"Gludio Castle","ClanB")),
+                   send=lambda *args:self.fail("new URL is not a verified owner transfer"),
+                   credentials={},now=NOW)
+        self.assertEqual(0,result.sent)
+        self.assertEqual([],list(result.errors))
+        # Future changes on that URL are observable after its own baseline.
+        calls=[]
+        followup=run(alternate,state,fetch=lambda _:page(castle_row(1,"Gludio Castle","ClanC")),
+                     send=lambda target,event,*_:calls.append(event.kind) or True,
+                     credentials={},now=NOW)
+        self.assertEqual(1,followup.sent)
+        self.assertEqual(["castle_owner_change"],calls)
+
     def test_initialization_state_roundtrip(self):
         state=DeliveryState()
         run(self.cfg,state,fetch=lambda _:NEWS,send=lambda *args:True,credentials={},now=NOW)
