@@ -87,7 +87,7 @@ class ParserBackoffTests(unittest.TestCase):
         cfg=config(two=True)
         state=DeliveryState()
         called=[]
-        for minute in (0,5,20):
+        for invocation,minute in enumerate((0,5,20),start=1):
             result=run(cfg,state,fetch=lambda url:called.append(url) or RSS,
                        send=lambda *_:True,credentials={},
                        now=NOW+timedelta(minutes=minute))
@@ -96,7 +96,8 @@ class ParserBackoffTests(unittest.TestCase):
                 self.assertEqual(0,len(result.errors))
             else:
                 self.assertEqual(1,len(result.errors))
-            self.assertEqual(minute//20+1,len(called))
+            # Healthy sibling continues fetching on *every* scheduled run.
+            self.assertEqual(invocation,len(called))
         self.assertIn(health_key(parser_identity(cfg.sources[0])),state.cursors)
         self.assertNotIn(health_key(parser_identity(cfg.sources[1])),state.cursors)
 
