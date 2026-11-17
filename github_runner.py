@@ -85,6 +85,8 @@ SITE_ERROR_NOTIFY_AFTER = 2
 FORTRESS_ANTIBOT_RETRIES = int(os.environ.get("FORTRESS_ANTIBOT_RETRIES", "1"))
 CASTLE_ANTIBOT_RETRIES = int(os.environ.get("CASTLE_ANTIBOT_RETRIES", "1"))
 DEBUG_SCRYDE_FETCH = os.environ.get("DEBUG_SCRYDE_FETCH", "false").lower() == "true"
+# Read-only ranking diagnostics; no publication and no extra network calls.
+SCRYDE_SHADOW_DIAGNOSTICS = os.environ.get("SCRYDE_SHADOW_DIAGNOSTICS", "false").lower() == "true"
 SIEGE_DIAG_DIR = os.environ.get("SIEGE_DIAG_DIR", "siege_diagnostics")
 GAME_TZ = ZoneInfo("Europe/Kyiv")
 
@@ -1741,6 +1743,29 @@ def safe_fetch_page_data(url, page_key, state):
     return None
 
 
+def inspect_scryde_shadow(items, object_key, previous_section):
+    """Opt-in, never blocking: summarize the already fetched ranking snapshot.
+
+    The legacy publisher remains authoritative; this creates no events in the
+    outgoing queue and intentionally emits only aggregate counts.
+    """
+    if not SCRYDE_SHADOW_DIAGNOSTICS:
+        return
+    try:
+        from community.adapters.scryde_shadow import inspect_scryde_ranking
+
+        report = inspect_scryde_ranking(
+            items, clan=OUR_CLAN, object_type=object_key,
+            previous_state=previous_section,
+        )
+        log("Scryde read-only shadow {}".format(
+            json.dumps(report.summary(), ensure_ascii=False, sort_keys=True)
+        ))
+    except Exception as exc:
+        # Never make a shadow parser failure interrupt real BSOE alerts.
+        log("Scryde read-only shadow failed ({})".format(type(exc).__name__))
+
+
 def get_attackers(item):
     siege_sides = item.get("siege_sides", [])
     if not siege_sides or isinstance(siege_sides, list):
@@ -2143,6 +2168,7 @@ def main():
     if RUN_SIEGES:
         fortress_items = safe_fetch_page_data(FORTRESS_URL, "fortresses", state)
         if fortress_items is not None:
+            inspect_scryde_shadow(fortress_items, "fortress", state["fortress"])
             # Fortress alerts are time-sensitive. Process the live fortress row
             # immediately instead of waiting for the independent castle fetch.
             state["fortress"] = process_defence(state["fortress"], fortress_items, "fortress", FORTRESS_URL)
@@ -2154,6 +2180,7 @@ def main():
         castle_items = safe_fetch_page_data(CASTLE_URL, "castles", state)
 
         if castle_items is not None:
+            inspect_scryde_shadow(castle_items, "castle", state["castle"])
             state["castle"] = process_defence(state["castle"], castle_items, "castle", CASTLE_URL)
             state["our_castle_attacks"] = process_our_attacks(state.get("our_castle_attacks", {}), castle_items, "castle", CASTLE_URL)
 
