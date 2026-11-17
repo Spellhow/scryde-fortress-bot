@@ -76,10 +76,10 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 **Acceptance**: two test channels with different settings receive only relevant events; a failed destination cannot block another.
 
 ### P1-L2DEX: first additional server
-- [ ] Verify current official/public castle ranking schema and rules of use; capture fixtures and timestamps.
-- [ ] Implement an independent L2Dex adapter for world-specific owner/attacker/siege data where actually exposed.
+- [x] Verify current official/public castle ranking schema and rules of use; capture fixtures and timestamps. The 2026-11-17 public New-Interlude x25 ranking parsed nine castles; fixtures cover observed headings and fields. Recheck site rules before increasing polling frequency.
+- [x] Implement an independent L2Dex adapter for world-specific owner/attacker/siege data where actually exposed. It compares tracked castle snapshots and emits only observed owner changes/new registrations. It does **not** infer a live siege or assign an unknown timezone.
 - [ ] Compare observed owner changes, missing rows and unreliable data against truth; classify uncertain events.
-- [ ] Add tests for changed HTML, empty rankings and server/world mixups.
+- [x] Add tests for changed HTML, empty rankings and server/world mixups. Tests also cover initial baseline, missing rows/owners, re-registration, return to prior owner and failed delivery replay.
 - [ ] Ship as opt-in, shadow first; only enable outgoing alerts after real-world verification.
 
 **Acceptance**: Scryde and L2Dex run from same event core, no Scryde regressions, no fabricated siege signals.

@@ -11,6 +11,17 @@
       },
       "url": "https://t.me/s/scryde",
       "enabled": false
+    },
+    {
+      "id": "l2dex-new-interlude-castles",
+      "kind": "l2dex_castles",
+      "world": {
+        "network": "L2Dex",
+        "name": "New-Interlude x25",
+        "chronicle": "Interlude"
+      },
+      "url": "https://lineage2dex.com/en/rating/new-interlude.343",
+      "enabled": false
     }
   ],
   "destinations": [
@@ -34,6 +45,23 @@
       ],
       "event_types": [
         "news"
+      ],
+      "clans": [],
+      "language": "uk"
+    },
+    {
+      "destination_id": "clan-telegram",
+      "world": {
+        "network": "L2Dex",
+        "name": "New-Interlude x25",
+        "chronicle": "Interlude"
+      },
+      "source_ids": [
+        "l2dex-new-interlude-castles"
+      ],
+      "event_types": [
+        "castle_owner_change",
+        "siege_registration"
       ],
       "clans": [],
       "language": "uk"

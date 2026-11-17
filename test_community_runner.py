@@ -104,6 +104,71 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(1,len(result.errors))
         self.assertNotIn("credential leakage forbidden",str(result.errors))
 
+    def test_l2dex_retries_only_failed_destination_and_preserves_snapshot(self):
+        from test_l2dex_adapter import page, castle_row, NOW
+        world = {"network": "L2Dex", "name": "New-Interlude x25", "chronicle": "Interlude"}
+        config = parse_config({
+            "version": 1,
+            "sources": [{
+                "id": "l2dex", "kind": "l2dex_castles",
+                "url": "https://lineage2dex.com/en/rating/new-interlude.343",
+                "world": world,
+            }],
+            "destinations": [
+                {"id": "alpha", "kind": "telegram", "address_env": "CHAT_A", "token_env": "BOT_TOKEN"},
+                {"id": "beta", "kind": "discord", "address_env": "DISCORD_WEBHOOK"},
+            ],
+            "subscriptions": [
+                {"destination_id": "alpha", "world": world},
+                {"destination_id": "beta", "world": world},
+            ],
+        })
+        initial = page(castle_row(1, "Gludio Castle", "ClanA"))
+        changed = page(castle_row(1, "Gludio Castle", "ClanB", "ClanC"))
+        state = DeliveryState()
+        first = run(config, state, fetch=lambda _: initial, send=lambda *args: True,
+                    credentials={}, now=NOW)
+        self.assertEqual(0, first.sent)
+        cursor_before = dict(state.cursors)
+        attempts = []
+
+        def flaky(dest, event, lang, secrets):
+            attempts.append(dest.id)
+            return dest.id == "alpha"
+
+        result = run(config, state, fetch=lambda _: changed, send=flaky,
+                     credentials={}, now=NOW)
+        self.assertEqual(2, result.sent)
+        self.assertEqual(2, len(result.errors))
+        self.assertEqual(cursor_before.get(next(k for k in cursor_before if k.startswith("l2dex-castles:"))),
+                         state.cursors[next(k for k in cursor_before if k.startswith("l2dex-castles:"))])
+        repaired = run(config, state, fetch=lambda _: changed, send=lambda *args: True,
+                       credentials={}, now=NOW)
+        self.assertEqual(2, repaired.sent)
+        self.assertEqual(0, len(repaired.errors))
+        repeat = run(config, state, fetch=lambda _: changed, send=lambda *args: True,
+                     credentials={}, now=NOW)
+        self.assertEqual(0, repeat.sent)
+
+    def test_l2dex_missing_table_does_not_reset_state(self):
+        from test_l2dex_adapter import page, castle_row, NOW
+        world = {"network": "L2Dex", "name": "New-Interlude x25"}
+        conf = parse_config({
+            "version": 1,
+            "sources": [{"id": "l2dex", "kind": "l2dex_castles",
+                         "url": "https://lineage2dex.com/en/rating/new-interlude.343", "world": world}],
+            "destinations": [{"id": "a", "kind": "telegram", "address_env": "CHAT_A", "token_env": "BOT_TOKEN"}],
+            "subscriptions": [{"destination_id": "a", "world": world}],
+        })
+        state = DeliveryState()
+        run(conf, state, fetch=lambda _: page(castle_row(1, "Gludio Castle", "A")),
+            send=lambda *args: True, credentials={}, now=NOW)
+        before = dict(state.cursors)
+        failed = run(conf, state, fetch=lambda _: "<html>challenge</html>",
+                     send=lambda *args: self.fail("must not publish"), credentials={}, now=NOW)
+        self.assertEqual(1, len(failed.errors))
+        self.assertEqual(before, state.cursors)
+
     def test_initialization_state_roundtrip(self):
         state=DeliveryState()
         run(self.cfg,state,fetch=lambda _:NEWS,send=lambda *args:True,credentials={},now=NOW)
