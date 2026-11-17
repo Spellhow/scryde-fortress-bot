@@ -47,11 +47,11 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 ### P1-CORE: event model and Scryde adapter
 - [ ] Define typed `GameNetwork`, `World`, `Clan`, `Source`, `Event`, `Destination`, `Subscription` and provenance fields. Core `World`, `Event`, `Destination`, `Subscription`, provenance are implemented; separate network/clan/source entities remain.
 - [ ] Build `SourceAdapter` interface: `fetch/parse/normalize`, source IDs, revision and normalized event keys. Stateless parse/normalize Protocol exists; common fetching and health remain.
-- [ ] Extract Scryde fortress/castle parsing to a module without changing event semantics. Freeze representative HTML/JSON fixtures first.
+- [ ] Extract Scryde fortress/castle parsing to a module without changing event semantics. Stateless shadow projection and fixtures extracted; authoritative alert parser remains in legacy runner until full regression parity.
 - [ ] Extract news ingestion, Gemini formatting, moderation, template rendering and delivery into tested modules.
 - [ ] Enforce shared source polling, publication idempotency per destination and safe retries. New community runner fetches each source once, isolates failed destinations and retries unsent items on later snapshots; legacy BSOE cutover and idempotent remote edits remain.
 - [ ] Add source-level backoff/health and check that anti-bot challenges do not imply a lost fortress.
-- [ ] Compare old and new Scryde outputs in read-only shadow mode on representative cases before cutover.
+- [ ] Compare old and new Scryde outputs in read-only shadow mode on representative cases before cutover. Pure read-only snapshot shadow and optional aggregate diagnostics implemented; recorded real-world message/decision parity and production cutover remain open (see docs/SCRYDE_SHADOW.md).
 
 **Acceptance**: identical BSOE event decisions and news publication policies, full offline tests, rollback by configuration.
 
