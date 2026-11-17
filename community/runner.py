@@ -19,6 +19,14 @@ from .relevance import filter_events
 from .source_limits import FetchBudget, FetchUnavailable
 from .source_health import SourceHealth
 from .legacy_telegram_bridge import suppress_legacy_public_news
+from .legacy_forum_bridge import suppress_legacy_forum_post
+
+
+def _legacy_suppressed(state, source, destination_id, event):
+    return (
+        suppress_legacy_public_news(state, source, destination_id, event)
+        or suppress_legacy_forum_post(state, source, destination_id, event)
+    )
 
 
 @dataclass(frozen=True)
@@ -34,10 +42,15 @@ class RunSummary:
 
 def _init_key(source, subscription):
     """Changing a subscription's filters forces its own safe first-run warm start."""
+    # Numbered pages are the same official, validated forum thread. Changing
+    # page-17 to page-18 must NOT silently warm-start again and lose newly
+    # visible posts. A changed thread/domain/kind still requires a new source.
+    source_identity = (
+        "https://board.scryde.net/threads/obnovlenija.30694"
+        if source.kind == "scryde_forum" else source.url
+    )
     return "warm:" + digest([
-        # Changing URL/parser can select an entirely different news archive.
-        # A fresh silent baseline avoids flooding or misattributing old posts.
-        source.id, source.world.identity, source.kind, source.url, source.selector,
+        source.id, source.world.identity, source.kind, source_identity, source.selector,
         subscription.destination_id,
         sorted(subscription.event_types), sorted(subscription.source_ids),
         sorted(subscription.clans), subscription.language,
@@ -101,7 +114,7 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
                 warmed += 1
                 if not dry_run:
                     for event in events:
-                        if (sub.matches(event) and not suppress_legacy_public_news(
+                        if (sub.matches(event) and not _legacy_suppressed(
                                 state, source, sub.destination_id, event)):
                             state.mark_delivered(sub.destination_id, event.event_id, int(now.timestamp()))
                     state.cursors[marker] = "initialized"
@@ -113,7 +126,7 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
             events, active_subs, config.destinations, state,
             lambda dest, ev, lang: send(dest, ev, lang, credentials),
             now=now,
-            suppress=lambda destination_id, event: suppress_legacy_public_news(
+            suppress=lambda destination_id, event: _legacy_suppressed(
                 state, source, destination_id, event
             ),
         )

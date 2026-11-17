@@ -105,3 +105,11 @@ This example page number is a **verified public reference as of 2026-11-17**, no
 The adapter reads public XenForo article post IDs, normalizes them as stable `forum-post:<id>` identities and marks them as `observed`. Missing/malformed content, duplicate conflicting IDs and challenge/error HTML cannot generate synthetic events. Initial subscriber activation silently warms existing posts; subsequent visible new IDs can be sent independently to authorized Telegram/Discord destinations.
 
 This forum mixes news about multiple servers. Explicit `include_keywords` is mandatory until verified semantic filtering is available. Matching one keyword is an **approximation**, and general updates applying to every server may be omitted. No Gemini adaptation, moderator approval, private forum access, live-source delivery smoke test, or mapping of legacy `forum_news` IDs is implemented yet. The existing BSOE News Bot continues on its original parser.
+
+
+
+### Forum pagination and preserved history
+
+For `scryde_forum`, changing the configured URL from one `page-N` to another inside the **same official thread** preserves the original subscription warm-start and delivery receipts. A source should not silently warm-start again and drop newly visible post numbers merely because the forum pagination advanced. Older handled IDs remain suppressed for the specific destination when a legacy forum migration marker has been installed.
+
+Moving to a new page remains a **manual** GitHub-only configuration action. Redirected, inaccessible or challenge pages generate a source error rather than invented news.
