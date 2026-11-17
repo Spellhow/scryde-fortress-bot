@@ -41,3 +41,12 @@ These guards are independently tested in `test_scryde_fail_closed.py`, including
 This eliminates one significant source of drift: a missing owner field cannot be interpreted as an explicit NPC owner in the shadow module while the legacy runner rejects it as malformed. Duplicate IDs are quarantined in the same way for both paths. Tests in `test_scryde_shared_rows.py` and existing legacy regressions verify the shared trust boundary.
 
 **Not yet migrated:** the actual BSOE alert state machine, siege reminder copy, news moderation/approvals, Telegram sending and existing `site_state.json` persistence. They remain under the legacy runner until event-by-event parity has been checked.
+
+
+## Candidate event parity (before any cutover)
+
+`community/adapters/scryde_decisions.py` projects the **candidate Telegram sends** from the same already-fetched snapshot and previous legacy state, without mutating state, fetching pages or invoking the publisher. It covers defence-attack starts, attacker/time changes, early siege reminders, explicit ownership losses, offensive registrations, offensive reminders and cancellation. Legacy three-hour duplicate-alert cache and malformed-row fail-closed deferrals are considered.
+
+The optional `SCRYDE_SHADOW_DIAGNOSTICS=true` flag now logs **only event-type counters** alongside the previous read-only ownership counts, and remains **disabled by default**. No owner/clan names, chat identifiers or source content are included in these candidate summaries.
+
+`test_scryde_decision_parity.py` compares predicted candidate categories against real (mocked, no network) legacy `process_defence` and `process_our_attacks` send attempts across deterministic cases. This is stronger than count-only shadowing, but **not equivalent to proving exact message copy, Gemini moderation parity or live event delivery**. A production cutover remains blocked until recorded real inputs and a dual-run replay confirm exact outcomes.

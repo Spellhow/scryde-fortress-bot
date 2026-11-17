@@ -51,7 +51,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [ ] Extract news ingestion, Gemini formatting, moderation, template rendering and delivery into tested modules.
 - [ ] Enforce shared source polling, publication idempotency per destination and safe retries. New community runner fetches each source once, isolates failed destinations and retries unsent items on later snapshots; legacy BSOE cutover and idempotent remote edits remain.
 - [ ] Add source-level backoff/health and check that anti-bot challenges do not imply a lost fortress. Cross-run HTTP failure backoff (20→40→80→120 minutes) stored as hashed URL health markers has been added for the new Community Bot; parser-specific failures and legacy BSOE source health/parity remain pending.
-- [ ] Compare old and new Scryde outputs in read-only shadow mode on representative cases before cutover. Pure read-only snapshot shadow and optional aggregate diagnostics implemented; recorded real-world message/decision parity and production cutover remain open (see docs/SCRYDE_SHADOW.md).
+- [ ] Compare old and new Scryde outputs in read-only shadow mode on representative cases before cutover. Candidate-event projector and deterministic comparison against mocked legacy sends implemented; read-only decision-type logging is opt-in. Exact message copy, real observed input parity and production cutover remain open (see docs/SCRYDE_SHADOW.md).
 
 **Acceptance**: identical BSOE event decisions and news publication policies, full offline tests, rollback by configuration.
 
