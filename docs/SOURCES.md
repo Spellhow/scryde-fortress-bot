@@ -131,3 +131,31 @@ The Scryde forum has one public thread split across numbered pages. Community Bo
 An early Community Bot version stored a URL-specific `warm:...` marker. During normal operation, the runner now recognizes that previous marker **only when the current source URL, world, filters and destination still match** and its value is `initialized`. It promotes the marker to the canonical thread identity, preserving old receipt records and retaining the original marker for rollback.
 
 For upgrades from the original forum adapter, first run the updated code **without changing the configured page URL**. After the first healthy poll has saved the canonical marker, change the URL to the newly verified public page. If both code and URL change together, the old marker cannot be safely recovered from a hashed key and the new source will instead follow conservative silent warm-start behavior. No AI call or live message is made by this migration.
+
+
+## Detecting successful HTTP responses that are not actual feeds
+
+A `200 OK` response does **not** establish that a configured page contains
+public news. Some sites return CAPTCHA, login or generic error HTML with an
+apparently successful HTTP status.
+
+The public Telegram source now requires **at least one trustworthy post**
+in the requested channel, with a positive bounded message ID. A post from
+a different channel, an invalid ID, a duplicate ambiguous ID or media-only
+record does not establish a valid news snapshot. Official source links are
+derived from the validated channel and post ID; untrusted `href` values in
+returned HTML cannot point a delivered event at another site.
+
+RSS/Atom sources now require the expected XML root type. A well-formed
+`<html>` challenge/error response is rejected rather than accepted as an
+empty RSS feed. Truly empty but valid RSS/Atom feeds remain supported.
+Generic webpage sources must match their configured selector (`article,
+main` by default); no matching element is a parsing failure, not a
+successful empty first-run baseline.
+
+These failures use the GitHub-only source-specific parser backoff described
+in [deployment notes](GITHUB_FIRST.md). The runner does **not** advance
+subscription warm-start markers or acknowledge empty source data when it
+cannot establish that a trustworthy feed was parsed. This check does not
+guarantee detecting every possible antibot/error response; live preview
+and regular review of chosen sources are still required.
