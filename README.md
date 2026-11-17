@@ -1,10 +1,10 @@
 # Scryde Fortress Bot
 
-A Python Telegram bot for the **BSOE clan on Scryde Lineage 2 x1000**. It monitors fortress and castle sieges and publishes relevant Ukrainian-language server news.
+An open-source Lineage 2 community bot with two compatible deployment paths: the original **BSOE / Scryde x1000** Telegram monitor, and an opt-in **GitHub-only Community Bot** for L2Dex castle changes, public news feeds, manual reminders, Telegram and Discord webhooks.
 
-**Now:** Scryde x1000 + Telegram. **Planned:** configurable Lineage 2 servers, community feeds, multiple destinations and Discord. See [the implementation plan](docs/IMPLEMENTATION_PLAN.md) for agent-ready milestones and honest status.
+**[Use this template](https://github.com/Spellhow/scryde-fortress-bot/generate)** to create your own repository without running a VPS. The Community Bot and its setup workflow passed a clean private-repository smoke test on 2026-11-17; real outbound delivery to an authorized Telegram/Discord channel is still to be verified. See the [implementation plan](docs/IMPLEMENTATION_PLAN.md).
 
-## What it does
+## Existing Scryde/BSOE capabilities
 
 - Alerts when our fortress/castle is attacked, when our clan attacks another object, when a siege is cancelled, or ownership is lost.
 - Sends pre-siege reminders and optional visual cards with castle/fortress and clan information.
@@ -20,23 +20,28 @@ This is a **community information bot**, not a game client or character automati
 
 | Mode | Status | Server needed? | Scheduling |
 | --- | --- | --- | --- |
-| GitHub-only | Experimental opt-in | No | GitHub Actions cron; can be delayed |
-| Existing VPS dispatcher | Active BSOE deployment | Yes, only for dispatch/watchdog | External `workflow_dispatch` every ~10 min |
+| GitHub-only Community Bot | Verified setup + first-run baseline; outbound delivery still experimental | No | Best-effort 20-minute GitHub Actions cron |
+| Legacy Scryde News/Siege | Existing workflows; VPS dispatch timer disabled at 2026-11-16 inspection | Optional VPS for dispatcher/watchdog | Manual `workflow_dispatch` or opt-in cron |
 
-The repository uses **two** workflows: [News Bot](.github/workflows/news-bot.yml) and [Siege Bot](.github/workflows/siege-bot.yml). Both can be run manually from GitHub Actions. The optional GitHub-only schedule is disabled by default and enabled with the repository variable `RUN_GITHUB_SCHEDULE=true`. On forks/template repositories, event state is initialized as `community_state.json` to avoid inheriting BSOE alert history. Do **not** enable that variable for the existing VPS dispatcher unless the scheduling paths are coordinated.
+Legacy Scryde monitoring uses two workflows: [News Bot](.github/workflows/news-bot.yml) and [Siege Bot](.github/workflows/siege-bot.yml). New community installations use [Community Bot](.github/workflows/community-bot.yml) plus the one-time [setup workflow](.github/workflows/setup-community.yml). All are GitHub Actions workflows. The optional GitHub-only schedule is disabled by default and enabled with the repository variable `RUN_GITHUB_SCHEDULE=true`. On forks/template repositories, event state is initialized as `community_state.json` to avoid inheriting BSOE alert history. Do **not** enable that variable for the existing VPS dispatcher unless the scheduling paths are coordinated.
 
-See [GitHub-first deployment notes](docs/GITHUB_FIRST.md) for a test setup, required secrets, current limitations and offline checks. New template/fork deployments can generate a starter `community.json` via **Actions → Set up Community Bot (one-time)**. This creates a public, secret-free configuration without a server. New template/fork deployments create a separate `community_state.json` instead of using the original BSOE history. A fully validated end-to-end onboarding flow is still an open milestone.
+### New GitHub-only community setup
 
-## Required repository secrets
+1. Click [Use this template](https://github.com/Spellhow/scryde-fortress-bot/generate) and enable Actions in your repository.
+2. Run **Actions → Set up Community Bot (one-time)**. Select the game network, world, public source URL and Telegram or Discord output.
+3. Add repository **Secrets**: `TG_TOKEN` and `TG_CHAT` for Telegram, or `DISCORD_WEBHOOK` for Discord. The setup workflow never stores tokens in the public configuration.
+4. Set repository **Variables**: `COMMUNITY_MODE=true`, `RUN_GITHUB_SCHEDULE=true`, and initially `COMMUNITY_DRY_RUN=true`.
+5. Manually run **Community Bot (GitHub-only)** to inspect a safe dry-run. Turn dry-run off and run once to create the initial silent baseline in `community_deliveries.json`.
 
-- `TG_TOKEN`: Telegram bot token.
-- `TG_CHAT`: destination chat ID.
-- `TG_CHAT_DEBUG`: moderation/debug chat ID.
-- `GEMINI_API_KEY`: Gemini API credential used for news filtering and rewriting.
+GitHub scheduling may be delayed. Existing BSOE state remains in `site_state.json` in this source repository; fresh community installations keep an independent `community_deliveries.json`. See [complete GitHub-first setup](docs/GITHUB_FIRST.md).
 
-Secrets belong in GitHub Settings → Secrets and variables → Actions. Do not put them in `config.py`, `site_state.json`, workflow YAML or issue comments. Existing default world/clan settings currently live in the workflows and environment variables. See [configuration details](docs/GITHUB_FIRST.md).
+## Secrets and optional AI
 
-The news rewrite allows only specific Gemini model IDs in the current runner, but **zero billing also requires a Google AI Free Tier project with billing disabled**. Model allowlisting alone cannot guarantee zero charges.
+The new Community Bot requires **no Gemini key**. For Telegram output, configure `TG_TOKEN` and `TG_CHAT`; for Discord webhooks, configure `DISCORD_WEBHOOK`. Several destinations can share the optional `COMMUNITY_SECRETS_JSON` GitHub Secret containing environment-name-to-secret-value mappings.
+
+Only the legacy Scryde News Bot uses `GEMINI_API_KEY` and moderation destination `TG_CHAT_DEBUG`. Keep credentials in GitHub Settings → Secrets and variables → Actions. Never commit actual tokens, private chat IDs or webhooks in `community.json`, `site_state.json` or workflows. See [configuration details](docs/CONFIG_INVENTORY.md).
+
+The existing News Bot selects free-tier Gemini model IDs, but **zero billing additionally requires a Google AI Free Tier project with billing disabled**.
 
 ## How the existing jobs work
 
