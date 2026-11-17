@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from google import genai
 from google.genai import types
 
+from community.legacy_news_decisions import classify_news_queue_item
 from community.legacy_news_queue import (
     MAX_ACTIVE_NEWS_ITEMS, active_moderation_count, retain_news_queue,
 )
@@ -1054,52 +1055,45 @@ def process_feed_posts(state, posts, state_key, source_label):
 
 def process_pending_news_queue(state):
     now = int(time.time())
-    expire_before = now - NEWS_PENDING_EXPIRE_HOURS * 60 * 60
     for state_key in ("news", "forum_news"):
         news_state = state.setdefault(state_key, {"last_seen_id": 0, "sent_ids": [], "pending": []})
         pending_items = news_state.get("pending", [])
 
         for item in pending_items:
-            status = item.get("status")
-            if status not in {"pending", "approved"}:
-                continue
-            if status == "pending" and int(item.get("created_at", 0) or 0) < expire_before:
+            decision = classify_news_queue_item(
+                item,
+                now=now,
+                expire_hours=NEWS_PENDING_EXPIRE_HOURS,
+                grace_minutes=NEWS_AUTO_PUBLISH_GRACE_MIN,
+                target_chat=NEWS_TARGET_CHAT,
+            )
+            if decision == "expire_age":
                 item["status"] = "expired"
                 log("{} pending post {} expired without publishing".format(state_key, item.get("post_id")))
                 continue
-            publish_after = int(item.get("publish_after", 0) or 0)
-            if now < publish_after:
+            if decision in {"ignore", "wait_schedule", "wait_debug"}:
                 continue
-
-            if NEWS_TARGET_CHAT == "debug":
-                continue
-
-            # GitHub Actions schedules are best-effort. A missed scheduler run
-            # must not turn a 25-minute moderation delay into permission to
-            # publish stale, time-sensitive news hours later. Explicitly
-            # approved items are exempt because the owner chose to publish.
-            if status == "pending" and publish_after > 0:
-                latest_auto_publish_at = publish_after + max(0, NEWS_AUTO_PUBLISH_GRACE_MIN) * 60
-                if now > latest_auto_publish_at:
-                    late_minutes = max(0, (now - publish_after) // 60)
-                    item["status"] = "expired"
-                    log(
-                        "{} pending post {} expired: auto-publish window missed by {} min".format(
-                            state_key,
-                            item.get("post_id"),
-                            late_minutes,
-                        )
+            if decision == "expire_late":
+                publish_after = int(item.get("publish_after", 0) or 0)
+                late_minutes = max(0, (now - publish_after) // 60)
+                item["status"] = "expired"
+                log(
+                    "{} pending post {} expired: auto-publish window missed by {} min".format(
+                        state_key,
+                        item.get("post_id"),
+                        late_minutes,
                     )
-                    if item.get("debug_message_id") and TG_CHAT_DEBUG:
-                        edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
-                        send_telegram(
-                            "<b>[NEWS EXPIRED]</b> <b>{}</b>\n\n"
-                            "Автопублікацію пропущено: воркер запізнився на {} хв.\n{}".format(
-                                item.get("title", "Новина"), late_minutes, item.get("url", "")
-                            ),
-                            chat_id=TG_CHAT_DEBUG,
-                        )
-                    continue
+                )
+                if item.get("debug_message_id") and TG_CHAT_DEBUG:
+                    edit_telegram_reply_markup(TG_CHAT_DEBUG, item["debug_message_id"])
+                    send_telegram(
+                        "<b>[NEWS EXPIRED]</b> <b>{}</b>\n\n"
+                        "Автопублікацію пропущено: воркер запізнився на {} хв.\n{}".format(
+                            item.get("title", "Новина"), late_minutes, item.get("url", "")
+                        ),
+                        chat_id=TG_CHAT_DEBUG,
+                    )
+                continue
 
             message = build_news_post_message(item.get("title", "Новина Scryde x1000"), item.get("text", ""), item.get("url", ""))
             sent_ok = send_telegram(message, chat_id=TG_CHAT)
