@@ -158,8 +158,6 @@ def parse_config(data):
             remind_before_minutes=tuple(times),
             clan=item.get("clan"),
             enabled=item.get("enabled", True),
-            include_keywords=tuple(_strset(item.get("include_keywords", []))),
-            exclude_keywords=tuple(_strset(item.get("exclude_keywords", []))),
         ))
     schedule_ids = [(entry.world.identity, entry.identifier) for entry in schedules]
     if len(schedule_ids) != len(set(schedule_ids)):
