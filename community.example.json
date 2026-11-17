@@ -65,6 +65,40 @@
       ],
       "clans": [],
       "language": "uk"
+    },
+    {
+      "destination_id": "clan-telegram",
+      "world": {
+        "network": "L2Dex",
+        "name": "New-Interlude x25",
+        "chronicle": "Interlude"
+      },
+      "source_ids": [
+        "manual_schedule"
+      ],
+      "event_types": [
+        "event_reminder"
+      ],
+      "clans": [],
+      "language": "uk"
+    }
+  ],
+  "scheduled_events": [
+    {
+      "id": "example-clan-meeting",
+      "world": {
+        "network": "L2Dex",
+        "name": "New-Interlude x25",
+        "chronicle": "Interlude"
+      },
+      "title": "Clan voice meeting",
+      "body": "Example only. Replace with your own scheduled event.",
+      "starts_at": "2027-01-01T20:00:00+01:00",
+      "remind_before_minutes": [
+        60,
+        15
+      ],
+      "enabled": false
     }
   ]
 }

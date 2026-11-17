@@ -4,7 +4,7 @@ import os
 from urllib import request
 from urllib.parse import urlsplit
 
-from .models import Destination, Event
+from .models import Destination, Event, Provenance
 
 TELEGRAM_MAX_CHARS = 3900
 DISCORD_MAX_CHARS = 1900
@@ -18,7 +18,9 @@ def render_plain_event(event, max_chars):
     scope = f"{event.world.network} / {event.world.name}"
     origin = event.provenance.value
     title = f"[{scope} · {origin}] {event.title}"
-    suffix = f"\n\n{event.source_url}"
+    # A manual reminder has no external verified source; avoid appending
+    # the project homepage as though it proved the event occurred.
+    suffix = "" if event.provenance == Provenance.MANUAL else f"\n\n{event.source_url}"
     available = max(0, max_chars - len(title) - len(suffix) - 2)
     return f"{title}\n\n{event.body[:available]}{suffix}"
 

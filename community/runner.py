@@ -14,6 +14,7 @@ from .models import digest
 from .publishers import send_event
 from .router import dispatch_events
 from .state import DeliveryState
+from .schedules import due_reminders
 
 
 @dataclass(frozen=True)
@@ -96,4 +97,21 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
         # independently marked delivered and will not get a duplicate.
         if is_l2dex and not outcome.errors:
             state.cursors[snapshot_key] = candidate_snapshot
+    # Manual schedules need no browser, remote feed or warm-start. A reminder
+    # only exists inside its configured UTC-aware delivery window; replay is
+    # guarded by the same per-destination delivery keys as public feeds.
+    scheduled = due_reminders(config.schedules, now)
+    seen += len(scheduled)
+    if not dry_run and scheduled:
+        subs = [
+            sub for sub in config.subscriptions
+            if not sub.source_ids or "manual_schedule" in sub.source_ids
+        ]
+        outcome = dispatch_events(
+            scheduled, subs, config.destinations, state,
+            lambda dest, ev, lang: send(dest, ev, lang, credentials), now=now,
+        )
+        attempts += outcome.attempted
+        sent += outcome.sent
+        errors.extend(outcome.errors)
     return RunSummary(checked, seen, warmed, attempts, sent, tuple(errors))

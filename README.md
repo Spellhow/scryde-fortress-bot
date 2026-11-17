@@ -61,6 +61,10 @@ The `community/` package can now parse a versioned [example configuration](commu
 
 The new community runner can also monitor the public **L2Dex New-Interlude x25** castle table. It compares ownership and newly registered attacker clans, then sends only changes after an initial silent baseline. It does not claim live combat or convert the site's unverified local siege time into UTC. The source is **disabled by default** in `community.example.json`. The live page layout was checked against nine castles, but a real ownership change has not yet been observed by the adapter; see [L2Dex integration notes](docs/L2DEX.md).
 
+## Manually configured clan reminders (opt-in)
+
+The Community Bot can also send event reminders without scraping or a VPS. Add explicit `scheduled_events` (start time with UTC offset, reminder lead times, destination subscription). Examples include clan meetings or **manual** raid boss timer estimates. These are not verified game events. The example reminder is disabled by default. See [reminder setup](docs/REMINDERS.md).
+
 ## Code map
 
 - `github_runner.py`: current GitHub Actions runner; siege/news processing and Telegram moderation.
