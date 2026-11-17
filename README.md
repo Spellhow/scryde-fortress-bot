@@ -59,6 +59,8 @@ GitHub Actions scheduling is best effort. If immediate or guaranteed siege alert
 
 The opt-in `community/` Python package now provides a typed world/event model, destination and subscription filters, a versioned local delivery state, and a read-only Scryde adapter for shadow testing. It is **not yet wired into the existing production bot**. See [architecture](docs/ARCHITECTURE.md).
 
+**Legacy migration preflight:** `python3 scripts/legacy_state_preflight.py` inventories the old public state using counts only and explains why production cannot safely switch yet. [Migration preflight and rollback plan](docs/LEGACY_STATE_MIGRATION.md).
+
 **Scryde decision parity:** opt-in, read-only prediction now compares candidate siege notifications against the legacy handler; deterministic offline cases cover registration, cancellation, reminders and verified owner changes. Live production switching remains disabled.
 
 **Shared parser milestone:** legacy BSOE and new Scryde adapters now validate ranking owner/attacker rows using one pure module; actual alert decisions and state remain legacy until parity is proven. See [Scryde shadow plan](docs/SCRYDE_SHADOW.md).
