@@ -36,9 +36,9 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 
 ### P0-SCHEDULE: self-contained GitHub-only starter
 - [x] Add an *opt-in* 10-minute scheduled trigger to both existing workflows. A repository variable `RUN_GITHUB_SCHEDULE=true` enables jobs for schedule events, while manual/VPS `workflow_dispatch` remains available.
-- [ ] Exercise the opt-in path in a disposable/test repository and verify news/siege dedupe, secrets, workflow permissions, state persistence and recovery.
-- [ ] Document fork/template ownership, GitHub Actions enabling and repository secrets/variables; test the full setup with a clean account. Setup workflow and CLI generated config are implemented; clean independent repository smoke test still required.
-- [ ] Decide template vs fork (prefer template) and mark repository as template only after end-to-end onboarding is verified.
+- [ ] Exercise the opt-in path in a disposable/test repository and verify news/siege dedupe, secrets, workflow permissions, state persistence and recovery. New Community Bot clean setup/dry-run/baseline passed; original Scryde workflows, real outgoing sends, failure-recovery and cron timing are still outstanding.
+- [ ] Document fork/template ownership, GitHub Actions enabling and repository secrets/variables; test the full setup with a clean account. Same-owner private clean-copy smoke test passed on 2026-11-17. Real outbound messaging and independent-account onboarding remain.
+- [x] Choose GitHub template and enable its flag (2026-11-17). A clean private-repository test passed setup, live-source dry-run, first persisted baseline and valid variable creation. External Telegram/Discord delivery and cron timing are pending verification.
 - [ ] Investigate Git state persistence alternatives without adding required paid hosting. Existing BSOE `site_state.json` remains; GitHub-only forks use isolated `community_state.json` (implemented). Atomic/alternate state storage still open.
 - [x] Document default cadence, latency, rate limits and forked GitHub Actions quotas (see `docs/GITHUB_FIRST.md`).
 

@@ -96,3 +96,18 @@ The legacy root `config.py`, `state.json` and `test.py` files remain ignored, wh
 ## GitHub Actions variable naming
 
 The exact schedule toggle is `RUN_GITHUB_SCHEDULE=true`. GitHub **rejects repository variable names beginning with `GITHUB_`**, so `GITHUB_ONLY_MODE` is an obsolete name from early iterations and must not be used. This was verified during the first clean GitHub Actions smoke test on 2026-11-17.
+
+
+
+## Verified private-repository onboarding test (2026-11-17)
+
+A temporary private repository constructed from a clean Git archive passed the following GitHub Actions checks:
+
+- One-time setup successfully committed `community.json` without secrets.
+- Community Bot dry-run read the public L2Dex source: `sources=1`, `errors=0`, no messages sent.
+- The first normal baseline committed `community_deliveries.json` with no outgoing message.
+- GitHub accepted the correctly named repository variable `RUN_GITHUB_SCHEDULE`.
+
+The test found and resolved two blockers: incorrectly scoped ignore rules for `community/config.py` (PR #12), and the invalid `GITHUB_ONLY_MODE` variable prefix (PR #13). The main repository is now marked as a GitHub template.
+
+**Still pending:** real new-event delivery to an authorized Telegram/Discord destination, a recurring cron-cycle check and fully independent-account onboarding. The private test repository was archived instead of deleted because the available GitHub OAuth grant lacks `delete_repo` scope.
