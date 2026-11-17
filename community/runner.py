@@ -16,8 +16,8 @@ from .router import dispatch_events
 from .state import DeliveryState
 from .schedules import due_reminders
 from .relevance import filter_events
-from .source_limits import FetchBudget, FetchUnavailable
-from .source_health import SourceHealth
+from .source_limits import FetchBudget, FetchUnavailable, FetchBudgetExceeded
+from .source_health import SourceHealth, parser_identity
 from .legacy_telegram_bridge import suppress_legacy_public_news
 from .legacy_forum_bridge import suppress_legacy_forum_post
 
@@ -80,7 +80,11 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
             errors.append(f"{source.id}: adapter unavailable")
             continue
         checked += 1
-        if not dry_run and not health.ready(source.url, now):
+        parse_id = parser_identity(source)
+        if not dry_run and (
+            not health.ready(source.url, now)
+            or not health.ready(parse_id, now)
+        ):
             deferred += 1
             continue
         snapshot_key = state_key(source.id, source.world, source.url) if is_l2dex else None
@@ -97,14 +101,23 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
         except Exception as exc:
             # Only genuine HTTP fetch failures receive a delayed retry;
             # per-domain budgets and parser errors are handled separately.
-            if isinstance(exc, FetchUnavailable) and not dry_run and source.url not in failed_urls_this_run:
-                health.fail(source.url, now)
-                failed_urls_this_run.add(source.url)
+            if not dry_run:
+                if isinstance(exc, FetchUnavailable):
+                    if source.url not in failed_urls_this_run:
+                        health.fail(source.url, now)
+                        failed_urls_this_run.add(source.url)
+                elif not isinstance(exc, FetchBudgetExceeded):
+                    # A parser/normalization failure after a successful
+                    # HTTP fetch is specific to this parser configuration.
+                    # Back off repeated challenge/markup changes without
+                    # hiding healthy sibling sources sharing the same URL.
+                    health.fail(parse_id, now)
             # Do not expose source URLs/tokens/response bodies in errors.
             errors.append(f"{source.id}: source failure ({type(exc).__name__})")
             continue
         if not dry_run:
             health.recover(source.url)
+            health.recover(parse_id)
         seen += len(events)
         active_subs = []
         for sub in config.subscriptions:
