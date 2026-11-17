@@ -1,0 +1,39 @@
+name: Test Community Delivery (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      destination_alias:
+        description: 'Existing destination alias from community.json'
+        required: true
+        type: string
+        default: clan-channel
+      confirm_send:
+        description: 'Send exactly one test message to this destination?'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  one-message-probe:
+    if: github.repository != 'Spellhow/scryde-fortress-bot' && vars.COMMUNITY_MODE == 'true' && github.ref_name == github.event.repository.default_branch && inputs.confirm_send == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Send one explicitly authorized diagnostic (no scraping)
+        env:
+          COMMUNITY_CONFIG_FILE: community.json
+          DELIVERY_TEST_CONFIRM: 'yes'
+          DELIVERY_TEST_DESTINATION: ${{ inputs.destination_alias }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          COMMUNITY_SECRETS_JSON: ${{ secrets.COMMUNITY_SECRETS_JSON }}
+        run: python scripts/test_delivery.py

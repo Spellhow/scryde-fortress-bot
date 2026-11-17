@@ -125,3 +125,15 @@ The feature is a deterministic Unicode keyword filter, **not Gemini/AI translati
 ## Changing source URLs safely
 
 The Community Bot automatically treats an edited source URL or parser selector as a new public feed. Its first successful observation only records the existing entries; it does not dump the new source's entire history into Telegram or Discord. Newly published events after that baseline are eligible for alerts. For L2Dex, the ranking URL is also part of the tracked castle snapshot identity, preventing a new ranking page from creating fictional castle ownership transitions.
+
+
+
+## Verify Telegram or Discord delivery before enabling cron
+
+After creating `community.json` and configuring GitHub Secrets, set the repository variable `COMMUNITY_MODE=true` and keep `RUN_GITHUB_SCHEDULE` unset until a real test succeeds.
+
+Open **Actions → Test Community Delivery (manual)**, provide the exact destination alias from `community.json` (for example `clan-channel`) and deliberately check **Send exactly one test message?**. The job sends one clearly labeled manual diagnostic and requires a real Telegram/Discord message ID. It never fetches game data, changes state or publishes news. It is blocked in `Spellhow/scryde-fortress-bot` and cannot run on a schedule.
+
+If permissions or secrets are missing, the run fails without printing a token, chat ID or webhook URL. Repeat the test only after correcting credentials and explicitly confirming again. Once your authorized channel receives the message, turn on `RUN_GITHUB_SCHEDULE=true` to enable regular best-effort polling.
+
+This creates a self-service test workflow; **the maintainer has not yet performed live delivery testing with an authorized external channel**.

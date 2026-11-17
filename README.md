@@ -23,15 +23,16 @@ This is a **community information bot**, not a game client or character automati
 | GitHub-only Community Bot | Verified setup + first-run baseline; outbound delivery still experimental | No | Best-effort 20-minute GitHub Actions cron |
 | Legacy Scryde News/Siege | Existing workflows; VPS dispatch timer disabled at 2026-11-16 inspection | Optional VPS for dispatcher/watchdog | Manual `workflow_dispatch` or opt-in cron |
 
-Legacy Scryde monitoring uses two workflows: [News Bot](.github/workflows/news-bot.yml) and [Siege Bot](.github/workflows/siege-bot.yml). New community installations use [Community Bot](.github/workflows/community-bot.yml) plus the one-time [setup workflow](.github/workflows/setup-community.yml). All are GitHub Actions workflows. The optional GitHub-only schedule is disabled by default and enabled with the repository variable `RUN_GITHUB_SCHEDULE=true`. On forks/template repositories, event state is initialized as `community_state.json` to avoid inheriting BSOE alert history. Do **not** enable that variable for the existing VPS dispatcher unless the scheduling paths are coordinated.
+Legacy Scryde monitoring uses two workflows: [News Bot](.github/workflows/news-bot.yml) and [Siege Bot](.github/workflows/siege-bot.yml). New community installations use [Community Bot](.github/workflows/community-bot.yml) plus the one-time [setup workflow](.github/workflows/setup-community.yml). All are GitHub Actions workflows. The optional GitHub-only schedule is disabled by default and enabled with the repository variable `RUN_GITHUB_SCHEDULE=true`. In template/fork repositories, legacy Scryde workflows use `community_state.json`, while the new Community Bot keeps `community_deliveries.json`. Do **not** enable that variable for the existing VPS dispatcher unless the scheduling paths are coordinated.
 
 ### New GitHub-only community setup
 
 1. Click [Use this template](https://github.com/Spellhow/scryde-fortress-bot/generate) and enable Actions in your repository.
 2. Run **Actions → Set up Community Bot (one-time)**. Select the game network, world, public source URL and Telegram or Discord output.
 3. Add repository **Secrets**: `TG_TOKEN` and `TG_CHAT` for Telegram, or `DISCORD_WEBHOOK` for Discord. The setup workflow never stores tokens in the public configuration.
-4. Set repository **Variables**: `COMMUNITY_MODE=true`, `RUN_GITHUB_SCHEDULE=true`, and initially `COMMUNITY_DRY_RUN=true`.
-5. Manually run **Community Bot (GitHub-only)** to inspect a safe dry-run. Turn dry-run off and run once to create the initial silent baseline in `community_deliveries.json`.
+4. Set repository **Variables**: `COMMUNITY_MODE=true` and initially `COMMUNITY_DRY_RUN=true`. Keep `RUN_GITHUB_SCHEDULE` unset while testing.
+5. Manually run **Community Bot (GitHub-only)** to inspect the dry-run. Turn dry-run off and run once to create the initial silent baseline in `community_deliveries.json`.
+6. Run **Actions → Test Community Delivery (manual)**, choose your configured destination alias and explicitly confirm sending one diagnostic message. This is disabled in the original BSOE repository. Confirm receipt before setting `RUN_GITHUB_SCHEDULE=true`.
 
 GitHub scheduling may be delayed. Existing BSOE state remains in `site_state.json` in this source repository; fresh community installations keep an independent `community_deliveries.json`. See [complete GitHub-first setup](docs/GITHUB_FIRST.md).
 
