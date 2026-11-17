@@ -7,6 +7,8 @@ to infer loss from a missing or malformed row.
 from dataclasses import dataclass
 from typing import Mapping
 
+from .scryde_rows import is_valid_scryde_ranking_row, get_attackers
+
 
 @dataclass(frozen=True)
 class RankingObject:
@@ -44,50 +46,20 @@ class ShadowReport:
         }
 
 
-def _attackers(row: dict) -> tuple[str, ...] | None:
-    sides = row.get("siege_sides")
-    if sides in (None, [], {}):
-        return ()
-    if not isinstance(sides, dict):
-        return None
-    attackers = sides.get("attackers", [])
-    if not isinstance(attackers, list):
-        return None
-    parsed = []
-    for attacker in attackers:
-        if not isinstance(attacker, dict) or not isinstance(attacker.get("name"), str):
-            return None
-        if not attacker["name"].strip():
-            return None
-        parsed.append(attacker["name"].strip())
-    return tuple(sorted(set(parsed)))
-
-
 def _row(item) -> RankingObject | None:
-    if not isinstance(item, dict):
+    # Exactly the same trust boundary as the authoritative BSOE runner.
+    if not is_valid_scryde_ranking_row(item):
         return None
-    identifier = item.get("id")
-    name = item.get("name")
-    if isinstance(identifier, bool) or not isinstance(identifier, (str, int)) or not str(identifier).strip():
-        return None
-    if not isinstance(name, str) or not name.strip():
-        return None
-    owner_obj = item.get("owner")
-    if owner_obj is not None:
-        if not isinstance(owner_obj, dict) or not isinstance(owner_obj.get("name"), str):
-            return None
-        owner = owner_obj["name"].strip()
-        if not owner:
-            return None
-    else:
-        owner = None
-    attackers = _attackers(item)
-    if attackers is None:
-        return None
+    owner_obj = item["owner"]
+    owner = owner_obj["name"].strip() if isinstance(owner_obj, dict) else None
+    attackers = tuple(sorted({name.strip() for name in get_attackers(item)}))
     siege = item.get("siege_at") or 0
-    if isinstance(siege, bool) or not isinstance(siege, (float, int)) or not 0 <= siege <= 4102444800:
+    # Shadow projections intentionally refuse out-of-range wall clock values.
+    if siege > 4102444800:
         return None
-    return RankingObject(str(identifier), name.strip(), owner, attackers, int(siege))
+    return RankingObject(
+        str(item["id"]), item["name"].strip(), owner, attackers, int(siege)
+    )
 
 
 def _previously_owned(section: Mapping) -> set[str]:
