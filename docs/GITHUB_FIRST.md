@@ -192,3 +192,52 @@ cooldown; dry runs and source previews never mutate these markers.
 These delays are **only source retry throttles**, not a promise about
 GitHub Actions cron accuracy or the availability of a site. Other sources,
 destinations, and scheduled/manual reminders continue running.
+
+
+## Add a second Telegram or Discord destination
+
+The one-time setup workflow creates **one destination**. To add another without
+hand-editing multiple JSON sections, run this locally or in a trusted checkout:
+
+```bash
+python3 scripts/add_community_destination.py \
+  --config community.json \
+  --source-id initial-source \
+  --alias second-discord \
+  --kind discord \
+  --address-env DISCORD_WEBHOOK_SECOND \
+  --language en \
+  --output community.updated.json
+```
+
+The command copies your original config and creates **one additional isolated
+destination and a source-scoped subscription**. It validates the resulting
+complete config before writing. It refuses to overwrite `community.json` or an
+existing output file. No network, token read, or live send is performed.
+
+For another Telegram channel, use `--kind telegram --address-env TG_SECOND_CHAT`
+and optionally `--token-env TG_SECOND_BOT_TOKEN`. If you omit `--token-env` for
+Telegram, the new destination **shares** the existing `TG_TOKEN`. For Discord,
+the token is embedded in the secret webhook URL referenced by `--address-env`;
+never paste the webhook URL itself into an argument or JSON file.
+
+Use `--event-types news,announcement` to select supported event categories
+from the chosen source, or use `--clans YourClan` **only for L2Dex castle
+sources**, where the clan field currently represents the observed owner,
+**not** the registered attacking clan. By default the new subscription receives
+all event categories supported by that source. Language is routing metadata:
+the current lightweight Community Bot does **not** automatically translate
+source texts, even if `--language en` or `--language uk` is selected.
+
+After reviewing `community.updated.json`, put the **actual secret values**
+in repository Settings → Secrets and variables → Actions (for multiple target
+secrets, use the existing `COMMUNITY_SECRETS_JSON` secret mapping). Replace
+`community.json` with the reviewed candidate and commit the configuration
+with **only env-var names**. Keep scheduled delivery disabled, run validation,
+dry-run the source, then use **Actions → Test Community Delivery (manual)** on
+each destination with explicit authorization. Only enable the schedule after
+confirming the messages arrive.
+
+These tests cover two destinations, one fetch per source per run, independent
+receipts, different subscription languages and failed-target retry. Live
+multi-channel permission checks remain a separate verification step.
