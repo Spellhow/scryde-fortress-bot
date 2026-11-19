@@ -28,12 +28,13 @@ def main(argv=None):
         return 0
     state_path = Path(os.environ.get("COMMUNITY_STATE_FILE", "community_deliveries.json"))
     dry_run = os.environ.get("COMMUNITY_DRY_RUN", "false").lower() == "true"
+    state_changed = False
     try:
         state = DeliveryState.load(state_path)
         credentials = credential_environment()
         summary = run(config, state, credentials=credentials, dry_run=dry_run)
         if not dry_run:
-            state.save(state_path)
+            state_changed = state.save(state_path)
     except Exception as exc:
         print(f"Community runner failed safely ({type(exc).__name__})")
         return 1
@@ -42,7 +43,8 @@ def main(argv=None):
         f"sources={summary.sources_checked}, events={summary.events_seen}, "
         f"subscriptions_initialized={summary.subscriptions_initialized}, "
         f"attempted={summary.attempts}, sent={summary.sent}, "
-        f"deferred_sources={summary.deferred_sources}, errors={len(summary.errors)}"
+        f"deferred_sources={summary.deferred_sources}, errors={len(summary.errors)}, "
+        f"state_changed={'yes' if state_changed else 'no'}"
     )
     for error in summary.errors:
         print(f"warning: {error}")

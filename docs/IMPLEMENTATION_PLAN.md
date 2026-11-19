@@ -61,7 +61,7 @@ Preserve the working Scryde x1000 + BSOE flows: fortress/castle defense, clan at
 - [x] Add a combined all-or-nothing, dry-run-first candidate generator for BSOE public Telegram plus Scryde forum checkpoints (`scripts/prepare_bsoe_history.py`), preserving existing receipts and refusing active moderation. Tracked legacy state dry run passed; production cutover remains blocked by full moderation/ownership/delivery parity.
 - [ ] Prevent repeated AI processing and repeated sends across retries, crashes and concurrent deliveries.
 - [ ] For optional always-on mode, offer SQLite with a single writer; later PostgreSQL only when operationally justified.
-- [ ] Eliminate per-run Git commits when there are no changes; measure Git churn and retention.
+- [ ] Eliminate per-run Git commits when there are no changes; measure Git churn and retention. State persistence now detects byte-identical canonical JSON and skips temporary files, replacement and filesystem timestamp changes. Runner logs `state_changed=yes/no`, and Git persistence already skips unchanged commits; aggregate churn measurement and retention audit remain pending.
 - [ ] Review public state for potentially sensitive user-specific data *before* adding multi-tenancy. Never commit private community configuration.
 
 **Acceptance**: old state imports deterministically, no duplicate posts under replay tests, GitHub-only needs no external DB.
