@@ -73,6 +73,14 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(["x1000"],document["sources"][0]["include_keywords"])
         parse_config(document)
 
+    def test_public_scryde_forum_defaults_to_world_keyword(self):
+        document=build_document(**self.args(
+            network="Scryde",world="x1000",source_kind="scryde_forum",
+            source_url="https://board.scryde.net/threads/obnovlenija.30694/page-18",
+        ))
+        self.assertEqual(["x1000"],document["sources"][0]["include_keywords"])
+        self.assertEqual("scryde_forum",parse_config(document).sources[0].kind)
+
     def test_setup_supports_override_keyword_and_rejects_l2dex_filters(self):
         document=build_document(**self.args(
             network="Scryde",world="x1000",

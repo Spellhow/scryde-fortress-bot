@@ -42,7 +42,9 @@ def build_document(*, network, world, chronicle, source_kind, source_url,
     keywords = [word.strip() for word in include_keywords.split(",") if word.strip()]
     # The public Scryde Telegram channel covers multiple worlds. A one-world
     # setup therefore defaults to a conservative world-name gate.
-    if source_kind == "telegram_public" and not keywords:
+    if source_kind in {"telegram_public", "scryde_forum"} and not keywords:
+        # These official public sources mix updates for different game worlds.
+        # An unfiltered default is unsafe; require a conservative world gate.
         keywords = [world.strip()]
     if source_kind == "l2dex_castles" and keywords:
         raise ValueError("L2Dex castle snapshots cannot use news keyword filters")
