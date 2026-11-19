@@ -40,6 +40,8 @@ GitHub scheduling may be delayed. Existing BSOE state remains in `site_state.jso
 
 ## Secrets and optional AI
 
+GitHub-only state is atomically saved **only when changed**; routine no-op checks avoid rewriting the JSON and adding Git commits. The runner prints a `state_changed` indicator for tracking state churn. See [GitHub-only storage notes](docs/GITHUB_FIRST.md).
+
 The new Community Bot requires **no Gemini key**. For Telegram output, configure `TG_TOKEN` and `TG_CHAT`; for Discord webhooks, configure `DISCORD_WEBHOOK`. Several destinations can share the optional `COMMUNITY_SECRETS_JSON` GitHub Secret containing environment-name-to-secret-value mappings.
 
 Only the legacy Scryde News Bot uses `GEMINI_API_KEY` and moderation destination `TG_CHAT_DEBUG`. Keep credentials in GitHub Settings → Secrets and variables → Actions. Never commit actual tokens, private chat IDs or webhooks in `community.json`, `site_state.json` or workflows. See [configuration details](docs/CONFIG_INVENTORY.md).

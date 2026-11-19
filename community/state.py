@@ -46,15 +46,31 @@ class DeliveryState:
             self.delivered = dict(sorted(self.delivered.items(), key=lambda pair: pair[1])[-MAX_DELIVERIES:])
 
     def save(self, path):
+        """Atomically persist only when canonical state bytes actually differ.
+
+        Return True if a write was necessary. Unchanged public GitHub-only
+        state creates no temp file, no mtime churn and no Git worktree diff.
+        """
         path = Path(path)
+        data = json.dumps({
+            "schema_version": SCHEMA_VERSION,
+            "delivered": self.delivered,
+            "cursors": self.cursors,
+        }, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+        try:
+            if path.read_bytes() == data:
+                return False
+        except FileNotFoundError:
+            pass
         path.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(prefix=".l2state-", dir=path.parent)
         try:
-            with os.fdopen(fd, "w", encoding="utf-8") as output:
-                json.dump({"schema_version": SCHEMA_VERSION, "delivered": self.delivered,
-                           "cursors": self.cursors}, output, ensure_ascii=False, indent=2, sort_keys=True)
-                output.write("\n")
+            with os.fdopen(fd, "wb") as output:
+                output.write(data)
+                output.flush()
+                os.fsync(output.fileno())
             os.replace(temp_name, path)
         finally:
             if os.path.exists(temp_name):
                 os.unlink(temp_name)
+        return True

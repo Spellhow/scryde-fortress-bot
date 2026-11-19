@@ -241,3 +241,24 @@ confirming the messages arrive.
 These tests cover two destinations, one fetch per source per run, independent
 receipts, different subscription languages and failed-target retry. Live
 multi-channel permission checks remain a separate verification step.
+
+
+## State write churn and GitHub Actions logs
+
+GitHub-only Community Bot stores hashed delivery acknowledgements and public
+source cursors in `community_deliveries.json`. It now writes the canonical,
+sorted JSON **only when the actual content differs**. A successful unchanged
+run will not create another temporary file, rewrite the state, or change its
+filesystem modification time. Changed content still uses a temporary file,
+an explicit file flush and filesystem sync, followed by atomic replacement.
+A simulated replacement failure leaves the previous state intact.
+
+The runner's summary now includes `state_changed=yes` or `state_changed=no`.
+The existing Git state-persistence step separately checks for an unchanged
+file and skips Git commits when there is no new state. Inspect the logs for
+these markers when estimating Git history churn and Actions overhead.
+
+A successful send that occurs just before a process crash *can still be
+delivered twice* if the receipt was not persisted to GitHub in time. The
+new no-op write optimization does **not** claim cross-process exactly-once
+delivery or solve that fundamental external acknowledgement window.
