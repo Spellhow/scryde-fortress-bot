@@ -183,3 +183,24 @@ a remote HTTPS domain is honest or that its content will never change, and
 it cannot reliably inspect secrets inside arbitrary body text. The HTTP
 fetcher has separate DNS/IP/redirect security controls. Configure only
 public sources with permission to repost their content.
+
+
+## L2Dex partially rendered castle rows
+
+A successfully downloaded ranking page is not necessarily complete. The
+L2Dex adapter now requires each accepted castle row to include the observed
+`Clan:` and `Attackers:` labels from the verified public table schema.
+A **missing label** makes that row untrustworthy. It is skipped, preserving
+any previously recorded owner/attacker information for that castle instead
+of resetting the attacker set to empty.
+
+An explicitly present label with an empty or `-` value still represents
+the site's observed empty field; legitimate withdrawal followed by
+re-registration continues to produce a new registration event. If **all**
+rows become untrustworthy, parsing fails and the existing per-source
+backoff applies. A trustworthy row from another castle on the same page
+can still produce its own observed owner change.
+
+This is conservative source-format validation, **not** verified proof of
+a real-world siege or capture, and it cannot catch all transient wrong
+values published by the game provider. Live accuracy checks remain open.
