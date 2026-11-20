@@ -288,3 +288,27 @@ membership, Telegram chat permissions, Discord webhook revocation, or actual
 API acceptance**. For those, use the separately authorized manual
 `Test Community Delivery` workflow with one test message per destination.
 A dry-run mode remains possible without any Secrets.
+
+
+## Partial progress when a polling run fails
+
+A public-source polling run can successfully publish to one or more
+destinations before a later unrelated step raises an exception. Community
+Bot now attempts to save the already acknowledged delivery hashes and
+source cursors **even when the Python runner exits with an error**. The
+GitHub Actions workflow has an independent `always()` persistence step:
+it tries to reconcile and push those saved receipts while retaining the
+failed-run signal, so operators can investigate the broken source without
+blindly resending all of the already accepted messages.
+
+The exception path logs the **error type only**, not the potentially
+sensitive exception text. An invalid existing state is never overwritten,
+a failure in credential setup does not create an unnecessary state file,
+and dry-runs never persist imagined receipts. Failed destinations keep
+their own records eligible for later retry.
+
+This reduces avoidable duplicates on a recoverable exception. It does
+**not** guarantee exactly-once messaging across a forced process kill,
+GitHub Actions cancellation, Git push failure, or a crash between the
+Telegram/Discord acceptance and local receipt update. Preserve that
+tradeoff explicitly until a transactional transport/store is available.
