@@ -262,3 +262,29 @@ A successful send that occurs just before a process crash *can still be
 delivered twice* if the receipt was not persisted to GitHub in time. The
 new no-op write optimization does **not** claim cross-process exactly-once
 delivery or solve that fundamental external acknowledgement window.
+
+
+## Credential preflight before live delivery
+
+`python3 community_runner.py --validate` verifies the JSON configuration
+without loading secrets. After setting repository Secrets, run
+`python3 community_runner.py --check-credentials` in an authorized
+environment with the Secrets injected. It performs **no fetches or sends**
+and does not write state. It reports only the count of active subscribed
+destinations and the names of missing/invalid secret *environment variables*,
+not token values, chat IDs or webhook URLs.
+
+The Community Bot workflow now performs this check before polling when
+`COMMUNITY_DRY_RUN` is not `true`. If one destination is missing a secret,
+the preflight is reported as degraded, **but does not block healthy
+destinations** from sending: source polling continues, successful receipts
+are persisted, and the overall job reports failure for investigation.
+Disabled-only/unsubscribed destinations are not required to provide secrets.
+
+The check recognizes ordinary GitHub Secrets and the existing flat JSON
+`COMMUNITY_SECRETS_JSON` mapping for multiple channels. It checks presence
+and the structural shape of Discord webhook URLs; **it cannot verify bot
+membership, Telegram chat permissions, Discord webhook revocation, or actual
+API acceptance**. For those, use the separately authorized manual
+`Test Community Delivery` workflow with one test message per destination.
+A dry-run mode remains possible without any Secrets.

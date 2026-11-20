@@ -8,11 +8,15 @@ from pathlib import Path
 from community.config import credential_environment, load_config
 from community.runner import run
 from community.state import DeliveryState
+from community.credential_preflight import check_credentials
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Lineage 2 community feed runner")
-    parser.add_argument("--validate", action="store_true", help="validate config without network")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--validate", action="store_true", help="validate config without network")
+    modes.add_argument("--check-credentials", action="store_true",
+                       help="offline check of configured delivery secret references")
     args = parser.parse_args(argv)
     path = Path(os.environ.get("COMMUNITY_CONFIG_FILE", "community.json"))
     if not path.exists():
@@ -26,6 +30,18 @@ def main(argv=None):
     if args.validate:
         print(f"Config valid: {len(config.sources)} sources, {len(config.destinations)} destinations")
         return 0
+    if args.check_credentials:
+        try:
+            active, issues = check_credentials(config, credential_environment())
+        except (ValueError, TypeError, OSError) as exc:
+            print(f"Credential preflight refused ({type(exc).__name__})")
+            return 2
+        print(f"Credential preflight: active_destinations={active}, issues={len(issues)}")
+        for variable, reason in issues:
+            # Only env-var *names* validated by Destination are displayed.
+            # Tokens, chat IDs, and webhook URL values are never logged.
+            print(f"warning: {variable}: {reason}")
+        return 1 if issues else 0
     state_path = Path(os.environ.get("COMMUNITY_STATE_FILE", "community_deliveries.json"))
     dry_run = os.environ.get("COMMUNITY_DRY_RUN", "false").lower() == "true"
     state_changed = False
