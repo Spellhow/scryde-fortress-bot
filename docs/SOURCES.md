@@ -204,3 +204,33 @@ can still produce its own observed owner change.
 This is conservative source-format validation, **not** verified proof of
 a real-world siege or capture, and it cannot catch all transient wrong
 values published by the game provider. Live accuracy checks remain open.
+
+
+## L2Dex event identities during delayed delivery retries
+
+L2Dex castle tracking intentionally **holds the previous ranking snapshot**
+when any destination rejects a new event, so an unsuccessful destination can
+retry. That means the same local `owner_generation` or `attack_generation`
+number can describe **different** public observations if the ranking changes
+again while a delivery is still pending.
+
+Owner-change event IDs now combine the generation number with a short hash
+of the observed **previous owner and new owner**. Siege-registration IDs
+combine the generation number with a hash of the **previous attacker list
+and newly registered attackers**. Retrying the *same* observation yields
+the same ID, while an actual intervening new owner or different attacker
+set gets a different receipt even if the generation has not advanced yet.
+
+This fixes a specific lost-alert failure: after Telegram accepts owner B
+but Discord fails, a later owner C will not be silently skipped by Telegram
+because the earlier B receipt had the same generation number.
+
+**Upgrade note:** This changes the receipt identity for newly observed
+L2Dex owner/registration events without changing the existing JSON state
+schema. Existing installed GitHub-only bots should upgrade after a
+**successful polling cycle without pending L2Dex delivery errors**, so
+there are no in-flight generation-only receipts from the old version.
+If upgrading during a partial failure, a previous event might get one
+extra retry under its new ID. This improvement cannot resurrect a previous
+observation that vanished from the provider before its failed destination
+recovered: durable public-news backlogs remain a separate P1 task.
