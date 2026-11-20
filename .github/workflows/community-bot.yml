@@ -37,6 +37,16 @@ jobs:
         run: python -m pip install -r requirements-community.txt
       - name: Validate configuration
         run: python community_runner.py --validate
+      - name: Check destination secrets without sending
+        id: credentials_check
+        if: ${{ vars.COMMUNITY_DRY_RUN != 'true' }}
+        continue-on-error: true
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          COMMUNITY_SECRETS_JSON: ${{ secrets.COMMUNITY_SECRETS_JSON }}
+        run: python community_runner.py --check-credentials
       - name: Poll public sources and deliver
         id: community_run
         continue-on-error: true
@@ -51,5 +61,5 @@ jobs:
         if: ${{ always() && vars.COMMUNITY_DRY_RUN != 'true' }}
         run: bash ./ops/persist_community_state.sh
       - name: Report any degraded polling or delivery
-        if: ${{ steps.community_run.outcome == 'failure' }}
+        if: ${{ steps.community_run.outcome == 'failure' || steps.credentials_check.outcome == 'failure' }}
         run: exit 1
