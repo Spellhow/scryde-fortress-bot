@@ -180,9 +180,15 @@ def diff_castles(previous: dict | None, current: dict[str, Castle], source, now:
         # adding a newly listed castle is baseline discovery, not a conquest.
         if old and old_owner and castle.owner and old_owner.casefold() != castle.owner.casefold():
             owner_gen += 1
+            # A failed destination holds the old snapshot for retry. A later
+            # observation can then have the SAME generation number but a
+            # DIFFERENT actual owner. Bind the event identity to both ends
+            # of the observed transition so earlier delivery receipts cannot
+            # silently suppress that subsequent new owner.
+            owner_revision = digest((old_owner.casefold(), castle.owner.casefold()))
             events.append(Event(
                 world=source.world, source_id=source.id,
-                external_id=f"castle:{identifier}:owner:{owner_gen}",
+                external_id=f"castle:{identifier}:owner:{owner_gen}:{owner_revision}",
                 kind="castle_owner_change",
                 title=f"{castle.name}: owner changed",
                 body=f"Observed owner change: {old_owner} → {castle.owner}. "
@@ -194,9 +200,15 @@ def diff_castles(previous: dict | None, current: dict[str, Castle], source, now:
         additions = sorted(new_attackers - past_attackers)
         if old and additions:
             attack_gen += 1
+            # Same principle for registrations. During a failed send, the
+            # snapshot remains pre-change and different newly listed clans
+            # would otherwise reuse the same generation/event receipt.
+            attack_revision = digest((
+                sorted(past_attackers), additions,
+            ))
             events.append(Event(
                 world=source.world, source_id=source.id,
-                external_id=f"castle:{identifier}:attack-registration:{attack_gen}",
+                external_id=f"castle:{identifier}:attack-registration:{attack_gen}:{attack_revision}",
                 kind="siege_registration",
                 title=f"{castle.name}: new siege registration",
                 body=f"New attackers listed: {', '.join(additions)}. "
