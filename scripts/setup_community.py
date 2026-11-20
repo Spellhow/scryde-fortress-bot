@@ -48,6 +48,12 @@ def build_document(*, network, world, chronicle, source_kind, source_url,
         keywords = [world.strip()]
     if source_kind == "l2dex_castles" and keywords:
         raise ValueError("L2Dex castle snapshots cannot use news keyword filters")
+    if not isinstance(clan, str):
+        raise ValueError("clan filter must be text")
+    if clan.strip() and source_kind != "l2dex_castles":
+        # News adapters have no trusted Event.clan value. Applying a clan
+        # filter here silently matches zero events even with a healthy feed.
+        raise ValueError("owner-clan filtering is only supported for L2Dex castles")
     world_spec = {"network": network, "name": world, "chronicle": chronicle}
     event_types = (
         ["castle_owner_change", "siege_registration"]

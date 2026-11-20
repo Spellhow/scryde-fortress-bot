@@ -27,6 +27,7 @@ on:
           - l2dex_castles
           - rss
           - telegram_public
+          - scryde_forum
           - json_api
           - webpage
       source_url:

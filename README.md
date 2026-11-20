@@ -34,7 +34,7 @@ Legacy Scryde monitoring uses two workflows: [News Bot](.github/workflows/news-b
 5. Manually run **Community Bot (GitHub-only)** to inspect the dry-run. Turn dry-run off and run once to create the initial silent baseline in `community_deliveries.json`.
 6. Run **Actions → Test Community Delivery (manual)**, choose your configured destination alias and explicitly confirm sending one diagnostic message. This is disabled in the original BSOE repository. Confirm receipt before setting `RUN_GITHUB_SCHEDULE=true`.
 
-For a second Telegram or Discord channel, use `scripts/add_community_destination.py` to generate a separate validated candidate `community.updated.json`. It only references GitHub Secrets by variable name; it does not send a message or overwrite your current config. [Multi-destination CLI instructions](docs/GITHUB_FIRST.md#add-a-second-telegram-or-discord-destination).
+For a second Telegram or Discord channel, use `scripts/add_community_destination.py` to generate a separate validated candidate `community.updated.json`. It only references GitHub Secrets by variable name; it does not send a message or overwrite your current config. [Multi-destination CLI instructions](docs/GITHUB_FIRST.md#add-a-second-telegram-or-discord-destination). The one-time GitHub Actions source chooser also supports `scryde_forum` and rejects owner-clan filters on news feeds.
 
 GitHub scheduling may be delayed. Existing BSOE state remains in `site_state.json` in this source repository; fresh community installations keep an independent `community_deliveries.json`. See [complete GitHub-first setup](docs/GITHUB_FIRST.md).
 
