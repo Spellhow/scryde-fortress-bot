@@ -226,5 +226,57 @@ class AddDestinationTests(unittest.TestCase):
             self.assertEqual("TG_SECOND_CHAT",target["address_env"])
 
 
+class AddDestinationWorkflowContractTests(unittest.TestCase):
+    def setUp(self):
+        self.yaml=(Path(__file__).resolve().parent/
+                   ".github/workflows/add-community-destination.yml").read_text()
+
+    def test_manual_only_confirmation_and_default_branch_scope(self):
+        import re
+        content=self.yaml
+        self.assertIn("workflow_dispatch:",content)
+        self.assertNotIn("\n  schedule:",content)
+        self.assertIn("github.repository != 'Spellhow/scryde-fortress-bot'",content)
+        self.assertIn("github.ref_name == github.event.repository.default_branch",content)
+        self.assertIn("&& inputs.confirm",content)
+        self.assertIn("default: false",content)
+        input_block=content.split("    inputs:",1)[1].split("\npermissions:",1)[0]
+        keys=re.findall(r"^      ([a-z_]+):$",input_block,re.M)
+        self.assertEqual(9,len(keys))
+        self.assertLessEqual(len(keys),10)
+        self.assertIn("address_env",keys)
+        self.assertIn("token_env",keys)
+
+    def test_workflow_uses_validated_candidate_cli_not_raw_json(self):
+        content=self.yaml
+        self.assertIn("python scripts/add_community_destination.py",content)
+        self.assertIn("--config community.json",content)
+        self.assertIn("--output community.updated.json",content)
+        self.assertIn("mv -- community.updated.json community.json",content)
+        self.assertIn("git add -- community.json",content)
+        self.assertNotIn("git add .",content)
+        self.assertIn("group: scryde-state",content)
+        self.assertIn("cancel-in-progress: false",content)
+        self.assertNotIn("git add -- site_state.json",content)
+        self.assertNotIn("COMMUNITY_SECRETS_JSON",content)
+        self.assertNotIn("secrets.",content)
+
+    def test_dispatch_fields_are_quoted_environment_variables(self):
+        content=self.yaml
+        for name,field in (
+            ("NEW_SOURCE_ID","source_id"),
+            ("NEW_DESTINATION_ALIAS","destination_alias"),
+            ("NEW_DESTINATION_KIND","kind"),
+            ("NEW_ADDRESS_ENV","address_env"),
+            ("NEW_TOKEN_ENV","token_env"),
+            ("NEW_LANGUAGE","language"),
+            ("NEW_EVENT_TYPES","event_types"),
+            ("NEW_CLANS","clans"),
+        ):
+            self.assertIn(name+": ${{ inputs."+field+" }}",content)
+            self.assertIn('"$'+name+'"',content)
+        self.assertNotIn("echo $",content)
+
+
 if __name__=="__main__":
     unittest.main()

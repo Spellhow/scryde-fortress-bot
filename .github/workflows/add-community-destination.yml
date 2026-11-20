@@ -1,0 +1,108 @@
+name: Add Community Destination (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_id:
+        description: 'Existing public source alias in community.json'
+        required: true
+        default: initial-source
+        type: string
+      destination_alias:
+        description: 'Unique public alias (NOT a chat ID)'
+        required: true
+        default: second-channel
+        type: string
+      kind:
+        description: 'Outbound platform'
+        required: true
+        default: discord
+        type: choice
+        options:
+          - telegram
+          - discord
+      address_env:
+        description: 'GitHub Secret VARIABLE NAME only; never paste a webhook or chat ID'
+        required: true
+        default: DISCORD_WEBHOOK_SECOND
+        type: string
+      token_env:
+        description: 'Telegram bot token VARIABLE NAME (blank uses TG_TOKEN)'
+        required: false
+        default: ''
+        type: string
+      language:
+        description: 'Subscription metadata language; no automatic translation'
+        required: true
+        default: uk
+        type: string
+      event_types:
+        description: 'Optional comma-separated source event kinds'
+        required: false
+        default: ''
+        type: string
+      clans:
+        description: 'Optional owner-clan filter for L2Dex castles only'
+        required: false
+        default: ''
+        type: string
+      confirm:
+        description: 'Commit validated destination configuration to default branch?'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scryde-state
+  cancel-in-progress: false
+
+jobs:
+  add:
+    # Setup is a deliberate operation in a template copy, never in the
+    # original maintainer repository or an unexpected branch.
+    if: github.repository != 'Spellhow/scryde-fortress-bot' && github.ref_name == github.event.repository.default_branch && inputs.confirm
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare validated candidate config without secrets or HTTP
+        env:
+          NEW_SOURCE_ID: ${{ inputs.source_id }}
+          NEW_DESTINATION_ALIAS: ${{ inputs.destination_alias }}
+          NEW_DESTINATION_KIND: ${{ inputs.kind }}
+          NEW_ADDRESS_ENV: ${{ inputs.address_env }}
+          NEW_TOKEN_ENV: ${{ inputs.token_env }}
+          NEW_LANGUAGE: ${{ inputs.language }}
+          NEW_EVENT_TYPES: ${{ inputs.event_types }}
+          NEW_CLANS: ${{ inputs.clans }}
+        run: |
+          python scripts/add_community_destination.py \
+            --config community.json \
+            --source-id "$NEW_SOURCE_ID" \
+            --alias "$NEW_DESTINATION_ALIAS" \
+            --kind "$NEW_DESTINATION_KIND" \
+            --address-env "$NEW_ADDRESS_ENV" \
+            --token-env "$NEW_TOKEN_ENV" \
+            --language "$NEW_LANGUAGE" \
+            --event-types "$NEW_EVENT_TYPES" \
+            --clans "$NEW_CLANS" \
+            --output community.updated.json
+      - name: Commit only validated community configuration
+        run: |
+          test -f community.updated.json
+          mv -- community.updated.json community.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- community.json
+          git diff --cached --quiet && { echo "No new destination to commit"; exit 1; }
+          git commit -m "chore: add Community Bot destination"
+          git push origin HEAD:${{ github.event.repository.default_branch }}
