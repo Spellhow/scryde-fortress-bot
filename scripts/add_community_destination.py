@@ -108,8 +108,8 @@ def main(argv=None):
         print(f"Destination setup refused ({type(exc).__name__}); no existing config modified",
               file=sys.stderr)
         return 2
-    print("Candidate config created. Review it, add the referenced GitHub Secret(s), "
-          "then promote the candidate to community.json. No live message sent.")
+    print("Candidate config created. Add the referenced GitHub Secret(s) and "
+          "review before using or committing the configuration. No live message sent.")
     return 0
 
 

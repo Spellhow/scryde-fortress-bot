@@ -208,6 +208,39 @@ GitHub Actions cron accuracy or the availability of a site. Other sources,
 destinations, and scheduled/manual reminders continue running.
 
 
+## Add a second destination from GitHub Actions (no command line)
+
+In a repository created with **Use this template**, open
+**Actions → Add Community Destination (manual) → Run workflow**.
+Choose the public `source_id` already present in `community.json`, a
+unique destination alias, Telegram or Discord, and the **name** of the
+GitHub Actions Secret containing the target address/webhook. For Telegram
+you can leave `token_env` blank to reuse the `TG_TOKEN` secret reference
+or specify a different token *variable name*. Set the event types and
+language only if needed; a clan filter works only with the verified L2Dex
+owner-clan field.
+
+Enable the **confirmation checkbox** only after checking the inputs.
+This manual, opt-in workflow creates and validates a temporary candidate
+configuration and commits **only `community.json`** to the repository's
+default branch. It will refuse an existing destination alias, missing
+source, invalid secret-variable name, unsupported filters or an absent
+base config. It cannot run in the original maintainer repository or from
+an alternate branch. It never reads secret values, fetches game data,
+contacts Telegram/Discord or sends a message.
+
+**Important:** never paste a *token, webhook URL or private chat ID* into
+GitHub Actions form inputs; those input values may be visible in workflow
+logs and metadata. Enter only a public alias or environment variable
+reference. Add or update the actual secret value under repository
+Settings → Secrets and variables → Actions **after** the config commit.
+Check credentials and use the separately authorized manual delivery test
+before enabling scheduled delivery. The workflow does not independently
+verify real Telegram permissions or live Discord webhook acceptance.
+
+The local CLI described below remains available when you want to review
+a candidate JSON before promoting it.
+
 ## Add a second Telegram or Discord destination
 
 The one-time setup workflow creates **one destination**. To add another without
