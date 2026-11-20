@@ -83,6 +83,20 @@ After configuration, set the following in your own repository:
 
 The setup workflow does not request or handle actual Telegram chat IDs, bot tokens or Discord webhook secrets. It is intentionally one-time to avoid overwriting customized subscriptions.
 
+The **source type** selector includes the official public Scryde forum
+(`scryde_forum`), in addition to L2Dex, RSS, JSON, public Telegram and
+ordinary HTML. For the Scryde public updates thread, use an accessible
+public page of `https://board.scryde.net/threads/obnovlenija.30694` and
+select the intended Scryde world. The setup defaults its news keyword
+gate to that world name, avoiding unrelated server updates.
+
+The optional `clan` input is for a verified **owner-clan filter on L2Dex
+castle data only**. Do not fill it for RSS, forum, Telegram or other news
+feeds: these sources cannot reliably label a clan, and previously that
+configuration could silently match no news. Invalid combinations now fail
+setup before creating any config. Onboarding tests assert that the GitHub
+Actions source choices match the kinds supported by the parser code.
+
 If you prefer a local shell, run `python scripts/setup_community.py --help`. Neither setup path needs a VPS, Docker or browser.
 
 

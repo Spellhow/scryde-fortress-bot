@@ -90,6 +90,54 @@ class SetupTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_document(**self.args(include_keywords="x1000"))
 
+    def test_setup_workflow_choice_list_stays_in_sync_with_supported_sources(self):
+        import re
+        from community.config import SOURCE_KINDS
+        workflow=(Path(__file__).resolve().parent/
+                  ".github/workflows/setup-community.yml").read_text(encoding="utf8")
+        section=workflow.split("      source_kind:",1)[1].split("      source_url:",1)[0]
+        choices=set(re.findall(r"^          - ([a-z0-9_]+)$",section,re.M))
+        self.assertEqual(SOURCE_KINDS,choices)
+        self.assertIn("scryde_forum",choices)
+
+    def test_news_sources_reject_clan_filter_instead_of_silent_empty_channel(self):
+        cases=(
+            ("rss","https://example.org/feed"),
+            ("telegram_public","https://t.me/s/scryde"),
+            ("json_api","https://example.org/data.json"),
+            ("webpage","https://example.org/news"),
+            ("scryde_forum",
+             "https://board.scryde.net/threads/obnovlenija.30694/page-18"),
+        )
+        for kind,url in cases:
+            with self.subTest(kind=kind),self.assertRaises(ValueError):
+                build_document(**self.args(
+                    network="Scryde",world="x1000",source_kind=kind,
+                    source_url=url,clan="BSOE"
+                ))
+
+    def test_l2dex_owner_clan_filter_still_works(self):
+        document=build_document(**self.args(clan="  BSOE  "))
+        cfg=parse_config(document)
+        self.assertEqual(frozenset({"BSOE"}),cfg.subscriptions[0].clans)
+        with self.assertRaises(ValueError):
+            build_document(**self.args(clan=None))
+
+    def test_setup_cli_refuses_news_clan_and_does_not_create_config(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/"community.json"
+            argv=[
+                sys.executable,str(Path(__file__).resolve().parent/"scripts/setup_community.py"),
+                "--network","Scryde","--world","x1000",
+                "--source-kind","scryde_forum",
+                "--source-url","https://board.scryde.net/threads/obnovlenija.30694/page-18",
+                "--clan","BSOE","--output",str(path),
+            ]
+            result=subprocess.run(argv,capture_output=True,text=True)
+            self.assertEqual(2,result.returncode)
+            self.assertIn("Setup refused",result.stderr)
+            self.assertFalse(path.exists())
+
     def test_exclusive_file_does_not_overwrite(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/"community.json"
