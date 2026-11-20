@@ -48,10 +48,17 @@ def main(argv=None):
     try:
         state = DeliveryState.load(state_path)
         credentials = credential_environment()
-        summary = run(config, state, credentials=credentials, dry_run=dry_run)
-        if not dry_run:
-            state_changed = state.save(state_path)
+        try:
+            summary = run(config, state, credentials=credentials, dry_run=dry_run)
+        finally:
+            # run() may have already acknowledged some successful sends or
+            # warmed a source before an unrelated later step raises. Retain
+            # those receipts even on an unexpected exception; the workflow's
+            # always-run Git persistence step can then commit partial progress.
+            if not dry_run:
+                state_changed = state.save(state_path)
     except Exception as exc:
+        # Never log exception messages: transports can put tokens/URLs there.
         print(f"Community runner failed safely ({type(exc).__name__})")
         return 1
     print(
