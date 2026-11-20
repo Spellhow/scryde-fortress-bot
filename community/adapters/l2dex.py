@@ -70,6 +70,14 @@ def _label(text, name):
     return re.sub(r"\s+", " ", match.group(1)).strip() if match else ""
 
 
+def _has_label(text, name):
+    """Distinguish a missing source field from a genuine empty/- value."""
+    return bool(re.search(
+        r"(?:^|\n)\s*" + re.escape(name) + r":",
+        text, re.I,
+    ))
+
+
 def _clans(text, label):
     value = _label(text, label)
     if value in ("", "-", "—"):
@@ -98,6 +106,13 @@ def parse_castles(html_text: str) -> dict[str, Castle]:
             continue
         if identifier in castles:
             raise ValueError("duplicate castle ID")
+        # A partially loaded row missing its Clan/Attackers field is NOT
+        # evidence of a changed owner or a withdrawn siege registration.
+        # In particular, interpreting missing Attackers as an empty set
+        # would invent a new registration when that field reappears.
+        # A present but blank or dash value still means observed no attackers.
+        if not _has_label(info, "Clan") or not _has_label(siege, "Attackers"):
+            continue
         castles[identifier] = Castle(
             identifier=identifier, name=name,
             owner=("" if _label(info, "Clan") in ("-", "—") else _label(info, "Clan")),
