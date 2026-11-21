@@ -33,6 +33,24 @@ def _event(world, source_id, external_id, title, body, link, now, kind="news"):
                  source_url=link, provenance=Provenance.OBSERVED, observed_at=now)
 
 
+def _without_ambiguous_ids(events):
+    """Drop *all* conflicting articles sharing one normalized event ID.
+
+    A source can repeat an RSS GUID / Atom ID / JSON ID with different text.
+    Selecting the first item would publish whichever version happened to be
+    listed first; treating the last as authoritative is just as arbitrary.
+    Retain source order for unambiguous items only. This never mutates events.
+    """
+    seen = set()
+    ambiguous = set()
+    for event in events:
+        key = event.event_id
+        if key in seen:
+            ambiguous.add(key)
+        seen.add(key)
+    return [event for event in events if event.event_id not in ambiguous]
+
+
 def parse_rss(text, source, now=None):
     if "<!DOCTYPE" in text.upper() or "<!ENTITY" in text.upper():
         raise ValueError("RSS external entities are forbidden")
@@ -65,6 +83,7 @@ def parse_rss(text, source, now=None):
         eid = entry.findtext(f"{namespace}id") or link or title
         result = _event(source.world, source.id, eid, title, body, link, now)
         if result: events.append(result)
+    events = _without_ambiguous_ids(events)
     if (rss_items or atom_entries) and not events:
         # An actual empty RSS/Atom feed is valid; one with entries that
         # *all* fail normalization cannot safely warm or advance cursors.
@@ -141,6 +160,7 @@ def parse_json_api(text, source, now=None):
             continue
         result = _event(source.world, source.id, str(eid), title, body, link, now, kind=kind)
         if result: events.append(result)
+    events = _without_ambiguous_ids(events)
     if data and not events:
         raise ValueError("JSON feed entries unavailable after validation")
     return events
