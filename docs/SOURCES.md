@@ -282,3 +282,32 @@ publisher's raw ID.
 The check is conservative, and it does not detect aliases or content
 changes that come with *different* IDs. Only valid normalized entries
 are compared; independently rejected unsafe entries are not published.
+
+
+## Stable HTML news IDs when page order changes
+
+Generic `webpage` sources previously included the **position of the
+article** (0–9) in their normalized external event ID. Adding a new
+article to the beginning of a page or reordering existing articles
+therefore changed old event IDs and could resend their announcements.
+
+HTML article IDs now depend on a bounded digest of their normalized
+content, independent of the page position. Identical repeated content
+within one snapshot is published at most once. Genuine edited content
+receives a new ID; the format does not automatically classify editor
+changes as corrections to an existing news post.
+
+**Backward compatibility:** Existing deployments can already have
+receipt hashes from the old `position:content_hash` ID scheme. On
+a successful source read, for each previously warmed subscription the
+new runner checks the 10 old valid positions for a confirmed receipt
+matching the same content digest. It carries that acknowledgement
+forward to the new stable ID **without resending it**, even if the
+site reordered the page. Unacknowledged per-destination events remain
+eligible for retry. This conversion uses only already stored hashed
+receipts; it makes no external calls and dry-runs remain read-only.
+
+The migration cannot protect old receipts already evicted from the
+bounded 10,000-entry store or posts whose content changed at the same
+time as the upgrade. The existing at-least-once crash/persistence
+limitations still apply.
