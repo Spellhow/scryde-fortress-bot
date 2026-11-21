@@ -258,3 +258,27 @@ unsafe entries are skipped.
 This is a format/validation check, not proof of editorial accuracy,
 permission to republish, or a replacement for ongoing source health
 monitoring.
+
+
+## Conflicting post identifiers in public feeds
+
+RSS `guid`, Atom `id`, and JSON post `id` values are supplied by the
+external publisher. A broken or inconsistent source can provide two
+different posts with the **same normalized event identity** in one
+snapshot. Taking the first or last would arbitrarily select a message
+to deliver, and existing dedupe receipts could suppress the corrected
+version later.
+
+The Community Bot now quarantines **all** articles with such a duplicated
+source event identity, including identical repeated entries. Distinct,
+unambiguous articles in the same snapshot remain eligible for delivery.
+If the snapshot contains no valid unambiguous events as a result, it is
+handled as a source parsing failure and retried via the existing
+per-parser cooldown, without warming the subscription or acknowledging
+an arbitrary post. IDs are scoped to the selected world, source and
+event kind, so two intentionally different event kinds can use the same
+publisher's raw ID.
+
+The check is conservative, and it does not detect aliases or content
+changes that come with *different* IDs. Only valid normalized entries
+are compared; independently rejected unsafe entries are not published.
