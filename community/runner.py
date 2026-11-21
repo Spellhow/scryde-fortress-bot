@@ -7,13 +7,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Callable
 
-from .adapters.feeds import PARSERS
+from .adapters.feeds import PARSERS, MAX_WEBPAGE_NODES
 from .adapters.l2dex import parse_castles, diff_castles, state_key
 from .fetch import fetch_public_text
 from .models import digest
 from .publishers import send_event
 from .router import dispatch_events
-from .state import DeliveryState
+from .state import DeliveryState, delivery_key
 from .schedules import due_reminders
 from .relevance import filter_events
 from .source_limits import FetchBudget, FetchUnavailable, FetchBudgetExceeded
@@ -27,6 +27,39 @@ def _legacy_suppressed(state, source, destination_id, event):
         suppress_legacy_public_news(state, source, destination_id, event)
         or suppress_legacy_forum_post(state, source, destination_id, event)
     )
+
+
+def _carry_forward_old_webpage_receipts(state, events, subscriptions):
+    """Upgrade delivered old position-dependent HTML events without sends.
+
+    Historical parse_webpage() event IDs used position:body_hash. The same
+    content was therefore re-announced after a simple reordering. Probe all
+    historical bounded positions for an existing accepted destination
+    receipt and transfer its acknowledgement to the new content-stable ID.
+    No remote reads or private state are involved; failed events still retry.
+    """
+    for sub in subscriptions:
+        for event in events:
+            if not sub.matches(event) or state.was_delivered(
+                sub.destination_id, event.event_id
+            ):
+                continue
+            if not event.external_id.startswith("content:"):
+                continue
+            fingerprint = event.external_id.split(":", 1)[1]
+            for index in range(MAX_WEBPAGE_NODES):
+                old_event_id = digest((
+                    event.world.identity, event.source_id.casefold(),
+                    f"{index}:{fingerprint}", event.kind,
+                ))
+                old_ack = state.delivered.get(
+                    delivery_key(sub.destination_id, old_event_id)
+                )
+                if old_ack is not None:
+                    state.mark_delivered(
+                        sub.destination_id, event.event_id, old_ack,
+                    )
+                    break
 
 
 @dataclass(frozen=True)
@@ -147,6 +180,10 @@ def run(config, state: DeliveryState, *, fetch=fetch_public_text,
                 active_subs.append(sub)
         if dry_run:
             continue
+        if source.kind == "webpage" and active_subs:
+            _carry_forward_old_webpage_receipts(
+                state, events, active_subs,
+            )
         outcome = dispatch_events(
             events, active_subs, config.destinations, state,
             lambda dest, ev, lang: send(dest, ev, lang, credentials),

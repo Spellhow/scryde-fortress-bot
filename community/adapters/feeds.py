@@ -166,25 +166,36 @@ def parse_json_api(text, source, now=None):
     return events
 
 
+MAX_WEBPAGE_NODES = 10
+
+
 def parse_webpage(text, source, now=None):
     now = now or datetime.now(timezone.utc)
     soup = BeautifulSoup(text, "html.parser")
     selector = source.selector or "article, main"
-    nodes = soup.select(selector, limit=10)
+    nodes = soup.select(selector, limit=MAX_WEBPAGE_NODES)
     if not nodes:
         # Misconfigured CSS and anti-bot/error pages must be retried rather
         # than marking a live source's warmup as successful with no posts.
         raise ValueError("webpage selector not present")
-    events = []
-    for index, node in enumerate(nodes):
+    # Stable content-based IDs: the position of an article within a list
+    # may change when the site inserts/reorders unrelated posts. Repeating
+    # identical content in multiple page sections must not generate sends.
+    by_content = {}
+    for node in nodes:
         body = _plain(str(node))
         if not body or len(body) < 30:
             continue
         title_node = node.select_one("h1, h2, h3")
         title = title_node.get_text(" ", strip=True) if title_node else "Website update"
         fingerprint = hashlib.sha256(body.encode("utf-8")).hexdigest()[:20]
-        result = _event(source.world, source.id, f"{index}:{fingerprint}", title, body, source.url, now, kind="patch_note")
-        if result: events.append(result)
+        result = _event(
+            source.world, source.id, f"content:{fingerprint}",
+            title, body, source.url, now, kind="patch_note",
+        )
+        if result and result.event_id not in by_content:
+            by_content[result.event_id] = result
+    events = list(by_content.values())
     if not events:
         raise ValueError("webpage content unavailable after validation")
     return events
