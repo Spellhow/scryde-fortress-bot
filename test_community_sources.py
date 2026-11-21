@@ -55,10 +55,12 @@ class SourceTests(unittest.TestCase):
             parse_config(base)
 
     def test_json_feed_rejects_unsafe_links(self):
-        rows = parse_json_api(
-            '{"events":[{"id":"42","title":"Update","body":"Test","url":"javascript:alert(1)"}]}',
-            source("json_api"), NOW)
-        self.assertEqual([], rows)
+        # A nonempty source containing only unsafe entries is unavailable,
+        # not an empty successful first-run baseline.
+        with self.assertRaises(ValueError):
+            parse_json_api(
+                '{"events":[{"id":"42","title":"Update","body":"Test","url":"javascript:alert(1)"}]}',
+                source("json_api"), NOW)
 
     def test_secret_map_is_never_sourced_from_config(self):
         env = credential_environment({"COMMUNITY_SECRETS_JSON": '{"TG_CHAT":"-123","TG_TOKEN":"secret"}'})

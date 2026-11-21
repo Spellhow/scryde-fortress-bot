@@ -47,7 +47,9 @@ def parse_rss(text, source, now=None):
         # as a broken source, never as an empty successful feed baseline.
         raise ValueError("not an RSS or Atom document")
     events = []
-    for item in root.findall(".//item"):
+    rss_items = root.findall(".//item")
+    atom_entries = root.findall(".//{http://www.w3.org/2005/Atom}entry")
+    for item in rss_items:
         title = (item.findtext("title") or "").strip()
         body = _plain(item.findtext("description") or item.findtext("{http://purl.org/rss/1.0/modules/content/}encoded") or title)
         link = (item.findtext("link") or source.url).strip()
@@ -55,7 +57,7 @@ def parse_rss(text, source, now=None):
         result = _event(source.world, source.id, eid, title, body, link, now)
         if result: events.append(result)
     namespace = "{http://www.w3.org/2005/Atom}"
-    for entry in root.findall(f".//{namespace}entry"):
+    for entry in atom_entries:
         title = (entry.findtext(f"{namespace}title") or "").strip()
         body = _plain(entry.findtext(f"{namespace}summary") or entry.findtext(f"{namespace}content") or title)
         link_element = entry.find(f"{namespace}link")
@@ -63,6 +65,10 @@ def parse_rss(text, source, now=None):
         eid = entry.findtext(f"{namespace}id") or link or title
         result = _event(source.world, source.id, eid, title, body, link, now)
         if result: events.append(result)
+    if (rss_items or atom_entries) and not events:
+        # An actual empty RSS/Atom feed is valid; one with entries that
+        # *all* fail normalization cannot safely warm or advance cursors.
+        raise ValueError("RSS/Atom entries unavailable after validation")
     return events
 
 
@@ -135,6 +141,8 @@ def parse_json_api(text, source, now=None):
             continue
         result = _event(source.world, source.id, str(eid), title, body, link, now, kind=kind)
         if result: events.append(result)
+    if data and not events:
+        raise ValueError("JSON feed entries unavailable after validation")
     return events
 
 
@@ -157,6 +165,8 @@ def parse_webpage(text, source, now=None):
         fingerprint = hashlib.sha256(body.encode("utf-8")).hexdigest()[:20]
         result = _event(source.world, source.id, f"{index}:{fingerprint}", title, body, source.url, now, kind="patch_note")
         if result: events.append(result)
+    if not events:
+        raise ValueError("webpage content unavailable after validation")
     return events
 
 

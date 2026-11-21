@@ -234,3 +234,27 @@ If upgrading during a partial failure, a previous event might get one
 extra retry under its new ID. This improvement cannot resurrect a previous
 observation that vanished from the provider before its failed destination
 recovered: durable public-news backlogs remain a separate P1 task.
+
+
+## Populated but entirely unusable news snapshots
+
+The new Community Bot distinguishes a truly empty public feed from one
+that contains records that cannot be trusted. A valid empty RSS/Atom feed
+or empty JSON array still means no articles are available. However, when
+a populated RSS/Atom or JSON feed has **zero valid normalized articles**
+(for example because every link contains a secret or the provider changed
+its field types), the parser fails closed. Likewise, a generic HTML page
+whose configured selector matches elements but yields only empty or
+too-short content is **not** accepted as a successful baseline.
+
+The existing per-parser retry cooldown is then used and **subscription
+warm-start markers, delivery acknowledgements and other healthy sources
+remain intact**. Once the provider returns valid data, the first
+successful read can safely initialize a previously unwarmed source; only
+subsequent new events are eligible for notification. Mixed feeds with
+at least one trustworthy article continue publishing that article, while
+unsafe entries are skipped.
+
+This is a format/validation check, not proof of editorial accuracy,
+permission to republish, or a replacement for ongoing source health
+monitoring.
